@@ -1,0 +1,350 @@
+/* ─── Music card ────────────────────────────────────────────────── */
+.admin-music-card {
+  background: linear-gradient(160deg, #0e1c3a 0%, #0a1428 100%);
+  border: 1px solid rgba(96, 165, 250, 0.1);
+  border-radius: 18px;
+  padding: 0;
+  transition: all 0.24s ease;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.admin-music-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  opacity: 0;
+  background: linear-gradient(160deg, rgba(59, 130, 246, 0.06) 0%, transparent 60%);
+  transition: opacity 0.24s;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.admin-music-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(96, 165, 250, 0.24);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(96, 165, 250, 0.1);
+}
+
+.admin-music-card:hover::before {
+  opacity: 1;
+}
+
+.admin-music-card.active {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(59, 130, 246, 0.2),
+    0 16px 36px rgba(0, 0, 0, 0.36);
+}
+
+.admin-music-card.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb);
+  z-index: 2;
+  border-radius: 18px 18px 0 0;
+}
+
+/* ─── Cover ─────────────────────────────────────────────────────── */
+.card-cover-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #08142a;
+  flex-shrink: 0;
+}
+
+.card-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.32s ease;
+}
+
+.admin-music-card:hover .card-cover {
+  transform: scale(1.06);
+}
+
+.card-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #1e3a6e;
+  background: linear-gradient(135deg, #0a1a36, #0d1e3e);
+}
+
+/* Cover gradient overlay */
+.card-cover-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(8, 18, 40, 0.7) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Play button */
+.play-floating-btn {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow:
+    0 6px 18px rgba(37, 99, 235, 0.5),
+    0 0 0 2px rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform: translateY(10px) scale(0.88);
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 2;
+  font-size: 16px;
+}
+
+.admin-music-card:hover .play-floating-btn {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.play-floating-btn:hover {
+  background: #1d4ed8;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.65);
+  transform: scale(1.08) !important;
+}
+
+/* ─── Card content ──────────────────────────────────────────────── */
+.card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 14px 14px 12px;
+  position: relative;
+  z-index: 1;
+  gap: 10px;
+}
+
+/* ─── Track info ────────────────────────────────────────────────── */
+.card-top {
+  min-width: 0;
+}
+
+.card-top h3 {
+  margin: 0 0 4px;
+  color: #f0f6ff;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.2px;
+}
+
+.artist {
+  margin: 0 0 2px;
+  color: #93c5fd;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.author {
+  margin: 0;
+  color: #4a6080;
+  font-size: 11.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Status chips ──────────────────────────────────────────────── */
+.status-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 22px;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  letter-spacing: 0.03em;
+}
+
+.status-chip .el-icon {
+  font-size: 10px;
+}
+
+.status-chip.liked {
+  background: rgba(250, 204, 21, 0.1);
+  color: #fbbf24;
+  border-color: rgba(250, 204, 21, 0.2);
+}
+
+.status-chip.downloadable {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.22);
+}
+
+.status-chip.tagged {
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.18);
+}
+
+/* ─── Tags ──────────────────────────────────────────────────────── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-height: 0;
+}
+
+.tag-chip {
+  background: rgba(96, 165, 250, 0.08);
+  color: #64748b;
+  border: 1px solid rgba(96, 165, 250, 0.12);
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  transition: color 0.16s;
+}
+
+.admin-music-card:hover .tag-chip {
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.22);
+}
+
+/* ─── Action buttons ────────────────────────────────────────────── */
+.card-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.icon-btn {
+  height: 34px;
+  border: 1px solid rgba(96, 165, 250, 0.1);
+  border-radius: 10px;
+  background: rgba(15, 32, 68, 0.7);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.icon-btn:hover {
+  background: #162654;
+  border-color: rgba(96, 165, 250, 0.24);
+  color: #e2e8f0;
+  transform: translateY(-1px);
+}
+
+/* Edit */
+.icon-btn:first-child:hover {
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+/* Like active */
+.icon-btn.activeLike {
+  background: rgba(250, 204, 21, 0.12);
+  border-color: rgba(250, 204, 21, 0.24);
+  color: #fbbf24;
+}
+
+.icon-btn.activeLike:hover {
+  background: rgba(250, 204, 21, 0.2);
+}
+
+/* Download active */
+.icon-btn.activeDownload {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.28);
+  color: #60a5fa;
+}
+
+.icon-btn.activeDownload:hover {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+/* Delete */
+.icon-btn.delete {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.18);
+  color: #f87171;
+}
+
+.icon-btn.delete:hover {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(220, 38, 38, 0.32);
+  color: #fca5a5;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .admin-music-card {
+    border-radius: 14px;
+  }
+
+  .card-content {
+    padding: 12px 12px 10px;
+  }
+
+  .card-top h3 {
+    font-size: 15px;
+  }
+
+  .icon-btn {
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .play-floating-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}

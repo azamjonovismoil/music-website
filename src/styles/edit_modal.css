@@ -1,0 +1,510 @@
+/* ─── Force Element Plus CSS variables ─────────────────────────── */
+.edit-music-dialog,
+.edit-music-dialog .el-dialog {
+  --el-bg-color: #0f2044 !important;
+  --el-bg-color-overlay: #0f2044 !important;
+  --el-fill-color-blank: #0f2044 !important;
+  --el-color-white: #0f2044 !important;
+  --el-dialog-bg-color: #0f2044 !important;
+  --el-text-color-primary: #ffffff !important;
+  --el-text-color-regular: #cbd5e1 !important;
+  --el-border-color: rgba(96, 165, 250, 0.18) !important;
+  --el-border-color-light: rgba(96, 165, 250, 0.12) !important;
+}
+
+/* ─── Overlay ───────────────────────────────────────────────────── */
+.edit-music-overlay {
+  background: rgba(6, 10, 22, 0.84) !important;
+  backdrop-filter: blur(6px);
+}
+
+/* ─── Dialog shell ──────────────────────────────────────────────── */
+.edit-music-dialog .el-dialog {
+  width: min(720px, 94vw) !important;
+  max-height: 88vh !important;
+  background: #0f2044 !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(96, 165, 250, 0.16) !important;
+  box-shadow:
+    0 20px 56px rgba(0, 0, 0, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ─── Header ────────────────────────────────────────────────────── */
+.edit-music-dialog .el-dialog__header {
+  padding: 18px 20px 10px !important;
+  background: #0f2044 !important;
+  border-bottom: 1px solid rgba(96, 165, 250, 0.1);
+}
+
+.edit-music-dialog .el-dialog__title {
+  color: #ffffff !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+}
+
+.edit-music-dialog .el-dialog__headerbtn .el-dialog__close {
+  color: #94a3b8 !important;
+  font-size: 18px;
+}
+
+.edit-music-dialog .el-dialog__headerbtn:hover .el-dialog__close {
+  color: #ffffff !important;
+}
+
+/* ─── Body ──────────────────────────────────────────────────────── */
+.edit-music-dialog .el-dialog__body {
+  background: #0f2044 !important;
+  padding: 16px 18px !important;
+  max-height: calc(88vh - 132px) !important;
+  overflow-y: auto !important;
+}
+
+/* ─── Footer ────────────────────────────────────────────────────── */
+.edit-music-dialog .el-dialog__footer {
+  padding: 12px 18px 18px !important;
+  background: #0f2044 !important;
+  border-top: 1px solid rgba(96, 165, 250, 0.1);
+}
+
+/* ─── Form layout ───────────────────────────────────────────────── */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ─── Section cards ─────────────────────────────────────────────── */
+.edit-section {
+  background: #152048;
+  border: 1px solid rgba(96, 165, 250, 0.14);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.edit-section-head {
+  margin-bottom: 14px;
+}
+
+.edit-section-head h3 {
+  margin: 0 0 3px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.edit-section-head p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* ─── Inputs ────────────────────────────────────────────────────── */
+.song-input .el-input__wrapper,
+.song-input .el-textarea__inner,
+.song-input.el-select .el-select__wrapper {
+  background: #0f2044 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(96, 165, 250, 0.2) !important;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.song-input .el-input__wrapper:hover,
+.song-input.el-select .el-select__wrapper:hover,
+.song-input .el-textarea__inner:hover {
+  border-color: rgba(96, 165, 250, 0.38) !important;
+}
+
+.song-input .el-input__wrapper.is-focus,
+.song-input.el-select.is-focus .el-select__wrapper,
+.song-input .el-textarea__inner:focus {
+  border-color: rgba(59, 130, 246, 0.7) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+.song-input .el-input__inner,
+.song-input .el-textarea__inner,
+.song-input .el-select__selected-item,
+.song-input .el-select__placeholder {
+  color: #ffffff !important;
+}
+
+.song-input .el-input__inner::placeholder,
+.song-input .el-textarea__inner::placeholder {
+  color: #64748b !important;
+}
+
+.song-input .el-tag {
+  background: rgba(59, 130, 246, 0.18) !important;
+  border: 1px solid rgba(96, 165, 250, 0.28) !important;
+  color: #bfdbfe !important;
+  border-radius: 999px !important;
+}
+
+/* ─── Date picker ───────────────────────────────────────────────── */
+.select-input,
+.date-picker {
+  width: 100%;
+}
+
+.date-picker .el-input__wrapper {
+  background: #0f2044 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(96, 165, 250, 0.2) !important;
+}
+
+.date-picker .el-input__inner,
+.date-picker .el-input__prefix,
+.date-picker .el-input__suffix {
+  color: #ffffff !important;
+}
+
+/* ─── Quick chips ───────────────────────────────────────────────── */
+.quick-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-chip {
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  background: #0f2044;
+  color: #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.quick-chip:hover {
+  background: #1a3060;
+  border-color: rgba(96, 165, 250, 0.38);
+  color: #ffffff;
+}
+
+.quick-chip.active {
+  background: rgba(37, 99, 235, 0.28);
+  border-color: rgba(96, 165, 250, 0.44);
+  color: #ffffff;
+}
+
+/* ─── Switch card ───────────────────────────────────────────────── */
+.switch-card {
+  min-height: 48px;
+  border: 1px solid rgba(96, 165, 250, 0.16);
+  background: #0f2044;
+  border-radius: 12px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ─── Synced lyrics ─────────────────────────────────────────────── */
+.synced-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.synced-label-row {
+  display: flex;
+  justify-content: space-between;
+  color: #ffffff;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.synced-label-row label {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.synced-helper {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* ─── Upload cards ──────────────────────────────────────────────── */
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #0f2044;
+  border: 1px solid rgba(96, 165, 250, 0.14);
+  border-radius: 16px;
+  padding: 14px;
+  cursor: pointer;
+  transition: 0.22s ease;
+}
+
+.upload-card:hover {
+  border-color: rgba(96, 165, 250, 0.32);
+  background: #162654;
+  transform: translateY(-1px);
+}
+
+.upload-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-card-icon,
+.upload-svg-icon {
+  color: #60a5fa;
+  width: 18px;
+  height: 18px;
+}
+
+.upload-card-title {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.upload-dropzone {
+  min-height: 150px;
+  border-radius: 14px;
+  border: 1px dashed rgba(96, 165, 250, 0.22);
+  background: #0c1b3d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 16px;
+  transition: 0.22s ease;
+}
+
+.upload-card:hover .upload-dropzone {
+  border-color: rgba(96, 165, 250, 0.38);
+  background: #102040;
+}
+
+.upload-dropzone.small {
+  min-height: 130px;
+}
+
+.upload-drop-icon,
+.upload-drop-svg {
+  color: #60a5fa;
+  font-size: 26px;
+  width: 28px;
+  height: 28px;
+}
+
+.upload-drop-title {
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.upload-drop-subtitle {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.preview-image {
+  width: 100%;
+  max-height: 130px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* ─── Sync status ───────────────────────────────────────────────── */
+.sync-status-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.sync-status-value {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.sync-status-value.none {
+  background: rgba(148, 163, 184, 0.16);
+  color: #cbd5e1;
+}
+
+.sync-status-value.published {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+/* ─── Footer buttons ────────────────────────────────────────────── */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Cancel button */
+.modal-footer .el-button:not(.el-button--primary) {
+  background: #1e3a6e !important;
+  border: 1px solid rgba(96, 165, 250, 0.22) !important;
+  color: #e2e8f0 !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  transition: 0.18s ease !important;
+}
+
+.modal-footer .el-button:not(.el-button--primary):hover {
+  background: #254d8f !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+  color: #ffffff !important;
+}
+
+/* Generate sync — disabled */
+.modal-footer .el-button.is-disabled,
+.modal-footer .el-button.is-disabled:hover {
+  background: #162040 !important;
+  border: 1px solid rgba(96, 165, 250, 0.1) !important;
+  color: #475569 !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  cursor: not-allowed !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+}
+
+/* Save — primary */
+.modal-footer .el-button--primary {
+  background: #2563eb !important;
+  border: 1px solid rgba(96, 165, 250, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32) !important;
+  transition: 0.18s ease !important;
+}
+
+.modal-footer .el-button--primary:hover {
+  background: #1d4ed8 !important;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.44) !important;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────── */
+.edit-music-dialog .el-dialog__body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.edit-music-dialog .el-dialog__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.edit-music-dialog .el-dialog__body::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.28);
+  border-radius: 999px;
+}
+
+/* ─── Dropdowns & date panel ────────────────────────────────────── */
+.el-picker-panel,
+.el-select-dropdown {
+  background: #0f2044 !important;
+  border: 1px solid rgba(96, 165, 250, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.el-picker-panel__content,
+.el-select-dropdown__wrap,
+.el-select-dropdown__list {
+  background: #0f2044 !important;
+}
+
+.el-select-dropdown__item {
+  color: #e2e8f0 !important;
+}
+
+.el-select-dropdown__item.hover,
+.el-select-dropdown__item:hover {
+  background: rgba(59, 130, 246, 0.14) !important;
+  color: #ffffff !important;
+}
+
+.el-select-dropdown__item.selected {
+  color: #60a5fa !important;
+  font-weight: 700;
+}
+
+.el-date-picker__header-label,
+.el-picker-panel__icon-btn,
+.el-date-table th,
+.el-date-table td {
+  color: #e2e8f0 !important;
+}
+
+.el-date-table td.current:not(.disabled) .el-date-table-cell__text {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+}
+
+.el-date-table td.today .el-date-table-cell__text {
+  color: #60a5fa !important;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .edit-grid,
+  .upload-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .modal-footer .el-button {
+    flex: 1 1 100%;
+    margin-left: 0 !important;
+  }
+}

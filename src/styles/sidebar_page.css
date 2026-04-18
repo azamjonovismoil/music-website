@@ -1,0 +1,112 @@
+.sidebar {
+  position: fixed;
+  top: 72px;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  min-width: 280px;
+  background: rgba(12, 16, 22, 0.97);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 20px 14px 110px;
+  overflow-y: auto;
+  z-index: 900;
+}
+
+.sidebar h3 {
+  margin: 0 0 18px;
+  color: #1ed760;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.no-music {
+  color: #8f9aa5;
+  text-align: center;
+  padding: 20px;
+}
+
+.sidebar-music-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-music-item:hover {
+  background: rgba(29, 185, 84, 0.1);
+}
+
+.sidebar-music-item.active {
+  background: linear-gradient(135deg, #1ed760, #1db954);
+  color: #08110b;
+}
+
+.sidebar-music-item.active p,
+.sidebar-music-item.active strong {
+  color: #08110b;
+}
+
+.sidebar-music-cover {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sidebar-music-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-music-info strong {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-music-info p {
+  margin: 4px 0 0;
+  color: #9aa6b2;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-actions {
+  flex-shrink: 0;
+}
+
+.sidebar-edit-btn {
+  border: none;
+  background: #f59e0b;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    display: none;
+  }
+}
