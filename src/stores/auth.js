@@ -1,57 +1,69 @@
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
 import axios from 'axios'
 
-const BASE_URL = 'http://localhost:7139'
+const api = axios.create({
+  baseURL: 'http://localhost:7139',
+  withCredentials: true,
+})
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    user: null,
-    bootstrapped: false,
-  }),
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref(null)
+  const checked = ref(false)
 
-  getters: {
-    isAuthenticated: (state) => !!state.user,
-    isAdmin: (state) => Number(state.user?.isAdmin || 0) === 1,
-    userName: (state) => state.user?.name || 'User',
-    userEmail: (state) => state.user?.email || '',
-  },
+  const isAdmin = computed(() => Number(user.value?.isAdmin) === 1)
+  const userName = computed(() => user.value?.name || '')
+  const userId = computed(() => user.value?._id || user.value?.id || '')
 
-  actions: {
-    setUser(user) {
-      this.user = user
-      this.bootstrapped = true
-    },
+  const setUser = (data) => {
+    user.value = data
+    checked.value = true
+  }
 
-    clearUser() {
-      this.user = null
-      this.bootstrapped = true
-    },
+  const fetchMe = async () => {
+    try {
+      const { data } = await api.get('/api/auth/me')
+      user.value = data
+    } catch (err) {
+      user.value = null
+    } finally {
+      checked.value = true
+    }
+  }
 
-    async fetchMe() {
-      try {
-        const { data } = await axios.get(`${BASE_URL}/api/auth/me`, {
-          withCredentials: true,
-        })
-        this.user = data
-      } catch {
-        this.user = null
-      } finally {
-        this.bootstrapped = true
-      }
-    },
+  const login = async (payload) => {
+    const { data } = await api.post('/api/auth/login', payload)
+    user.value = data.user
+    checked.value = true
+    return data
+  }
 
-    async logout() {
-      try {
-        await axios.post(
-          `${BASE_URL}/api/auth/logout`,
-          {},
-          { withCredentials: true }
-        )
-      } catch {
-      } finally {
-        this.user = null
-        this.bootstrapped = true
-      }
-    },
-  },
+  const register = async (payload) => {
+    const { data } = await api.post('/api/auth/register', payload)
+    user.value = data.user
+    checked.value = true
+    return data
+  }
+
+  const logout = async () => {
+    try {
+      await api.post('/api/auth/logout')
+    } catch (err) { }
+
+    user.value = null
+    checked.value = true
+  }
+
+  return {
+    user,
+    checked,
+    isAdmin,
+    userName,
+    userId,
+    setUser,
+    fetchMe,
+    login,
+    register,
+    logout,
+  }
 })

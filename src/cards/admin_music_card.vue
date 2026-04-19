@@ -1,84 +1,72 @@
 <template>
-  <div class="admin-music-card" :class="{ active: isActive }" @click="$emit('open-about', music)">
-    <div class="card-cover-wrap">
-      <img v-if="coverUrl && !imageError" :src="coverUrl" :alt="music.title" class="card-cover"
-        @error="imageError = true" />
-
-      <div v-else class="card-fallback">
+  <div class="music-card" :class="{ active: isActive }" @click="$emit('open-about', music)">
+    <div class="mc-cover-wrap">
+      <img v-if="coverUrl && !imgErr" :src="coverUrl" :alt="music.title" class="mc-cover" @error="imgErr = true" />
+      <div v-else class="mc-cover-fallback">
         <el-icon>
           <Picture />
         </el-icon>
       </div>
 
-      <button class="play-floating-btn" @click.stop="$emit('play', music)" title="Play">
-        <el-icon>
-          <VideoPlay />
-        </el-icon>
-      </button>
-    </div>
-
-    <div class="card-content">
-      <div class="card-top">
-        <h3>{{ music.title }}</h3>
-        <p class="artist">{{ music.artist || 'Unknown artist' }}</p>
-        <p v-if="music.author" class="author">Author: {{ music.author }}</p>
+      <div class="mc-overlay">
+        <button class="mc-play-btn" @click.stop="$emit('play', music)">
+          <PlayIcon class="mc-play-icon" />
+        </button>
       </div>
 
-      <div class="status-chips">
-        <span v-if="music.liked" class="status-chip liked">
-          <el-icon>
-            <StarFilled />
-          </el-icon>
-          Liked
-        </span>
+      <div v-if="isActive" class="mc-now">
+        <span /><span /><span />
+      </div>
+    </div>
 
-        <span v-if="music.download" class="status-chip downloadable">
-          <el-icon>
-            <Download />
-          </el-icon>
-          Download
-        </span>
+    <div class="mc-content">
+      <p class="mc-title">{{ music.title }}</p>
+      <p class="mc-artist">{{ music.artist || 'Unknown artist' }}</p>
 
-        <span v-if="music.tags?.length" class="status-chip tagged">
-          <el-icon>
-            <CollectionTag />
-          </el-icon>
+      <div class="mc-chips">
+        <span v-if="music.liked" class="mc-chip liked">
+          <HeartSolidIcon style="width:10px;height:10px" /> Liked
+        </span>
+        <span v-if="music.download" class="mc-chip dl">
+          <ArrowDownTrayIcon style="width:10px;height:10px" /> DL
+        </span>
+        <span v-if="music.tags?.length" class="mc-chip tagged">
           {{ music.tags.length }} tags
         </span>
       </div>
 
-      <div v-if="limitedTags.length" class="tags">
-        <span v-for="(tag, index) in limitedTags" :key="index" class="tag-chip">
-          #{{ tag }}
-        </span>
+      <div v-if="limitedTags.length" class="mc-tags">
+        <span v-for="tag in limitedTags" :key="tag" class="mc-tag">#{{ tag }}</span>
       </div>
 
-      <div class="card-actions">
-        <button class="icon-btn" @click.stop="$emit('edit', music)" title="Edit">
-          <el-icon>
-            <EditPen />
-          </el-icon>
+      <!-- Admin actions -->
+      <div v-if="showActions" class="mc-actions">
+        <button class="mc-action-btn edit" @click.stop="$emit('edit', music)" title="Edit">
+          <PencilSquareIcon class="btn-icon" />
         </button>
-
-        <button class="icon-btn" :class="{ activeLike: music.liked }" @click.stop="$emit('toggle-like', music)"
+        <button class="mc-action-btn" :class="{ liked: music.liked }" @click.stop="$emit('toggle-like', music)"
           :title="music.liked ? 'Unlike' : 'Like'">
-          <el-icon>
-            <StarFilled v-if="music.liked" />
-            <Star v-else />
-          </el-icon>
+          <HeartSolidIcon v-if="music.liked" class="btn-icon" />
+          <HeartIcon v-else class="btn-icon" />
         </button>
-
-        <button class="icon-btn" :class="{ activeDownload: music.download }"
+        <button class="mc-action-btn" :class="{ 'dl-active': music.download }"
           @click.stop="$emit('toggle-download', music)" title="Download">
-          <el-icon>
-            <Download />
-          </el-icon>
+          <ArrowDownTrayIcon class="btn-icon" />
         </button>
+        <button class="mc-action-btn delete" @click.stop="$emit('delete', music)" title="Delete">
+          <TrashIcon class="btn-icon" />
+        </button>
+      </div>
 
-        <button class="icon-btn delete" @click.stop="$emit('delete', music)" title="Delete">
-          <el-icon>
-            <Delete />
-          </el-icon>
+      <!-- User actions (no edit/delete) -->
+      <div v-else class="mc-actions" style="grid-template-columns: 1fr 1fr;">
+        <button class="mc-action-btn" :class="{ liked: music.liked }" @click.stop="$emit('toggle-like', music)"
+          :title="music.liked ? 'Unlike' : 'Like'">
+          <HeartSolidIcon v-if="music.liked" class="btn-icon" />
+          <HeartIcon v-else class="btn-icon" />
+        </button>
+        <button class="mc-action-btn" @click.stop="$emit('queue', music)" title="Add to queue">
+          <QueueListIcon class="btn-icon" />
         </button>
       </div>
     </div>
@@ -86,63 +74,36 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
-  VideoPlay,
-  EditPen,
-  Star,
-  StarFilled,
-  Download,
-  Delete,
-  CollectionTag,
-  Picture
-} from '@element-plus/icons-vue'
+  PlayIcon, HeartIcon, ArrowDownTrayIcon,
+  PencilSquareIcon, TrashIcon, QueueListIcon
+} from '@heroicons/vue/24/outline'
+import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
+import { Picture } from '@element-plus/icons-vue'
 import '../styles/admin_music_card.css'
 
 const props = defineProps({
-  music: {
-    type: Object,
-    required: true
-  },
-  isActive: {
-    type: Boolean,
-    default: false
-  }
+  music: { type: Object, required: true },
+  isActive: { type: Boolean, default: false },
+  showActions: { type: Boolean, default: true }, // false for user page
 })
 
-defineEmits([
-  'play',
-  'edit',
-  'toggle-like',
-  'toggle-download',
-  'delete',
-  'open-about'
-])
+defineEmits(['play', 'edit', 'toggle-like', 'toggle-download', 'delete', 'open-about', 'queue'])
 
 const BASE_URL = 'http://localhost:7139'
-const imageError = ref(false)
+const imgErr = ref(false)
 
-watch(
-  () => props.music?.cover,
-  () => {
-    imageError.value = false
-  }
-)
+watch(() => props.music?.cover, () => { imgErr.value = false })
 
 const coverUrl = computed(() => {
-  const cover = props.music?.cover || props.music?.coverUrl || ''
-  if (!cover) return ''
-  if (
-    cover.startsWith('http://') ||
-    cover.startsWith('https://') ||
-    cover.startsWith('data:image')
-  ) {
-    return cover
-  }
-  return `${BASE_URL}/${String(cover).replace(/^\/+/, '')}`
+  const c = props.music?.cover || props.music?.coverUrl || ''
+  if (!c) return ''
+  if (c.startsWith('http') || c.startsWith('data:')) return c
+  return `${BASE_URL}/${c.replace(/^\/+/, '')}`
 })
 
-const limitedTags = computed(() => {
-  return Array.isArray(props.music.tags) ? props.music.tags.slice(0, 3) : []
-})
+const limitedTags = computed(() =>
+  Array.isArray(props.music.tags) ? props.music.tags.slice(0, 3) : []
+)
 </script>

@@ -1,95 +1,119 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-import LoginPage from '../pages/login_page.vue'
-import SignupPage from '../pages/signup_page.vue'
-import AdminPage from '../pages/admin_page.vue'
-import UserPage from '../pages/user_page.vue'
-import ProfilePage from '../pages/profile_page.vue'
-import MusicPlayerPage from '../pages/music_player.vue'
-import AddMusicPage from '../pages/add_music_page.vue'
-import LibraryPage from '../pages/library_page.vue'
-
 const routes = [
-  { path: '/', redirect: '/login' },
-  { path: '/login', name: 'login', component: LoginPage, meta: { guestOnly: true } },
-  { path: '/signup', name: 'signup', component: SignupPage, meta: { guestOnly: true } },
+  {
+    path: '/',
+    name: 'Landing',
+    component: () => import('../pages/landing_page.vue'),
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../pages/auth/login_page.vue'),
+    meta: { guestOnly: true },
+  },
+  {
+    path: '/signup',
+    name: 'Signup',
+    component: () => import('../pages/auth/signup_page.vue'),
+    meta: { guestOnly: true },
+  },
+
+  {
+    path: '/user',
+    name: 'User',
+    component: () => import('../pages/home/user_page.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/about/:id',
+    name: 'About',
+    component: () => import('../pages/home/user_page.vue'),
+    meta: { requiresAuth: true },
+  },
+
+  {
+    path: '/library/downloaded',
+    name: 'Downloaded',
+    component: () => import('../pages/library/library_page.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/library/favourites',
+    name: 'Favourites',
+    component: () => import('../pages/library/library_page.vue'),
+    meta: { requiresAuth: true },
+  },
+
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../pages/profile/profile_page.vue'),
+    meta: { requiresAuth: true },
+  },
+
   {
     path: '/admin',
-    name: 'admin',
-    component: AdminPage,
+    name: 'Admin',
+    component: () => import('../pages/admin/admin_page.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: '/admin/add-music',
-    name: 'add-music',
-    component: AddMusicPage,
+    name: 'AddMusic',
+    component: () => import('../pages/admin/add_music_page.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
-    path: '/user',
-    name: 'user',
-    component: UserPage,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/profile',
-    name: 'profile',
-    component: ProfilePage,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/library/:type',
-    name: 'library',
-    component: LibraryPage,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/music-player',
-    name: 'music-player',
-    component: MusicPlayerPage,
-    meta: { requiresAuth: true },
-  },
-  {
-    path: '/admin/lyrics/:id',
-    name: 'lyrics-page',
-    component: () => import('../panels/lyrics_panel.vue'),
+    path: '/admin/artist',
+    name: 'Artist',
+    component: () => import('../pages/artist/artist_page.vue'),
     meta: { requiresAuth: true, requiresAdmin: true },
-  }
+  },
+
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../pages/system/not_found_page.vue'),
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach(async (to) => {
-  const authStore = useAuthStore()
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
 
-  if (!authStore.bootstrapped) {
-    await authStore.fetchMe()
+  if (!auth.checked) {
+    try {
+      await auth.fetchMe()
+    } catch { }
   }
 
-  if (to.meta.guestOnly && authStore.isAuthenticated) {
-    return authStore.isAdmin ? '/admin' : '/user'
+  const isAuth = !!auth.user
+  const isAdmin = auth.isAdmin
+
+  if (to.meta.guestOnly && isAuth) {
+    return next(isAdmin ? '/admin' : '/user')
   }
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return '/login'
+  if (to.meta.requiresAuth && !isAuth) {
+    return next({
+      path: '/login',
+      query: { redirect: to.fullPath },
+    })
   }
 
-  if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    return '/user'
+  if (to.meta.requiresAdmin && !isAdmin) {
+    return next('/user')
   }
 
-  if (to.name === 'library') {
-    const allowedTypes = ['favourites', 'downloaded']
-    if (!allowedTypes.includes(to.params.type)) {
-      return authStore.isAdmin ? '/admin' : '/user'
-    }
-  }
-
-  return true
+  next()
 })
 
 export default router

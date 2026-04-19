@@ -1,33 +1,21 @@
 <template>
-  <router-view />
+  <router-view v-slot="{ Component, route }">
+    <transition name="page" mode="out-in">
+      <component :is="Component" :key="route.fullPath" />
+    </transition>
+  </router-view>
 </template>
 
-<script>
-export default {
-  name: 'App'
-}
+<script setup>
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  // Apply saved theme on load
+  const saved = localStorage.getItem('mw-theme') || 'dark'
+  document.documentElement.setAttribute('data-theme', saved)
+})
 </script>
 
 <style>
-html,
-body,
-#app {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-}
-
-body {
-  font-family: Inter, Arial, sans-serif;
-  background: #0a0d14;
-  color: #fff;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-a {
-  text-decoration: none;
-}
+@import './styles/global.css';
 </style>

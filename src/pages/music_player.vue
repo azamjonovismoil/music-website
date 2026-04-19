@@ -69,9 +69,9 @@ import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { PictureFilled } from '@element-plus/icons-vue'
-import HeaderPage from '../layout/header_page.vue'
-import Player_bar from '../layout/player_bar.vue'
-import '../styles/music_player.css'
+import HeaderPage from '@/components/layout/header_page.vue'
+import Player_bar from '@/components/layout/player_bar.vue'
+import '@/styles/music_player.css'
 
 const router = useRouter()
 const BASE_URL = 'http://localhost:7139'
