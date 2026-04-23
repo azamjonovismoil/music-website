@@ -8,14 +8,14 @@
           </el-icon>
         </div>
         <h1>Welcome back</h1>
-        <p>Sign in to your Music. account</p>
+        <p>Sign in to your MusicApp account</p>
       </div>
 
       <div class="auth-form">
         <el-input v-model="email" placeholder="Email address" type="email" class="auth-input" size="large"
-          autocomplete="email" @keyup.enter="handleLogin">
+          autocomplete="email">
           <template #prefix>
-            <el-icon style="color: var(--text-muted)">
+            <el-icon style="color:var(--text-muted)">
               <Message />
             </el-icon>
           </template>
@@ -24,20 +24,28 @@
         <el-input v-model="password" placeholder="Password" show-password class="auth-input" size="large"
           autocomplete="current-password" @keyup.enter="handleLogin">
           <template #prefix>
-            <el-icon style="color: var(--text-muted)">
+            <el-icon style="color:var(--text-muted)">
               <Lock />
             </el-icon>
           </template>
         </el-input>
 
+        <div class="auth-inline-link">
+          <span @click="$router.push('/forgot-password')">Forgot password?</span>
+        </div>
+
         <el-button type="primary" class="auth-btn" size="large" :loading="loading" @click="handleLogin">
           Sign in
+        </el-button>
+
+        <el-button class="auth-btn" size="large" :loading="googleLoading" @click="handleGoogleLogin">
+          Continue with Google
         </el-button>
       </div>
 
       <p class="auth-link">
         Don't have an account?
-        <span @click="$router.push('/signup')">Create account</span>
+        <span @click="$router.push('/signup')">Sign up</span>
       </p>
     </div>
   </div>
@@ -47,7 +55,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
-import { Headset, Message, Lock } from '@element-plus/icons-vue'
+import { Message, Lock, Headset } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import '@/styles/global.css'
 import '@/styles/auth_pages.css'
@@ -58,45 +66,43 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const googleLoading = ref(false)
 
-const notifyError = (msg) => {
-  ElNotification({
-    title: 'Error',
-    message: msg,
-    type: 'error',
-    duration: 2200,
-  })
-}
-
-const notifySuccess = (msg) => {
-  ElNotification({
-    title: 'Success',
-    message: msg,
-    type: 'success',
-    duration: 2000,
-  })
-}
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const notify = (type, msg) => ElNotification({ type, message: msg, duration: 2400 })
 
 const handleLogin = async () => {
-  const e = email.value.trim()
-  const p = password.value.trim()
+  if (!emailRe.test(email.value.trim())) {
+    return notify('error', 'Enter a valid email address')
+  }
 
-  if (!e) return notifyError('Email is required')
-  if (!p) return notifyError('Password is required')
+  if (password.value.length < 1) {
+    return notify('error', 'Enter your password')
+  }
 
   loading.value = true
   try {
-    const data = await authStore.login({
-      email: e,
-      password: p,
+    const res = await authStore.login({
+      email: email.value.trim(),
+      password: password.value,
     })
 
-    notifySuccess('Signed in successfully')
-    router.push(Number(data.user?.isAdmin) === 1 ? '/admin' : '/user')
+    if (res?.needsEmailVerification) {
+      notify('warning', 'Please verify your email first')
+      router.push('/verify-email')
+    } else {
+      notify('success', 'Welcome back!')
+      router.push('/')
+    }
   } catch (err) {
-    notifyError(err?.response?.data?.message || 'Login failed')
+    notify('error', err?.response?.data?.message || 'Login failed')
   } finally {
     loading.value = false
   }
+}
+
+const handleGoogleLogin = () => {
+  googleLoading.value = true
+  authStore.loginWithGoogle()
 }
 </script>

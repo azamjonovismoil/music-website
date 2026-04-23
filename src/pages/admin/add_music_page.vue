@@ -10,13 +10,13 @@
       <main class="add-music-main">
         <div class="add-music-card">
 
-          <!-- Top -->
           <div class="am-top">
             <div>
               <p class="page-label">Music Admin</p>
               <h1>Add new track</h1>
-              <p class="am-subtitle">Upload audio file, fill metadata and prepare track for library, recommendations and
-                player.</p>
+              <p class="am-subtitle">
+                Upload audio file, fill metadata and prepare track for library, recommendations and player.
+              </p>
             </div>
             <button class="am-back-btn" @click="router.push('/admin')">
               <ArrowLeftIcon class="am-btn-icon" /> Back
@@ -24,8 +24,6 @@
           </div>
 
           <div class="form-sections">
-
-            <!-- Basic info -->
             <section class="form-section">
               <div class="section-head">
                 <h3>Basic info</h3>
@@ -73,7 +71,6 @@
               </div>
             </section>
 
-            <!-- Classification -->
             <section class="form-section">
               <div class="section-head">
                 <h3>Classification</h3>
@@ -90,7 +87,9 @@
                   </el-select>
                   <div class="quick-chips">
                     <button v-for="g in genreQuick" :key="g" type="button" class="quick-chip"
-                      :class="{ active: form.genre.includes(g) }" @click="toggleArr('genre', g)">{{ g }}</button>
+                      :class="{ active: form.genre.includes(g) }" @click="toggleArr('genre', g)">
+                      {{ g }}
+                    </button>
                   </div>
                   <div v-if="form.genre.length" class="selected-chips">
                     <span v-for="g in form.genre" :key="g" class="sel-chip">
@@ -127,7 +126,9 @@
                   </el-select>
                   <div class="quick-chips">
                     <button v-for="m in moodQuick" :key="m" type="button" class="quick-chip"
-                      :class="{ active: form.mood.includes(m) }" @click="toggleArr('mood', m)">{{ m }}</button>
+                      :class="{ active: form.mood.includes(m) }" @click="toggleArr('mood', m)">
+                      {{ m }}
+                    </button>
                   </div>
                   <div v-if="form.mood.length" class="selected-chips">
                     <span v-for="m in form.mood" :key="m" class="sel-chip">
@@ -146,7 +147,6 @@
               </div>
             </section>
 
-            <!-- Publishing -->
             <section class="form-section">
               <div class="section-head">
                 <h3>Publishing</h3>
@@ -189,7 +189,6 @@
               </div>
             </section>
 
-            <!-- Content -->
             <section class="form-section">
               <div class="section-head">
                 <h3>Content</h3>
@@ -220,7 +219,6 @@
               </div>
             </section>
 
-            <!-- Files -->
             <section class="form-section">
               <div class="section-head">
                 <h3>Files</h3>
@@ -253,8 +251,9 @@
                     <template v-if="audioName">
                       <MusicalNoteIcon class="upload-drop-icon-svg" />
                       <div class="upload-drop-title">{{ audioName }}</div>
-                      <div class="upload-drop-sub">{{ audioDuration ? 'Duration: ' + audioDuration : 'Ready to upload'
-                        }}</div>
+                      <div class="upload-drop-sub">
+                        {{ audioDuration ? 'Duration: ' + audioDuration : 'Ready to upload' }}
+                      </div>
                     </template>
                     <template v-else>
                       <MusicalNoteIcon class="upload-drop-icon-svg" />
@@ -266,35 +265,53 @@
               </div>
             </section>
 
-            <!-- Synced lyrics -->
             <section class="form-section">
               <div class="section-head">
                 <h3>Synced lyrics</h3>
                 <p>LRC format for karaoke display. Can be generated automatically after upload.</p>
               </div>
+
+              <div style="display:flex; gap:12px; margin-bottom:12px; align-items:center; flex-wrap:wrap;">
+                <span style="font-weight:600;">Sync mode:</span>
+                <label style="display:flex; align-items:center; gap:6px;">
+                  <input type="radio" value="manual" v-model="syncMode" />
+                  Manual
+                </label>
+                <label style="display:flex; align-items:center; gap:6px;">
+                  <input type="radio" value="auto" v-model="syncMode" />
+                  Auto
+                </label>
+              </div>
+
               <div class="synced-head">
                 <span class="synced-title">LRC format</span>
                 <span class="synced-hint">Format: [mm:ss.xx] Lyric line</span>
               </div>
+
               <textarea v-model="form.syncedLyricsRaw" class="field-textarea" rows="6"
                 placeholder="[00:01.00] First line…"></textarea>
+
               <div class="sync-status">
                 Sync status:
                 <span class="sync-pill" :class="form.syncedLyricsRaw.trim() ? 'ready' : 'none'">
-                  {{ form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set' }}
+                  {{ syncLoading ? 'Generating...' : form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set' }}
                 </span>
               </div>
             </section>
           </div>
 
-          <!-- Footer -->
           <div class="am-footer">
             <button class="am-cancel-btn" @click="router.push('/admin')">Cancel</button>
-            <button class="am-sync-btn" :disabled="!form.lyrics.trim() || loading">Generate sync</button>
-            <button class="am-save-btn" :disabled="loading" @click="submit">
+            <button class="am-sync-btn"
+              :disabled="!form.lyrics.trim() || !audioFile || loading || syncLoading || syncMode === 'manual'"
+              @click="generateSync">
+              {{ syncLoading ? 'Generating…' : 'Generate sync' }}
+            </button>
+            <button class="am-save-btn" :disabled="loading || syncLoading" @click="submit">
               <CloudArrowUpIcon style="width:16px;height:16px" />
               {{ loading ? 'Uploading…' : 'Upload track' }}
             </button>
+
           </div>
 
         </div>
@@ -304,7 +321,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ElNotification, ElMessage } from 'element-plus'
@@ -320,9 +337,13 @@ import '@/styles/global.css'
 import '@/styles/add_music_page.css'
 
 const BASE_URL = 'http://localhost:7139'
+const SYNC_URL = 'http://localhost:8001'
 const router = useRouter()
 
 const loading = ref(false)
+const syncLoading = ref(false)
+const syncMode = ref('manual')
+
 const coverFile = ref(null)
 const audioFile = ref(null)
 const coverPrev = ref('')
@@ -336,47 +357,144 @@ const moodQuick = ['Calm', 'Sad', 'Energetic', 'Romantic', 'Happy', 'Chill']
 const langOpts = ['Uzbek', 'English', 'Russian', 'Turkish', 'Korean', 'Arabic', 'Hindi', 'Spanish', 'French', 'German', 'Japanese', 'Italian']
 
 const form = reactive({
-  title: '', artist: '', author: '', featuredArtists: '',
-  genre: [], album: '', language: '', mood: [],
-  country: '', releaseDate: '', bio: '', artistBio: '',
-  lyrics: '', syncedLyricsRaw: '', tags: '',
-  status: 'draft', isExplicit: false, isFeatured: false, isRecommended: false,
+  title: '',
+  artist: '',
+  author: '',
+  featuredArtists: '',
+  genre: [],
+  album: '',
+  language: '',
+  mood: [],
+  country: '',
+  releaseDate: '',
+  bio: '',
+  artistBio: '',
+  lyrics: '',
+  syncedLyricsRaw: '',
+  tags: '',
+  status: 'draft',
+  isExplicit: false,
+  isFeatured: false,
+  isRecommended: false,
 })
 
 const toggleArr = (field, val) => {
-  form[field] = form[field].includes(val) ? form[field].filter(x => x !== val) : [...form[field], val]
+  form[field] = form[field].includes(val)
+    ? form[field].filter(x => x !== val)
+    : [...form[field], val]
 }
-const removeArr = (field, val) => { form[field] = form[field].filter(x => x !== val) }
 
-const fmtTime = (t) => { if (!t || isNaN(t)) return ''; return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}` }
+const removeArr = (field, val) => {
+  form[field] = form[field].filter(x => x !== val)
+}
+
+const fmtTime = (t) => {
+  if (!t || isNaN(t)) return ''
+  return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
+}
+
+const parseTags = (s = '') => String(s).split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
+const parseList = (s = '') => String(s).split(',').map(t => t.trim()).filter(Boolean)
 
 const onCover = (e) => {
   const f = e.target.files?.[0]
   if (!f) return
-  if (f.size / 1024 / 1024 > 10) { ElMessage.error('Image must be under 10MB'); e.target.value = ''; return }
-  coverFile.value = f; coverPrev.value = URL.createObjectURL(f)
+
+  if (f.size / 1024 / 1024 > 10) {
+    ElMessage.error('Image must be under 10MB')
+    e.target.value = ''
+    return
+  }
+
+  coverFile.value = f
+  coverPrev.value = URL.createObjectURL(f)
 }
 
-const onAudio = (e) => {
+const onAudio = async (e) => {
   const f = e.target.files?.[0]
   if (!f) return
-  if (f.size / 1024 / 1024 > 100) { ElMessage.error('Audio must be under 100MB'); e.target.value = ''; return }
-  audioFile.value = f; audioName.value = f.name
+
+  if (f.size / 1024 / 1024 > 100) {
+    ElMessage.error('Audio must be under 100MB')
+    e.target.value = ''
+    return
+  }
+
+  audioFile.value = f
+  audioName.value = f.name
+
   const a = document.createElement('audio')
-  a.preload = 'metadata'; a.src = URL.createObjectURL(f)
-  a.onloadedmetadata = () => { audioDuration.value = fmtTime(a.duration); URL.revokeObjectURL(a.src) }
+  a.preload = 'metadata'
+  a.src = URL.createObjectURL(f)
+  a.onloadedmetadata = () => {
+    audioDuration.value = fmtTime(a.duration)
+    URL.revokeObjectURL(a.src)
+  }
+
+  if (syncMode.value === 'auto' && form.lyrics.trim()) {
+    await generateSync()
+  }
+}
+
+const generateSync = async () => {
+  if (!audioFile.value) {
+    ElMessage.error('Audio file is required for sync')
+    return
+  }
+
+  if (!form.lyrics.trim()) {
+    ElMessage.error('Lyrics are required for sync')
+    return
+  }
+
+  syncLoading.value = true
+
+  try {
+    const fd = new FormData()
+    fd.append('audio', audioFile.value)
+    fd.append('lyrics', form.lyrics.trim())
+    fd.append('model_size', 'base')
+
+    const { data } = await axios.post(`${SYNC_URL}/sync`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+
+    form.syncedLyricsRaw = data?.syncedLyricsRaw || data?.data?.syncedLyricsRaw || ''
+    ElNotification({
+      title: 'Success',
+      message: `Lyrics synced successfully (${data?.backend || data?.data?.backend || 'backend'})`,
+      type: 'success',
+      duration: 2200,
+    })
+  } catch (e) {
+    ElNotification({
+      title: 'Sync error',
+      message: e?.response?.data?.detail || e?.response?.data?.message || 'Failed to generate synced lyrics',
+      type: 'error',
+      duration: 3000,
+    })
+  } finally {
+    syncLoading.value = false
+  }
 }
 
 const submit = async () => {
-  if (!form.title.trim()) return ElNotification({ title: 'Error', message: 'Title is required', type: 'error', duration: 2000 })
-  if (!form.artist.trim()) return ElNotification({ title: 'Error', message: 'Artist is required', type: 'error', duration: 2000 })
-  if (!audioFile.value) return ElNotification({ title: 'Error', message: 'Audio file is required', type: 'error', duration: 2000 })
+  if (!form.title.trim()) {
+    return ElNotification({ title: 'Error', message: 'Title is required', type: 'error', duration: 2000 })
+  }
+
+  if (!form.artist.trim()) {
+    return ElNotification({ title: 'Error', message: 'Artist is required', type: 'error', duration: 2000 })
+  }
+
+  if (!audioFile.value) {
+    return ElNotification({ title: 'Error', message: 'Audio file is required', type: 'error', duration: 2000 })
+  }
 
   loading.value = true
+
   try {
     const fd = new FormData()
-    const parseTags = (s) => s.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
-    const parseList = (s) => s.split(',').map(t => t.trim()).filter(Boolean)
 
     fd.append('title', form.title.trim())
     fd.append('artist', form.artist.trim())
@@ -397,6 +515,7 @@ const submit = async () => {
     fd.append('isExplicit', String(form.isExplicit))
     fd.append('isFeatured', String(form.isFeatured))
     fd.append('isRecommended', String(form.isRecommended))
+
     if (coverFile.value) fd.append('cover', coverFile.value)
     fd.append('song', audioFile.value)
 
@@ -405,10 +524,25 @@ const submit = async () => {
       withCredentials: true,
     })
 
-    ElNotification({ title: 'Uploaded!', message: 'Track added successfully', type: 'success', duration: 2000 })
+    ElNotification({
+      title: 'Uploaded!',
+      message: syncMode.value === 'manual'
+        ? 'Track added successfully with manual synced lyrics'
+        : 'Track added successfully',
+      type: 'success',
+      duration: 2000
+    })
+
     router.push('/admin')
   } catch (e) {
-    ElNotification({ title: 'Error', message: e?.response?.data?.message || 'Upload failed', type: 'error', duration: 2500 })
-  } finally { loading.value = false }
+    ElNotification({
+      title: 'Error',
+      message: e?.response?.data?.message || 'Upload failed',
+      type: 'error',
+      duration: 2500
+    })
+  } finally {
+    loading.value = false
+  }
 }
 </script>

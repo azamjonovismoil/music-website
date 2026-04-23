@@ -338,3 +338,30 @@
     flex-direction: column;
   }
 }
+
+.library-card {
+  min-height: 540px;
+}
+
+.content-grid {
+  align-items: start;
+}
+
+.section-head h2 {
+  word-break: break-word;
+}
+
+.music-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.toolbar-card {
+  transition: all var(--t-mid);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+}

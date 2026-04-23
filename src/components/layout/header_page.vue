@@ -1,33 +1,37 @@
 <template>
   <header class="app-header">
     <div class="header-inner">
+
+      <!-- LEFT -->
       <div class="header-left">
+        <!-- Logo -->
         <div class="brand" @click="goHome">
-          <div class="brand-mark">
-            <MusicalNoteIcon class="brand-icon" />
-          </div>
-          <span class="brand-name">Music<span class="brand-dot">.</span></span>
+          <img src="/src/assets/header_icon.png" alt="Music." class="brand-logo" @error="logoErr = true" />
+          <span v-if="logoErr" class="brand-name">Music<span class="brand-dot">.</span></span>
         </div>
 
         <button class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
           <HomeIcon class="hdr-icon" />
         </button>
 
+        <!-- Search -->
         <div v-if="showSearch" class="search-wrap" :class="{ expanded: searchFocused || search }">
           <MagnifyingGlassIcon class="search-icon-el" />
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="clearSearch" type="text"
-            placeholder="Search tracks, artists, albums..." class="search-input" />
-          <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="clearSearch">
-            <XMarkIcon class="search-clear-icon" />
-          </button>
+            placeholder="Search tracks, artists…" class="search-input" />
+          <transition name="fade">
+            <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="clearSearch">
+              <XMarkIcon class="search-clear-icon" />
+            </button>
+          </transition>
           <kbd v-if="!searchFocused && !search" class="search-kbd">/</kbd>
         </div>
       </div>
 
+      <!-- RIGHT -->
       <div class="header-right">
-        <!-- Theme toggle -->
-        <button class="hdr-btn icon-btn" @click="toggleTheme" :title="isDark ? 'Light mode' : 'Dark mode'">
+        <button class="hdr-btn icon-btn theme-btn" @click="toggleTheme" :title="isDark ? 'Light mode' : 'Dark mode'">
           <SunIcon v-if="isDark" class="hdr-icon" />
           <MoonIcon v-else class="hdr-icon" />
         </button>
@@ -38,7 +42,7 @@
           <button class="hdr-btn accent-btn" @click="router.push('/signup')">Sign up</button>
         </template>
 
-        <!-- Auth -->
+        <!-- Logged in -->
         <template v-else>
           <button v-if="authStore.isAdmin" class="hdr-btn accent-btn add-btn" @click="router.push('/admin/add-music')">
             <PlusIcon class="hdr-icon" />
@@ -64,9 +68,7 @@
                     <p class="dropdown-role">{{ authStore.isAdmin ? 'Administrator' : 'Member' }}</p>
                   </div>
                 </div>
-
                 <div class="dropdown-divider" />
-
                 <button class="dropdown-item" @click="nav('/profile')">
                   <UserIcon class="di-icon" /> Profile
                 </button>
@@ -76,9 +78,7 @@
                 <button class="dropdown-item" @click="nav('/library/downloaded')">
                   <ArrowDownTrayIcon class="di-icon" /> Downloads
                 </button>
-
                 <div class="dropdown-divider" />
-
                 <button class="dropdown-item danger" :disabled="loggingOut" @click="logout">
                   <ArrowRightOnRectangleIcon class="di-icon" />
                   {{ loggingOut ? 'Logging out…' : 'Log out' }}
@@ -100,7 +100,6 @@ import {
   ArrowDownTrayIcon, SunIcon, MoonIcon, ChevronDownIcon,
   UserIcon, Squares2X2Icon, ArrowRightOnRectangleIcon
 } from '@heroicons/vue/24/outline'
-import { MusicalNoteIcon } from '@heroicons/vue/24/solid'
 import { useAuthStore } from '@/stores/auth'
 import '@/styles/global.css'
 import '@/styles/header_page.css'
@@ -119,9 +118,9 @@ const searchFocused = ref(false)
 const menuOpen = ref(false)
 const loggingOut = ref(false)
 const isDark = ref(true)
+const logoErr = ref(false)
 
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
-
 const goHome = () => router.push(authStore.isAdmin ? '/admin' : authStore.user ? '/user' : '/')
 const clearSearch = () => { emit('update:search', ''); searchRef.value?.blur() }
 const nav = (path) => { menuOpen.value = false; router.push(path) }
@@ -134,9 +133,9 @@ const logout = async () => {
 
 const toggleTheme = () => {
   isDark.value = !isDark.value
-  const theme = isDark.value ? 'dark' : 'light'
-  document.documentElement.setAttribute('data-theme', theme)
-  localStorage.setItem('mw-theme', theme)
+  const t = isDark.value ? 'dark' : 'light'
+  document.documentElement.setAttribute('data-theme', t)
+  localStorage.setItem('mw-theme', t)
 }
 
 const handleKey = (e) => {
@@ -144,7 +143,8 @@ const handleKey = (e) => {
     e.preventDefault(); searchRef.value?.focus()
   }
 }
-const handleClickOutside = (e) => {
+
+const handleOut = (e) => {
   if (profileRef.value && !profileRef.value.contains(e.target)) menuOpen.value = false
 }
 
@@ -152,12 +152,12 @@ onMounted(() => {
   const saved = localStorage.getItem('mw-theme') || 'dark'
   isDark.value = saved === 'dark'
   document.documentElement.setAttribute('data-theme', saved)
-  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('click', handleOut)
   window.addEventListener('keydown', handleKey)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('click', handleOut)
   window.removeEventListener('keydown', handleKey)
 })
 </script>
