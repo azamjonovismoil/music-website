@@ -4,32 +4,32 @@
       <div class="auth-brand">
         <div class="auth-icon">
           <el-icon>
-            <Lock />
+            <Key />
           </el-icon>
         </div>
         <h1>Reset password</h1>
-        <p>Enter the code from your email and set a new password</p>
+        <p>Enter the code we sent and your new password</p>
       </div>
 
       <div class="auth-form">
-        <el-input v-model="email" placeholder="Email address" type="email" class="auth-input" size="large"
-          autocomplete="email">
-          <template #prefix>
-            <el-icon style="color: var(--text-muted)">
-              <Message />
-            </el-icon>
-          </template>
+        <el-input v-model="code" placeholder="6-digit reset code" class="auth-input" size="large" maxlength="6">
+          <template #prefix><el-icon style="color:#3d5272">
+              <Key />
+            </el-icon></template>
         </el-input>
 
-        <el-input v-model="code" placeholder="6-digit reset code" class="auth-input" size="large" maxlength="6" />
-
-        <el-input v-model="password" placeholder="New password" show-password class="auth-input" size="large"
-          autocomplete="new-password" @keyup.enter="handleReset">
-          <template #prefix>
-            <el-icon style="color: var(--text-muted)">
+        <el-input v-model="newPassword" placeholder="New password (min 6 chars)" show-password class="auth-input"
+          size="large" autocomplete="new-password">
+          <template #prefix><el-icon style="color:#3d5272">
               <Lock />
-            </el-icon>
-          </template>
+            </el-icon></template>
+        </el-input>
+
+        <el-input v-model="confirmPassword" placeholder="Confirm new password" show-password class="auth-input"
+          size="large" autocomplete="new-password" @keyup.enter="handleReset">
+          <template #prefix><el-icon style="color:#3d5272">
+              <Lock />
+            </el-icon></template>
         </el-input>
 
         <el-button type="primary" class="auth-btn" size="large" :loading="loading" @click="handleReset">
@@ -38,7 +38,7 @@
       </div>
 
       <p class="auth-link">
-        Back to login?
+        Back to
         <span @click="$router.push('/login')">Sign in</span>
       </p>
     </div>
@@ -46,70 +46,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElNotification } from 'element-plus'
-import { Message, Lock } from '@element-plus/icons-vue'
+import { Lock, Key } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import '@/styles/global.css'
 import '@/styles/auth_pages.css'
 
-const route = useRoute()
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
-const email = ref('')
 const code = ref('')
-const password = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
 const loading = ref(false)
 
-const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-onMounted(() => {
-  if (route.query.email) {
-    email.value = String(route.query.email)
-  }
-})
-
-const notifyError = (msg) => {
-  ElNotification({
-    title: 'Error',
-    message: msg,
-    type: 'error',
-    duration: 2200,
-  })
-}
-
-const notifySuccess = (msg) => {
-  ElNotification({
-    title: 'Success',
-    message: msg,
-    type: 'success',
-    duration: 2200,
-  })
-}
+const notify = (type, msg) => ElNotification({ type, message: msg, duration: 2400 })
 
 const handleReset = async () => {
-  const e = email.value.trim()
-  const c = code.value.trim()
-  const p = password.value.trim()
-
-  if (!emailRe.test(e)) return notifyError('Enter a valid email address')
-  if (c.length !== 6) return notifyError('Enter a valid 6-digit reset code')
-  if (p.length < 6) return notifyError('Password must be at least 6 characters')
+  if (code.value.trim().length !== 6) return notify('error', 'Enter the 6-digit code')
+  if (newPassword.value.length < 6) return notify('error', 'Password must be at least 6 characters')
+  if (newPassword.value !== confirmPassword.value) return notify('error', 'Passwords do not match')
 
   loading.value = true
   try {
     await authStore.resetPassword({
-      email: e,
-      code: c,
-      password: p,
+      email: route.query.email || '',
+      code: code.value.trim(),
+      newPassword: newPassword.value,
     })
-
-    notifySuccess('Password reset successfully')
+    notify('success', 'Password reset! Please sign in.')
     router.push('/login')
   } catch (err) {
-    notifyError(err?.response?.data?.message || 'Reset password failed')
+    notify('error', err?.response?.data?.message || 'Reset failed')
   } finally {
     loading.value = false
   }

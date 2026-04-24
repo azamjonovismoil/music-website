@@ -101,14 +101,8 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
-
-  if (!auth.checked) {
-    try {
-      await auth.fetchMe()
-    } catch { }
-  }
 
   const isAuth = !!auth.user
   const isAdmin = auth.isAdmin
@@ -136,6 +130,7 @@ router.beforeEach(async (to, from, next) => {
 
   next()
 })
+
 
 router.afterEach((to) => {
   document.title = to.meta?.title

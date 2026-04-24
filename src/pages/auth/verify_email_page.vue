@@ -8,33 +8,31 @@
           </el-icon>
         </div>
         <h1>Verify your email</h1>
-        <p>
-          We sent a 6-digit code to<br />
-          <strong>{{ authStore.user?.email || 'your email' }}</strong>
-        </p>
+        <p>We sent a 6-digit code to <strong style="color:#e2e8f0">{{ userEmail }}</strong></p>
       </div>
 
       <div class="auth-form">
-        <!-- 6 individual boxes -->
-        <div class="code-inputs">
-          <el-input v-for="(_, i) in 6" :key="i" v-model="digits[i]" class="auth-input code-input-single" maxlength="1"
-            :ref="el => inputRefs[i] = el" @input="onDigitInput(i)" @keydown.backspace="onBackspace(i)"
-            @paste.prevent="onPaste($event)" />
-        </div>
+        <el-input v-model="code" placeholder="Enter 6-digit code" class="auth-input" size="large" maxlength="6"
+          @keyup.enter="handleVerify">
+          <template #prefix><el-icon style="color:#3d5272">
+              <Key />
+            </el-icon></template>
+        </el-input>
 
         <el-button type="primary" class="auth-btn" size="large" :loading="loading" @click="handleVerify">
           Verify email
         </el-button>
 
-        <el-button class="auth-btn secondary-btn" size="large" :loading="resending" :disabled="cooldown > 0"
-          @click="handleResend">
-          {{ cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code' }}
+        <el-button class="auth-btn" size="large"
+          style="background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: #94a3b8 !important; box-shadow: none !important; margin-top: 0;"
+          :loading="resendLoading" :disabled="resendCooldown > 0" @click="handleResend">
+          {{ resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code' }}
         </el-button>
       </div>
 
       <p class="auth-link">
         Wrong account?
-        <span @click="authStore.logout(); $router.push('/login')">Sign out</span>
+        <span @click="handleLogout">Sign out</span>
       </p>
     </div>
   </div>
@@ -44,7 +42,7 @@
 import { ref, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
-import { Message } from '@element-plus/icons-vue'
+import { Message, Key } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import '@/styles/global.css'
 import '@/styles/auth_pages.css'
@@ -52,75 +50,55 @@ import '@/styles/auth_pages.css'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const digits = ref(['', '', '', '', '', ''])
-const inputRefs = ref([])
+const code = ref('')
 const loading = ref(false)
-const resending = ref(false)
-const cooldown = ref(0)
-let cooldownTimer = null
+const resendLoading = ref(false)
+const resendCooldown = ref(0)
 
-const fullCode = computed(() => digits.value.join(''))
+const userEmail = computed(() => authStore.user?.email || '')
 
 const notify = (type, msg) => ElNotification({ type, message: msg, duration: 2400 })
 
-const onDigitInput = (i) => {
-  const val = digits.value[i]
-  if (val && i < 5) {
-    inputRefs.value[i + 1]?.focus()
-  }
-  // auto-submit when all filled
-  if (fullCode.value.length === 6) handleVerify()
-}
-
-const onBackspace = (i) => {
-  if (!digits.value[i] && i > 0) {
-    digits.value[i - 1] = ''
-    inputRefs.value[i - 1]?.focus()
-  }
-}
-
-const onPaste = (e) => {
-  const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
-  text.split('').forEach((ch, i) => { digits.value[i] = ch })
-  if (text.length === 6) handleVerify()
-}
-
-const startCooldown = () => {
-  cooldown.value = 60
+let cooldownTimer = null
+const startCooldown = (seconds = 60) => {
+  resendCooldown.value = seconds
   cooldownTimer = setInterval(() => {
-    cooldown.value--
-    if (cooldown.value <= 0) clearInterval(cooldownTimer)
+    resendCooldown.value--
+    if (resendCooldown.value <= 0) clearInterval(cooldownTimer)
   }, 1000)
 }
 
 const handleVerify = async () => {
-  if (fullCode.value.length !== 6) return notify('error', 'Enter the 6-digit code')
+  if (code.value.trim().length !== 6) return notify('error', 'Enter the 6-digit code')
 
   loading.value = true
   try {
-    await authStore.verifyEmail(fullCode.value)
+    await authStore.verifyEmail(code.value.trim())
     notify('success', 'Email verified! Welcome 🎵')
-    router.push('/')
+    router.push(authStore.isAdmin ? '/admin' : '/user')
   } catch (err) {
-    notify('error', err?.response?.data?.message || 'Invalid code')
-    digits.value = ['', '', '', '', '', '']
-    inputRefs.value[0]?.focus()
+    notify('error', err?.response?.data?.message || 'Invalid or expired code')
   } finally {
     loading.value = false
   }
 }
 
 const handleResend = async () => {
-  resending.value = true
+  resendLoading.value = true
   try {
-    await authStore.resendVerificationCode()
+    await authStore.resendVerificationEmail()
     notify('success', 'New code sent to your email')
-    startCooldown()
+    startCooldown(60)
   } catch (err) {
-    notify('error', err?.response?.data?.message || 'Could not resend code')
+    notify('error', err?.response?.data?.message || 'Failed to resend')
   } finally {
-    resending.value = false
+    resendLoading.value = false
   }
+}
+
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
 }
 
 onUnmounted(() => clearInterval(cooldownTimer))
