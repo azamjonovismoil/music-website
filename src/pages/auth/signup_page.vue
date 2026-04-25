@@ -13,23 +13,29 @@
 
       <div class="auth-form">
         <el-input v-model="name" placeholder="Full name" class="auth-input" size="large" autocomplete="name">
-          <template #prefix><el-icon style="color:#3d5272">
+          <template #prefix>
+            <el-icon style="color:#3d5272">
               <User />
-            </el-icon></template>
+            </el-icon>
+          </template>
         </el-input>
 
         <el-input v-model="email" placeholder="Email address" type="email" class="auth-input" size="large"
           autocomplete="email">
-          <template #prefix><el-icon style="color:#3d5272">
+          <template #prefix>
+            <el-icon style="color:#3d5272">
               <Message />
-            </el-icon></template>
+            </el-icon>
+          </template>
         </el-input>
 
         <el-input v-model="password" placeholder="Password (min 6 chars)" show-password class="auth-input" size="large"
           autocomplete="new-password">
-          <template #prefix><el-icon style="color:#3d5272">
+          <template #prefix>
+            <el-icon style="color:#3d5272">
               <Lock />
-            </el-icon></template>
+            </el-icon>
+          </template>
         </el-input>
 
         <el-input v-model="bio" placeholder="Short bio (optional)" type="textarea" :rows="2" class="auth-input"
@@ -103,8 +109,9 @@ const handleSignup = async () => {
       password: password.value,
       bio: bio.value.trim(),
     })
-    notify('success', 'Account created! Check your email for the code.')
-    router.push('/verify-email')
+
+    notify('success', 'Account created successfully')
+    router.push(authStore.isAdmin ? '/admin' : '/user')
   } catch (err) {
     notify('error', err?.response?.data?.message || 'Registration failed')
   } finally {

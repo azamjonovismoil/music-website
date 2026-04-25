@@ -48,7 +48,6 @@
         </span>
       </div>
 
-      <!-- Admin actions -->
       <div v-if="showActions" class="mc-actions">
         <button class="mc-action-btn edit" @click.stop="$emit('edit', music)" title="Edit">
           <PencilSquareIcon class="btn-icon" />
@@ -70,7 +69,6 @@
         </button>
       </div>
 
-      <!-- User actions -->
       <div v-else class="mc-actions user-actions">
         <button class="mc-action-btn" :class="{ liked: music.liked }" @click.stop="$emit('toggle-like', music)"
           :title="music.liked ? 'Unlike' : 'Like'">
@@ -116,7 +114,7 @@ defineEmits([
   'queue'
 ])
 
-const BASE_URL = 'http://localhost:7139'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 const imgErr = ref(false)
 
 watch(
@@ -130,7 +128,7 @@ const coverUrl = computed(() => {
   const c = props.music?.cover || props.music?.coverUrl || ''
   if (!c) return ''
   if (c.startsWith('http') || c.startsWith('data:')) return c
-  return `${BASE_URL}/${c.replace(/^\/+/, '')}`
+  return `${API_ROOT}/${c.replace(/^\/+/, '')}`
 })
 
 const limitedTags = computed(() =>

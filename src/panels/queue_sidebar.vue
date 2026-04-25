@@ -11,7 +11,7 @@
 
     <div v-if="queue.length" class="queue-list">
       <div v-for="item in queue" :key="item._id" class="queue-item" :class="{ active: currentMusic?._id === item._id }">
-        <img :src="getCover(item)" class="queue-cover" alt="" @error="e => e.target.src = fallback" />
+        <img :src="getCover(item)" class="queue-cover" alt="" @error="e => (e.target.src = fallback)" />
 
         <div class="queue-info" @click="$emit('play', item)">
           <div class="queue-title">{{ item.title }}</div>
@@ -41,7 +41,7 @@ defineProps({
 
 defineEmits(['close', 'play', 'remove', 'clear'])
 
-const BASE_URL = 'http://localhost:7139'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 
 const fallback =
   'data:image/svg+xml;utf8,' +
@@ -53,6 +53,6 @@ const getCover = (m) => {
   const c = m?.coverUrl || m?.cover || ''
   if (!c) return fallback
   if (c.startsWith('http') || c.startsWith('data:')) return c
-  return `${BASE_URL}/${c.replace(/^\/+/, '')}`
+  return `${API_ROOT}/${c.replace(/^\/+/, '')}`
 }
 </script>

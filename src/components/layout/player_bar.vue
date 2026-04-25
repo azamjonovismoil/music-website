@@ -2,13 +2,13 @@
   <transition name="player-rise">
     <div v-if="music" class="player-shell">
       <div class="player-bar" :class="{ playing: isPlaying }">
-        <audio ref="audioRef" :key="music.audioUrl" :src="music.audioUrl" preload="metadata" @timeupdate="onTimeUpdate"
-          @loadedmetadata="onMeta" @progress="onProgress" @waiting="isLoading = true" @playing="onPlaying"
-          @pause="onPause" @ended="onEnded" />
+        <audio ref="audioRef" :key="music.audioUrl" :src="music.audioUrl" preload="metadata"
+          crossorigin="use-credentials" @timeupdate="onTimeUpdate" @loadedmetadata="onMeta" @progress="onProgress"
+          @waiting="isLoading = true" @playing="onPlaying" @pause="onPause" @ended="onEnded" @error="onAudioError" />
 
         <div class="player-left">
           <div class="cover-wrap" @click="goDetail">
-            <img class="player-cover" :src="coverSrc" alt="cover" @error="e => e.target.src = fallback" />
+            <img class="player-cover" :src="coverSrc" alt="cover" @error="e => (e.target.src = fallback)" />
             <div class="cover-go">
               <ArrowTopRightOnSquareIcon class="cover-go-icon" />
             </div>
@@ -16,8 +16,10 @@
 
           <div class="player-info">
             <div class="title-row">
-              <button class="track-btn track-title" @click="goDetail">
-                {{ music.title || 'Unknown' }}
+              <button class="track-btn track-title marquee-wrap" @click="goDetail">
+                <span class="marquee-text" :class="{ scrolling: shouldScrollTitle }">
+                  {{ music.title || 'Unknown' }}
+                </span>
               </button>
 
               <div v-if="isPlaying" class="mini-eq" aria-hidden="true">
@@ -150,13 +152,14 @@ const emit = defineEmits([
   'toggle-like',
   'add-to-playlist',
   'open-artist',
-  'open-detail'
+  'open-detail',
+  'auth-required'
 ])
 
 const player = usePlayerStore()
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 
 const audioRef = ref(null)
-const trackRef = ref(null)
 const isPlaying = ref(false)
 const isLoading = ref(false)
 const currentTime = ref(0)
@@ -169,20 +172,21 @@ const repeatMode = ref('off')
 const buffered = ref(0)
 const showVolTip = ref(false)
 const lastVol = ref(0.7)
+const shouldScrollTitle = ref(false)
 
 let volTimer = null
 
-const fallback = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0a1628"/><text x="50%" y="50%" fill="#1e3460" font-size="40" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
-)
-
-const BASE_URL = 'http://localhost:7139'
+const fallback =
+  'data:image/svg+xml;utf8,' +
+  encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0a1628"/><text x="50%" y="50%" fill="#1e3460" font-size="40" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
+  )
 
 const coverSrc = computed(() => {
   const c = props.music?.coverUrl || props.music?.cover || ''
   if (!c) return fallback
   if (c.startsWith('http') || c.startsWith('data:')) return c
-  return `${BASE_URL}/${c.replace(/^\/+/, '')}`
+  return `${API_ROOT}/${c.replace(/^\/+/, '')}`
 })
 
 const pct = computed(() =>
@@ -196,6 +200,22 @@ const effectiveVol = computed(() =>
 const fmt = (t) => {
   if (!t || isNaN(t)) return '0:00'
   return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
+}
+
+const updateMarquee = () => {
+  const title = props.music?.title || ''
+  shouldScrollTitle.value = title.length > 26
+}
+
+const resetPlaybackState = () => {
+  currentTime.value = 0
+  progress.value = 0
+  duration.value = 0
+  buffered.value = 0
+  isPlaying.value = false
+  isLoading.value = false
+  player.setPlaying(false)
+  player.setCurrentTime(0)
 }
 
 const goDetail = () => {
@@ -266,6 +286,11 @@ const onProgress = () => {
   } catch { }
 }
 
+const onAudioError = () => {
+  resetPlaybackState()
+  emit('auth-required')
+}
+
 const seekInput = () => {
   if (!audioRef.value) return
   audioRef.value.currentTime = Number(progress.value)
@@ -274,8 +299,8 @@ const seekInput = () => {
 }
 
 const seekClick = (e) => {
-  if (!trackRef.value || !duration.value) return
-  const rect = trackRef.value.getBoundingClientRect()
+  if (!duration.value || !e.currentTarget) return
+  const rect = e.currentTarget.getBoundingClientRect()
   const ratio = Math.max(0, Math.min((e.clientX - rect.left) / rect.width, 1))
   const t = ratio * duration.value
   progress.value = t
@@ -349,32 +374,39 @@ const onEnded = async () => {
   isShuffle.value ? emit('shuffle-next') : emit('next')
 }
 
-watch(() => props.music?.audioUrl, async (url) => {
-  if (!url) return
-  await nextTick()
-  if (!audioRef.value) return
+watch(
+  () => props.music?.title,
+  () => {
+    updateMarquee()
+  },
+  { immediate: true }
+)
 
-  currentTime.value = 0
-  progress.value = 0
-  duration.value = 0
-  buffered.value = 0
-  isPlaying.value = false
-  isLoading.value = false
+watch(
+  () => props.music?.audioUrl,
+  async (url) => {
+    if (!url) return
+    await nextTick()
+    if (!audioRef.value) return
 
-  player.setCurrentTime(0)
-  player.setTrack(props.music)
+    resetPlaybackState()
+    player.setTrack(props.music)
 
-  audioRef.value.pause()
-  audioRef.value.load()
-  audioRef.value.volume = volume.value
-  audioRef.value.muted = volume.value === 0
-  isMuted.value = volume.value === 0
+    audioRef.value.pause()
+    audioRef.value.load()
+    audioRef.value.volume = volume.value
+    audioRef.value.muted = volume.value === 0
+    isMuted.value = volume.value === 0
 
-  await play()
-}, { immediate: true })
+    updateMarquee()
+    await play()
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   if (audioRef.value) audioRef.value.volume = volume.value
+  updateMarquee()
 })
 
 onBeforeUnmount(() => clearTimeout(volTimer))

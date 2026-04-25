@@ -80,10 +80,12 @@
             <template v-if="viewMode === 'library'">
               <button class="chip" :class="{ active: filter === 'all' }" @click="filter = 'all'">All</button>
               <button class="chip" :class="{ active: filter === 'liked' }" @click="filter = 'liked'">Liked</button>
-              <button class="chip" :class="{ active: filter === 'downloadable' }"
-                @click="filter = 'downloadable'">Downloadable</button>
-              <button class="chip" :class="{ active: filter === 'with-tags' }"
-                @click="filter = 'with-tags'">Tagged</button>
+              <button class="chip" :class="{ active: filter === 'downloadable' }" @click="filter = 'downloadable'">
+                Downloadable
+              </button>
+              <button class="chip" :class="{ active: filter === 'with-tags' }" @click="filter = 'with-tags'">
+                Tagged
+              </button>
             </template>
 
             <template v-else-if="viewMode === 'artist'">
@@ -214,7 +216,12 @@ import { usePlayerStore } from '@/stores/player'
 import '@/styles/global.css'
 import '@/styles/admin_page.css'
 
-const BASE_URL = 'http://localhost:7139'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
+const api = axios.create({
+  baseURL: `${API_ROOT}/api`,
+  withCredentials: true,
+})
+
 const router = useRouter()
 const player = usePlayerStore()
 const playerBarRef = ref(null)
@@ -301,8 +308,8 @@ const artistTracks = computed(() => {
 
 const norm = (p) => {
   if (!p) return ''
-  if (p.startsWith('http')) return p
-  return `${BASE_URL}/${p.replace(/^\/+/, '')}`
+  if (p.startsWith('http') || p.startsWith('data:')) return p
+  return `${API_ROOT}/${p.replace(/^\/+/, '')}`
 }
 
 const build = (m) => ({
@@ -313,9 +320,10 @@ const build = (m) => ({
 
 const fetchMusics = async () => {
   try {
-    const { data } = await axios.get(`${BASE_URL}/api/music`, { withCredentials: true })
+    const { data } = await api.get('/music')
     musics.value = Array.isArray(data) ? data : []
-  } catch {
+  } catch (err) {
+    console.error(err)
     ElMessage.error('Failed to load tracks')
   }
 }
@@ -411,7 +419,7 @@ const sync = (data) => {
 
 const toggleLike = async (m) => {
   try {
-    const { data } = await axios.patch(`${BASE_URL}/api/music/${m._id}/like`, {}, { withCredentials: true })
+    const { data } = await api.patch(`/music/${m._id}/like`)
     sync(data)
   } catch {
     ElMessage.error('Failed to update like')
@@ -420,7 +428,7 @@ const toggleLike = async (m) => {
 
 const toggleDownload = async (m) => {
   try {
-    const { data } = await axios.patch(`${BASE_URL}/api/music/${m._id}/download`, {}, { withCredentials: true })
+    const { data } = await api.patch(`/music/${m._id}/download`)
     sync(data)
   } catch {
     ElMessage.error('Failed to update download')
@@ -454,7 +462,7 @@ const deleteMusic = async (m) => {
       type: 'warning'
     })
 
-    await axios.delete(`${BASE_URL}/api/music/${m._id}`, { withCredentials: true })
+    await api.delete(`/music/${m._id}`)
 
     musics.value = musics.value.filter(x => x._id !== m._id)
     queue.value = queue.value.filter(x => x._id !== m._id)

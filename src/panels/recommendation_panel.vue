@@ -45,7 +45,7 @@ const props = defineProps({
 
 defineEmits(['play', 'queue'])
 
-const BASE_URL = 'http://localhost:7139'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 
 const fallbackCover =
   'data:image/svg+xml;utf8,' +
@@ -59,12 +59,10 @@ const fallbackCover =
   `)
 
 const getCoverUrl = (track) => {
-  const cover = track.coverUrl || track.cover || ''
+  const cover = track?.coverUrl || track?.cover || ''
   if (!cover) return fallbackCover
-  if (cover.startsWith('http://') || cover.startsWith('https://') || cover.startsWith('data:image')) {
-    return cover
-  }
-  return `${BASE_URL}${cover}`
+  if (cover.startsWith('http') || cover.startsWith('data:')) return cover
+  return `${API_ROOT}/${cover.replace(/^\/+/, '')}`
 }
 
 const handleImageError = (e) => {

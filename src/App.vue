@@ -10,7 +10,6 @@
 import { onMounted } from 'vue'
 
 onMounted(() => {
-  // Apply saved theme on load
   const saved = localStorage.getItem('mw-theme') || 'dark'
   document.documentElement.setAttribute('data-theme', saved)
 })

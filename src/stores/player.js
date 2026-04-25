@@ -8,11 +8,11 @@ export const usePlayerStore = defineStore('player', () => {
   const showLyricsPanel = ref(false)
 
   const setTrack = (track) => {
-    currentTrack.value = track
+    currentTrack.value = track || null
   }
 
   const setCurrentTime = (time) => {
-    currentTime.value = time || 0
+    currentTime.value = Number(time) || 0
   }
 
   const setPlaying = (value) => {
@@ -31,6 +31,13 @@ export const usePlayerStore = defineStore('player', () => {
     showLyricsPanel.value = !showLyricsPanel.value
   }
 
+  const resetPlayer = () => {
+    currentTrack.value = null
+    currentTime.value = 0
+    isPlaying.value = false
+    showLyricsPanel.value = false
+  }
+
   return {
     currentTrack,
     currentTime,
@@ -41,6 +48,7 @@ export const usePlayerStore = defineStore('player', () => {
     setPlaying,
     openLyrics,
     closeLyrics,
-    toggleLyrics
+    toggleLyrics,
+    resetPlayer,
   }
 })

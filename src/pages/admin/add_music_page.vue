@@ -3,317 +3,408 @@
     <HeaderPage :show-search="false" />
 
     <div class="add-music-layout">
-      <div class="add-music-sidebar">
+      <aside class="add-music-sidebar">
         <AdminSidebar />
-      </div>
+      </aside>
 
       <main class="add-music-main">
-        <div class="add-music-card">
-
-          <div class="am-top">
-            <div>
-              <p class="page-label">Music Admin</p>
-              <h1>Add new track</h1>
-              <p class="am-subtitle">
-                Upload audio file, fill metadata and prepare track for library, recommendations and player.
-              </p>
-            </div>
-            <button class="am-back-btn" @click="router.push('/admin')">
-              <ArrowLeftIcon class="am-btn-icon" /> Back
+        <div class="am-topbar">
+          <div class="am-topbar-left">
+            <button class="icon-btn" @click="router.push('/admin')" type="button">
+              <ArrowLeftIcon class="icon-sm" />
             </button>
+
+            <div>
+              <p class="page-kicker">Music Admin</p>
+              <h1 class="page-title">Add new track</h1>
+              <p class="page-subtitle">Create a clean, searchable, production-ready music entry.</p>
+            </div>
           </div>
 
-          <div class="form-sections">
-            <section class="form-section">
+          <span class="status-badge" :class="form.status">
+            <span class="status-dot" />
+            {{ statusLabel }}
+          </span>
+        </div>
+
+        <div class="add-music-content">
+          <section class="content-main">
+            <section class="card hero-card">
               <div class="section-head">
-                <h3>Basic info</h3>
-                <p>Main track identity and credits.</p>
+                <div class="section-icon accent">
+                  <CloudArrowUpIcon />
+                </div>
+                <div>
+                  <h3>Media upload</h3>
+                  <p>Audio is required. Cover is optional but recommended.</p>
+                </div>
               </div>
+
+              <div class="upload-grid">
+                <label class="upload-zone" :class="{ 'has-file': audioName }">
+                  <input type="file" class="upload-hidden" accept="audio/mpeg,audio/mp3,audio/wav,audio/mp4,audio/x-m4a"
+                    @change="onAudio" />
+
+                  <div v-if="audioName" class="audio-ready">
+                    <div class="audio-meta-row">
+                      <div class="audio-art">
+                        <MusicalNoteIcon class="audio-art-icon" />
+                      </div>
+                      <div class="audio-meta">
+                        <p class="audio-name">{{ audioName }}</p>
+                        <p class="audio-sub">{{ audioDuration || 'Reading metadata…' }}</p>
+                      </div>
+                    </div>
+
+                    <div class="audio-wave">
+                      <span /><span /><span /><span /><span /><span /><span />
+                    </div>
+
+                    <span class="replace-text">Click to replace</span>
+                  </div>
+
+                  <div v-else class="upload-placeholder">
+                    <div class="upload-visual accent">
+                      <MusicalNoteIcon class="upload-icon" />
+                    </div>
+                    <p class="upload-title">Audio file <span class="req">*</span></p>
+                    <p class="upload-sub">MP3, WAV, M4A · max 100MB</p>
+                  </div>
+                </label>
+
+                <label class="upload-zone" :class="{ 'has-file': coverPrev }">
+                  <input type="file" class="upload-hidden" accept="image/png,image/jpeg,image/jpg,image/webp"
+                    @change="onCover" />
+
+                  <div v-if="coverPrev" class="cover-preview-wrap">
+                    <img :src="coverPrev" class="cover-preview" alt="cover" />
+                    <div class="cover-overlay">
+                      <PhotoIcon class="cover-overlay-icon" />
+                      <span>Change cover</span>
+                    </div>
+                  </div>
+
+                  <div v-else class="upload-placeholder">
+                    <div class="upload-visual">
+                      <PhotoIcon class="upload-icon" />
+                    </div>
+                    <p class="upload-title">Cover image</p>
+                    <p class="upload-sub">PNG, JPG, WEBP · max 10MB</p>
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="section-head">
+                <div class="section-icon">
+                  <MusicalNoteIcon />
+                </div>
+                <div>
+                  <h3>Basic info</h3>
+                  <p>Identity and credits.</p>
+                </div>
+              </div>
+
               <div class="form-grid">
                 <div class="form-field">
-                  <label class="field-label">
-                    <MusicalNoteIcon class="field-icon" /> Title *
-                  </label>
-                  <input v-model="form.title" class="field-input" type="text" placeholder="Enter track title" />
+                  <label class="field-label">Title <span class="req">*</span></label>
+                  <input v-model="form.title" class="field-input" type="text" placeholder="Track title" />
                 </div>
+
                 <div class="form-field">
-                  <label class="field-label">
-                    <MicrophoneIcon class="field-icon" /> Artist *
-                  </label>
+                  <label class="field-label">Artist <span class="req">*</span></label>
                   <input v-model="form.artist" class="field-input" type="text" placeholder="Artist name" />
                 </div>
+
                 <div class="form-field">
-                  <label class="field-label">
-                    <UserIcon class="field-icon" /> Author
-                  </label>
-                  <input v-model="form.author" class="field-input" type="text" placeholder="Composer / author" />
+                  <label class="field-label">Author / Composer</label>
+                  <input v-model="form.author" class="field-input" type="text" placeholder="Original composer" />
                 </div>
+
                 <div class="form-field">
-                  <label class="field-label">
-                    <UserIcon class="field-icon" /> Featured artists
-                  </label>
+                  <label class="field-label">Featured artists</label>
                   <input v-model="form.featuredArtists" class="field-input" type="text"
                     placeholder="Artist A, Artist B" />
-                  <span class="field-hint">Separate with commas</span>
+                  <span class="field-hint">Comma-separated</span>
                 </div>
+
                 <div class="form-field">
-                  <label class="field-label">
-                    <MusicalNoteIcon class="field-icon" /> Album
-                  </label>
+                  <label class="field-label">Album / EP</label>
                   <input v-model="form.album" class="field-input" type="text" placeholder="Album name" />
                 </div>
+
                 <div class="form-field">
-                  <label class="field-label">
-                    <GlobeAltIcon class="field-icon" /> Country
-                  </label>
-                  <input v-model="form.country" class="field-input" type="text" placeholder="Country of origin" />
+                  <label class="field-label">Country</label>
+                  <input v-model="form.country" class="field-input" type="text" placeholder="Uzbekistan" />
                 </div>
               </div>
             </section>
 
-            <section class="form-section">
+            <section class="card">
               <div class="section-head">
-                <h3>Classification</h3>
-                <p>Metadata for search, filtering and recommendations.</p>
+                <div class="section-icon">
+                  <TagIcon />
+                </div>
+                <div>
+                  <h3>Classification</h3>
+                  <p>Genre, mood, language and search metadata.</p>
+                </div>
               </div>
-              <div class="form-grid">
+
+              <div class="preset-grid">
+                <button v-for="p in genrePresets" :key="p.id" type="button" class="preset-card"
+                  :class="{ active: activePreset === p.id }" @click="applyPreset(p)">
+                  <span>{{ p.icon }}</span>
+                  <span>{{ p.name }}</span>
+                </button>
+              </div>
+
+              <div class="form-grid spaced-top">
                 <div class="form-field full">
-                  <label class="field-label">
-                    <TagIcon class="field-icon" /> Genre
-                  </label>
-                  <el-select v-model="form.genre" multiple filterable allow-create default-first-option collapse-tags
-                    clearable placeholder="Select or type genres" style="width:100%">
-                    <el-option v-for="g in genreOpts" :key="g" :label="g" :value="g" />
-                  </el-select>
-                  <div class="quick-chips">
-                    <button v-for="g in genreQuick" :key="g" type="button" class="quick-chip"
+                  <label class="field-label">Genre</label>
+                  <div v-if="form.genre.length" class="chips-row">
+                    <span v-for="g in form.genre" :key="g" class="sel-chip">
+                      {{ g }}
+                      <button type="button" @click="removeArr('genre', g)">×</button>
+                    </span>
+                  </div>
+                  <div class="tag-grid">
+                    <button v-for="g in allGenres" :key="g" type="button" class="tag-opt"
                       :class="{ active: form.genre.includes(g) }" @click="toggleArr('genre', g)">
                       {{ g }}
                     </button>
+                    <input v-model="genreInput" class="tag-custom-input" placeholder="+ Custom genre"
+                      @keydown.enter.prevent="addCustom('genre')" @keydown.comma.prevent="addCustom('genre')" />
                   </div>
-                  <div v-if="form.genre.length" class="selected-chips">
-                    <span v-for="g in form.genre" :key="g" class="sel-chip">
-                      {{ g }}<button type="button" @click="removeArr('genre', g)">×</button>
-                    </span>
-                  </div>
-                </div>
-
-                <div class="form-field">
-                  <label class="field-label">
-                    <LanguageIcon class="field-icon" /> Language
-                  </label>
-                  <el-select v-model="form.language" filterable clearable placeholder="Select language"
-                    style="width:100%">
-                    <el-option v-for="l in langOpts" :key="l" :label="l" :value="l" />
-                  </el-select>
-                </div>
-
-                <div class="form-field">
-                  <label class="field-label">
-                    <CalendarIcon class="field-icon" /> Release date
-                  </label>
-                  <el-date-picker v-model="form.releaseDate" type="date" placeholder="Pick a date" format="YYYY-MM-DD"
-                    value-format="YYYY-MM-DD" style="width:100%" />
                 </div>
 
                 <div class="form-field full">
-                  <label class="field-label">
-                    <FaceSmileIcon class="field-icon" /> Mood
-                  </label>
-                  <el-select v-model="form.mood" multiple filterable allow-create default-first-option collapse-tags
-                    clearable placeholder="Select moods" style="width:100%">
-                    <el-option v-for="m in moodOpts" :key="m" :label="m" :value="m" />
-                  </el-select>
-                  <div class="quick-chips">
-                    <button v-for="m in moodQuick" :key="m" type="button" class="quick-chip"
+                  <label class="field-label">Mood</label>
+                  <div v-if="form.mood.length" class="chips-row">
+                    <span v-for="m in form.mood" :key="m" class="sel-chip mood-chip">
+                      {{ m }}
+                      <button type="button" @click="removeArr('mood', m)">×</button>
+                    </span>
+                  </div>
+                  <div class="tag-grid">
+                    <button v-for="m in allMoods" :key="m" type="button" class="tag-opt"
                       :class="{ active: form.mood.includes(m) }" @click="toggleArr('mood', m)">
                       {{ m }}
                     </button>
                   </div>
-                  <div v-if="form.mood.length" class="selected-chips">
-                    <span v-for="m in form.mood" :key="m" class="sel-chip">
-                      {{ m }}<button type="button" @click="removeArr('mood', m)">×</button>
-                    </span>
-                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Language</label>
+                  <input v-model="form.language" class="field-input" type="text" placeholder="Uzbek" />
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Release date</label>
+                  <input v-model="form.releaseDate" class="field-input" type="date" />
                 </div>
 
                 <div class="form-field full">
-                  <label class="field-label">
-                    <TagIcon class="field-icon" /> Tags
-                  </label>
+                  <label class="field-label">Tags</label>
                   <input v-model="form.tags" class="field-input" type="text" placeholder="sad, acoustic, live" />
-                  <span class="field-hint">Separate with commas</span>
                 </div>
               </div>
             </section>
 
-            <section class="form-section">
+            <section class="card">
               <div class="section-head">
-                <h3>Publishing</h3>
-                <p>Visibility, status and content flags.</p>
+                <div class="section-icon">
+                  <RocketLaunchIcon />
+                </div>
+                <div>
+                  <h3>Publishing</h3>
+                  <p>Status and flags.</p>
+                </div>
               </div>
 
-              <div class="form-field" style="margin-bottom:14px">
-                <label class="field-label">
-                  <RocketLaunchIcon class="field-icon" /> Status
-                </label>
-                <el-select v-model="form.status" style="width:200px">
-                  <el-option label="Draft" value="draft" />
-                  <el-option label="Published" value="published" />
-                  <el-option label="Archived" value="archived" />
-                </el-select>
-              </div>
+              <div class="publish-wrap">
+                <div class="seg-control">
+                  <button v-for="s in statusOpts" :key="s.value" type="button" class="seg-btn"
+                    :class="[s.value, { active: form.status === s.value }]" @click="form.status = s.value">
+                    <span class="seg-dot" />
+                    {{ s.label }}
+                  </button>
+                </div>
 
-              <div class="switch-grid">
-                <div class="switch-card">
-                  <div class="switch-label">
-                    <span class="switch-name">Explicit content</span>
-                    <span class="switch-desc">{{ form.isExplicit ? 'Explicit enabled' : 'Clean track' }}</span>
-                  </div>
-                  <el-switch v-model="form.isExplicit" />
-                </div>
-                <div class="switch-card">
-                  <div class="switch-label">
-                    <span class="switch-name">Featured</span>
-                    <span class="switch-desc">{{ form.isFeatured ? 'Featured on home' : 'Normal track' }}</span>
-                  </div>
-                  <el-switch v-model="form.isFeatured" />
-                </div>
-                <div class="switch-card">
-                  <div class="switch-label">
-                    <span class="switch-name">Recommended</span>
-                    <span class="switch-desc">{{ form.isRecommended ? 'In recommendations' : 'Not recommended' }}</span>
-                  </div>
-                  <el-switch v-model="form.isRecommended" />
+                <div class="flags-row">
+                  <button class="flag-btn" :class="{ on: form.isExplicit }" type="button"
+                    @click="form.isExplicit = !form.isExplicit">
+                    <span class="flag-pip" /> 🔞 Explicit
+                  </button>
+                  <button class="flag-btn" :class="{ on: form.isFeatured }" type="button"
+                    @click="form.isFeatured = !form.isFeatured">
+                    <span class="flag-pip" /> ⭐ Featured
+                  </button>
+                  <button class="flag-btn" :class="{ on: form.isRecommended }" type="button"
+                    @click="form.isRecommended = !form.isRecommended">
+                    <span class="flag-pip" /> 🎯 Recommended
+                  </button>
                 </div>
               </div>
             </section>
 
-            <section class="form-section">
+            <section class="card">
               <div class="section-head">
-                <h3>Content</h3>
-                <p>Descriptions and lyrics for detail view.</p>
+                <div class="section-icon">
+                  <DocumentTextIcon />
+                </div>
+                <div>
+                  <h3>Content</h3>
+                  <p>Description, artist info and lyrics.</p>
+                </div>
               </div>
-              <div class="form-grid" style="grid-template-columns:1fr">
+
+              <div class="two-col-grid">
                 <div class="form-field">
-                  <label class="field-label">
-                    <DocumentTextIcon class="field-icon" /> Track description
-                  </label>
-                  <textarea v-model="form.bio" class="field-textarea" rows="3"
-                    placeholder="Short description of the track"></textarea>
+                  <label class="field-label">Track description</label>
+                  <textarea v-model="form.bio" class="field-textarea" rows="4" placeholder="Short description" />
                 </div>
+
                 <div class="form-field">
-                  <label class="field-label">
-                    <DocumentTextIcon class="field-icon" /> Artist bio
-                  </label>
-                  <textarea v-model="form.artistBio" class="field-textarea" rows="3"
-                    placeholder="Brief biography of the artist"></textarea>
+                  <label class="field-label">Artist bio</label>
+                  <textarea v-model="form.artistBio" class="field-textarea" rows="4" placeholder="Brief bio" />
                 </div>
-                <div class="form-field">
-                  <label class="field-label">
-                    <DocumentTextIcon class="field-icon" /> Lyrics
-                  </label>
-                  <textarea v-model="form.lyrics" class="field-textarea" rows="8"
-                    placeholder="Paste full song lyrics here…"></textarea>
+              </div>
+
+              <div class="form-field">
+                <div class="field-row">
+                  <label class="field-label">Lyrics</label>
+                  <span class="field-hint">{{ lineCount }}</span>
                 </div>
+                <textarea v-model="form.lyrics" class="field-textarea lyrics-textarea" rows="10"
+                  placeholder="Paste lyrics here" />
               </div>
             </section>
 
-            <section class="form-section">
-              <div class="section-head">
-                <h3>Files</h3>
-                <p>Upload cover image and audio file.</p>
-              </div>
-              <div class="upload-grid">
-                <label class="upload-card">
-                  <div class="upload-card-label">
-                    <PhotoIcon class="upload-card-icon" /> Cover image
+            <section class="card">
+              <div class="section-head between">
+                <div class="section-head-inline">
+                  <div class="section-icon">
+                    <MicrophoneIcon />
                   </div>
-                  <input type="file" class="upload-hidden" accept="image/png,image/jpeg,image/jpg,image/webp"
-                    @change="onCover" />
-                  <div class="upload-drop">
-                    <img v-if="coverPrev" :src="coverPrev" class="upload-preview" alt="preview" />
-                    <template v-else>
-                      <PhotoIcon class="upload-drop-icon-svg" />
-                      <div class="upload-drop-title">Click to upload cover</div>
-                      <div class="upload-drop-sub">PNG, JPG, WEBP · max 10MB</div>
-                    </template>
+                  <div>
+                    <h3>Synced lyrics</h3>
+                    <p>LRC timing for karaoke-like playback.</p>
                   </div>
-                </label>
+                </div>
 
-                <label class="upload-card">
-                  <div class="upload-card-label">
-                    <MusicalNoteIcon class="upload-card-icon" /> Audio file *
-                  </div>
-                  <input type="file" class="upload-hidden" accept="audio/mpeg,audio/mp3,audio/wav,audio/mp4,audio/x-m4a"
-                    @change="onAudio" />
-                  <div class="upload-drop">
-                    <template v-if="audioName">
-                      <MusicalNoteIcon class="upload-drop-icon-svg" />
-                      <div class="upload-drop-title">{{ audioName }}</div>
-                      <div class="upload-drop-sub">
-                        {{ audioDuration ? 'Duration: ' + audioDuration : 'Ready to upload' }}
-                      </div>
-                    </template>
-                    <template v-else>
-                      <MusicalNoteIcon class="upload-drop-icon-svg" />
-                      <div class="upload-drop-title">Click to upload audio</div>
-                      <div class="upload-drop-sub">MP3, WAV, M4A · max 100MB</div>
-                    </template>
-                  </div>
-                </label>
+                <div class="sync-mode-seg">
+                  <button class="seg-sm" :class="{ active: syncMode === 'manual' }" @click="syncMode = 'manual'"
+                    type="button">
+                    Manual
+                  </button>
+                  <button class="seg-sm" :class="{ active: syncMode === 'auto' }" @click="syncMode = 'auto'"
+                    type="button">
+                    Auto AI
+                  </button>
+                </div>
               </div>
+
+              <div v-if="syncMode === 'auto'" class="auto-banner">
+                <div class="auto-banner-left">
+                  <SparklesIcon class="icon-sm" />
+                  <span>Generate synced lyrics from audio and plain lyrics.</span>
+                </div>
+
+                <button class="gen-sync-btn" :disabled="!audioFile || !form.lyrics.trim() || syncLoading"
+                  @click="generateSync" type="button">
+                  <ArrowPathIcon class="icon-sm" :class="{ spin: syncLoading }" />
+                  {{ syncLoading ? 'Generating…' : 'Generate sync' }}
+                </button>
+              </div>
+
+              <div class="lrc-bar">
+                <code>[00:12.40] Line text here</code>
+                <span class="sync-pill" :class="syncPillClass">{{ syncPillText }}</span>
+              </div>
+
+              <textarea v-model="form.syncedLyricsRaw" class="field-textarea lrc-textarea" rows="8"
+                placeholder="[00:01.00] First line&#10;[00:05.20] Second line" />
             </section>
 
-            <section class="form-section">
-              <div class="section-head">
-                <h3>Synced lyrics</h3>
-                <p>LRC format for karaoke display. Can be generated automatically after upload.</p>
-              </div>
-
-              <div style="display:flex; gap:12px; margin-bottom:12px; align-items:center; flex-wrap:wrap;">
-                <span style="font-weight:600;">Sync mode:</span>
-                <label style="display:flex; align-items:center; gap:6px;">
-                  <input type="radio" value="manual" v-model="syncMode" />
-                  Manual
-                </label>
-                <label style="display:flex; align-items:center; gap:6px;">
-                  <input type="radio" value="auto" v-model="syncMode" />
-                  Auto
-                </label>
-              </div>
-
-              <div class="synced-head">
-                <span class="synced-title">LRC format</span>
-                <span class="synced-hint">Format: [mm:ss.xx] Lyric line</span>
-              </div>
-
-              <textarea v-model="form.syncedLyricsRaw" class="field-textarea" rows="6"
-                placeholder="[00:01.00] First line…"></textarea>
-
-              <div class="sync-status">
-                Sync status:
-                <span class="sync-pill" :class="form.syncedLyricsRaw.trim() ? 'ready' : 'none'">
-                  {{ syncLoading ? 'Generating...' : form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set' }}
+            <section class="card footer-card">
+              <div class="footer-checklist">
+                <span class="check-item" :class="{ ok: !!audioFile }">
+                  <CheckIcon v-if="audioFile" class="icon-xs" /><span v-else class="check-dot" />
+                  Audio
+                </span>
+                <span class="check-item" :class="{ ok: form.title.trim() }">
+                  <CheckIcon v-if="form.title.trim()" class="icon-xs" /><span v-else class="check-dot" />
+                  Title
+                </span>
+                <span class="check-item" :class="{ ok: form.artist.trim() }">
+                  <CheckIcon v-if="form.artist.trim()" class="icon-xs" /><span v-else class="check-dot" />
+                  Artist
+                </span>
+                <span class="check-item" :class="{ ok: form.genre.length > 0 }">
+                  <CheckIcon v-if="form.genre.length > 0" class="icon-xs" /><span v-else class="check-dot" />
+                  Genre
                 </span>
               </div>
+
+              <div class="footer-actions">
+                <button class="btn btn-ghost" @click="router.push('/admin')" type="button">Cancel</button>
+                <button class="btn btn-draft" @click="submitAs('draft')" :disabled="loading" type="button">
+                  Save draft
+                </button>
+                <button class="btn btn-primary" @click="submitAs('published')" :disabled="loading || !canPublish"
+                  type="button">
+                  <CloudArrowUpIcon class="icon-sm" />
+                  {{ loading ? 'Uploading…' : 'Publish track' }}
+                </button>
+              </div>
             </section>
-          </div>
+          </section>
 
-          <div class="am-footer">
-            <button class="am-cancel-btn" @click="router.push('/admin')">Cancel</button>
-            <button class="am-sync-btn"
-              :disabled="!form.lyrics.trim() || !audioFile || loading || syncLoading || syncMode === 'manual'"
-              @click="generateSync">
-              {{ syncLoading ? 'Generating…' : 'Generate sync' }}
-            </button>
-            <button class="am-save-btn" :disabled="loading || syncLoading" @click="submit">
-              <CloudArrowUpIcon style="width:16px;height:16px" />
-              {{ loading ? 'Uploading…' : 'Upload track' }}
-            </button>
+          <aside class="content-side">
+            <section class="card side-card sticky-card">
+              <div class="side-head">
+                <h3>Readiness</h3>
+                <span class="side-score">{{ progressPct }}%</span>
+              </div>
 
-          </div>
+              <div class="progress-track">
+                <div class="progress-fill" :style="{ width: progressPct + '%' }" />
+              </div>
 
+              <div class="progress-list">
+                <div v-for="(step, i) in progressSteps" :key="i" class="progress-item" :class="{ done: step.done }">
+                  <div class="progress-dot">
+                    <CheckIcon v-if="step.done" class="icon-xs" />
+                    <span v-else>{{ i + 1 }}</span>
+                  </div>
+                  <span>{{ step.label }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="card side-card">
+              <div class="side-head">
+                <h3>Preview</h3>
+                <span class="preview-status" :class="form.status">{{ statusLabel }}</span>
+              </div>
+
+              <div class="track-preview">
+                <div class="track-cover-shell">
+                  <img v-if="coverPrev" :src="coverPrev" class="track-cover" alt="cover" />
+                  <div v-else class="track-cover-empty">
+                    <PhotoIcon class="track-cover-empty-icon" />
+                  </div>
+                </div>
+
+                <div class="track-preview-meta">
+                  <h4>{{ form.title || 'Untitled track' }}</h4>
+                  <p>{{ form.artist || 'Unknown artist' }}</p>
+                </div>
+              </div>
+            </section>
+          </aside>
         </div>
       </main>
     </div>
@@ -321,14 +412,13 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ElNotification, ElMessage } from 'element-plus'
 import {
-  ArrowLeftIcon, MusicalNoteIcon, MicrophoneIcon, UserIcon,
-  TagIcon, DocumentTextIcon, PhotoIcon, CloudArrowUpIcon,
-  GlobeAltIcon, LanguageIcon, FaceSmileIcon, RocketLaunchIcon, CalendarIcon
+  ArrowLeftIcon, MusicalNoteIcon, MicrophoneIcon, TagIcon, DocumentTextIcon,
+  PhotoIcon, CloudArrowUpIcon, RocketLaunchIcon, ArrowPathIcon, CheckIcon, SparklesIcon
 } from '@heroicons/vue/24/outline'
 
 import HeaderPage from '@/components/layout/header_page.vue'
@@ -336,9 +426,14 @@ import AdminSidebar from '@/components/layout/admin_sidebar.vue'
 import '@/styles/global.css'
 import '@/styles/add_music_page.css'
 
-const BASE_URL = 'http://localhost:7139'
-const SYNC_URL = 'http://localhost:8001'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'http://localhost:7139'
+const SYNC_URL = import.meta.env.VITE_SYNC_URL || 'http://localhost:8001'
 const router = useRouter()
+
+const api = axios.create({
+  baseURL: `${API_ROOT}/api`,
+  withCredentials: true
+})
 
 const loading = ref(false)
 const syncLoading = ref(false)
@@ -349,12 +444,26 @@ const audioFile = ref(null)
 const coverPrev = ref('')
 const audioName = ref('')
 const audioDuration = ref('')
+const genreInput = ref('')
+const activePreset = ref(null)
 
-const genreOpts = ['Pop', 'Rock', 'Rap', 'Hip-Hop', 'R&B', 'Jazz', 'Classical', 'Electronic', 'Dance', 'House', 'Techno', 'Chill', 'Lo-fi', 'Indie', 'Folk', 'Soul', 'Blues', 'Reggae', 'Country', 'Latin']
-const genreQuick = ['Pop', 'Rap', 'Chill', 'Indie', 'Rock', 'Lo-fi', 'Electronic']
-const moodOpts = ['Happy', 'Sad', 'Calm', 'Energetic', 'Romantic', 'Dark', 'Motivational', 'Melancholic', 'Chill', 'Aggressive', 'Dreamy', 'Nostalgic']
-const moodQuick = ['Calm', 'Sad', 'Energetic', 'Romantic', 'Happy', 'Chill']
-const langOpts = ['Uzbek', 'English', 'Russian', 'Turkish', 'Korean', 'Arabic', 'Hindi', 'Spanish', 'French', 'German', 'Japanese', 'Italian']
+const allGenres = ['Pop', 'Rap', 'Lo-fi', 'Indie', 'Rock', 'Electronic', 'OST', 'Acoustic', 'R&B', 'Chill', 'Jazz', 'Classical', 'Dance', 'Soul', 'Folk', 'Reggae']
+const allMoods = ['Calm', 'Sad', 'Happy', 'Energetic', 'Romantic', 'Dreamy', 'Dark', 'Melancholic', 'Chill', 'Motivational', 'Nostalgic', 'Aggressive']
+
+const genrePresets = [
+  { id: 'uzpop', icon: '🎵', name: "O'zbek Pop", genre: ['Pop'], mood: ['Happy', 'Energetic'], language: 'Uzbek', country: 'Uzbekistan' },
+  { id: 'lofi', icon: '🌙', name: 'Lo-fi Chill', genre: ['Lo-fi', 'Chill'], mood: ['Calm', 'Dreamy'] },
+  { id: 'ost', icon: '🎬', name: 'OST / Score', genre: ['OST', 'Classical'], mood: ['Dreamy', 'Calm'], isFeatured: true },
+  { id: 'rap', icon: '🎤', name: 'Rap', genre: ['Rap'], mood: ['Energetic', 'Aggressive'] },
+  { id: 'electronic', icon: '⚡', name: 'Electronic', genre: ['Electronic', 'Dance'], mood: ['Energetic'] },
+  { id: 'acoustic', icon: '🎸', name: 'Acoustic', genre: ['Acoustic', 'Indie'], mood: ['Calm', 'Melancholic'] }
+]
+
+const statusOpts = [
+  { value: 'draft', label: 'Draft' },
+  { value: 'published', label: 'Published' },
+  { value: 'archived', label: 'Archived' }
+]
 
 const form = reactive({
   title: '',
@@ -375,8 +484,34 @@ const form = reactive({
   status: 'draft',
   isExplicit: false,
   isFeatured: false,
-  isRecommended: false,
+  isRecommended: false
 })
+
+const statusLabel = computed(() => ({
+  draft: 'Draft',
+  published: 'Published',
+  archived: 'Archived'
+}[form.status] || 'Draft'))
+
+const canPublish = computed(() => form.title.trim() && form.artist.trim() && !!audioFile.value)
+
+const lineCount = computed(() => form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : 'No lyrics yet')
+
+const progressSteps = computed(() => [
+  { label: 'Audio uploaded', done: !!audioFile.value },
+  { label: 'Title added', done: !!form.title.trim() },
+  { label: 'Artist added', done: !!form.artist.trim() },
+  { label: 'Genre selected', done: form.genre.length > 0 },
+  { label: 'Ready to publish', done: !!canPublish.value }
+])
+
+const progressPct = computed(() => {
+  const done = progressSteps.value.filter(s => s.done).length
+  return Math.round((done / progressSteps.value.length) * 100)
+})
+
+const syncPillClass = computed(() => syncLoading.value ? 'loading' : form.syncedLyricsRaw.trim() ? 'ready' : 'none')
+const syncPillText = computed(() => syncLoading.value ? 'Generating…' : form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set')
 
 const toggleArr = (field, val) => {
   form[field] = form[field].includes(val)
@@ -388,24 +523,29 @@ const removeArr = (field, val) => {
   form[field] = form[field].filter(x => x !== val)
 }
 
-const fmtTime = (t) => {
-  if (!t || isNaN(t)) return ''
-  return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
+const addCustom = (field) => {
+  const v = genreInput.value.trim().replace(/,$/, '')
+  if (v && !form[field].includes(v)) form[field] = [...form[field], v]
+  genreInput.value = ''
 }
 
+const applyPreset = (p) => {
+  activePreset.value = p.id
+  if (p.genre) form.genre = [...new Set([...form.genre, ...p.genre])]
+  if (p.mood) form.mood = [...new Set([...form.mood, ...p.mood])]
+  if (p.language) form.language = p.language
+  if (p.country) form.country = p.country
+  if (p.isFeatured) form.isFeatured = p.isFeatured
+}
+
+const fmtTime = t => (!t || isNaN(t)) ? '' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
 const parseTags = (s = '') => String(s).split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
 const parseList = (s = '') => String(s).split(',').map(t => t.trim()).filter(Boolean)
 
 const onCover = (e) => {
   const f = e.target.files?.[0]
   if (!f) return
-
-  if (f.size / 1024 / 1024 > 10) {
-    ElMessage.error('Image must be under 10MB')
-    e.target.value = ''
-    return
-  }
-
+  if (f.size / 1024 / 1024 > 10) return ElMessage.error('Image must be under 10MB')
   coverFile.value = f
   coverPrev.value = URL.createObjectURL(f)
 }
@@ -413,12 +553,7 @@ const onCover = (e) => {
 const onAudio = async (e) => {
   const f = e.target.files?.[0]
   if (!f) return
-
-  if (f.size / 1024 / 1024 > 100) {
-    ElMessage.error('Audio must be under 100MB')
-    e.target.value = ''
-    return
-  }
+  if (f.size / 1024 / 1024 > 100) return ElMessage.error('Audio must be under 100MB')
 
   audioFile.value = f
   audioName.value = f.name
@@ -437,109 +572,89 @@ const onAudio = async (e) => {
 }
 
 const generateSync = async () => {
-  if (!audioFile.value) {
-    ElMessage.error('Audio file is required for sync')
-    return
-  }
-
-  if (!form.lyrics.trim()) {
-    ElMessage.error('Lyrics are required for sync')
-    return
-  }
+  if (!audioFile.value) return ElMessage.error('Upload audio first')
+  if (!form.lyrics.trim()) return ElMessage.error('Add lyrics first')
 
   syncLoading.value = true
-
   try {
     const fd = new FormData()
     fd.append('audio', audioFile.value)
     fd.append('lyrics', form.lyrics.trim())
     fd.append('model_size', 'base')
 
-    const { data } = await axios.post(`${SYNC_URL}/sync`, fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-
+    const { data } = await axios.post(`${SYNC_URL}/sync`, fd)
     form.syncedLyricsRaw = data?.syncedLyricsRaw || data?.data?.syncedLyricsRaw || ''
+
     ElNotification({
-      title: 'Success',
-      message: `Lyrics synced successfully (${data?.backend || data?.data?.backend || 'backend'})`,
+      title: 'Sync complete',
       type: 'success',
-      duration: 2200,
+      duration: 2000
     })
   } catch (e) {
     ElNotification({
       title: 'Sync error',
-      message: e?.response?.data?.detail || e?.response?.data?.message || 'Failed to generate synced lyrics',
+      message: e?.response?.data?.detail || 'Failed',
       type: 'error',
-      duration: 3000,
+      duration: 3000
     })
   } finally {
     syncLoading.value = false
   }
 }
 
-const submit = async () => {
-  if (!form.title.trim()) {
-    return ElNotification({ title: 'Error', message: 'Title is required', type: 'error', duration: 2000 })
-  }
+const buildFD = () => {
+  const fd = new FormData()
+  fd.append('title', form.title.trim())
+  fd.append('artist', form.artist.trim())
+  fd.append('author', form.author.trim())
+  fd.append('featuredArtists', JSON.stringify(parseList(form.featuredArtists)))
+  fd.append('genre', JSON.stringify(form.genre))
+  fd.append('album', form.album.trim())
+  fd.append('language', form.language.trim())
+  fd.append('mood', JSON.stringify(form.mood))
+  fd.append('country', form.country.trim())
+  fd.append('releaseDate', form.releaseDate || '')
+  fd.append('tags', JSON.stringify(parseTags(form.tags)))
+  fd.append('bio', form.bio.trim())
+  fd.append('artistBio', form.artistBio.trim())
+  fd.append('lyrics', form.lyrics.trim())
+  fd.append('syncedLyricsRaw', form.syncedLyricsRaw.trim())
+  fd.append('status', form.status)
+  fd.append('isExplicit', String(form.isExplicit))
+  fd.append('isFeatured', String(form.isFeatured))
+  fd.append('isRecommended', String(form.isRecommended))
+  if (coverFile.value) fd.append('cover', coverFile.value)
+  if (audioFile.value) fd.append('song', audioFile.value)
+  return fd
+}
 
-  if (!form.artist.trim()) {
-    return ElNotification({ title: 'Error', message: 'Artist is required', type: 'error', duration: 2000 })
-  }
+const submitAs = async (statusOverride) => {
+  if (!form.title.trim()) return ElMessage.error('Title is required')
+  if (!form.artist.trim()) return ElMessage.error('Artist is required')
+  if (!audioFile.value) return ElMessage.error('Audio file is required')
 
-  if (!audioFile.value) {
-    return ElNotification({ title: 'Error', message: 'Audio file is required', type: 'error', duration: 2000 })
-  }
-
+  form.status = statusOverride
   loading.value = true
 
   try {
-    const fd = new FormData()
-
-    fd.append('title', form.title.trim())
-    fd.append('artist', form.artist.trim())
-    fd.append('author', form.author.trim())
-    fd.append('featuredArtists', JSON.stringify(parseList(form.featuredArtists)))
-    fd.append('genre', JSON.stringify(form.genre))
-    fd.append('album', form.album.trim())
-    fd.append('language', form.language)
-    fd.append('mood', JSON.stringify(form.mood))
-    fd.append('country', form.country.trim())
-    fd.append('releaseDate', form.releaseDate || '')
-    fd.append('tags', JSON.stringify(parseTags(form.tags)))
-    fd.append('bio', form.bio.trim())
-    fd.append('artistBio', form.artistBio.trim())
-    fd.append('lyrics', form.lyrics.trim())
-    fd.append('syncedLyricsRaw', form.syncedLyricsRaw.trim())
-    fd.append('status', form.status)
-    fd.append('isExplicit', String(form.isExplicit))
-    fd.append('isFeatured', String(form.isFeatured))
-    fd.append('isRecommended', String(form.isRecommended))
-
-    if (coverFile.value) fd.append('cover', coverFile.value)
-    fd.append('song', audioFile.value)
-
-    await axios.post(`${BASE_URL}/api/music`, fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      withCredentials: true,
+    await api.post('/music', buildFD(), {
+      headers: { 'Content-Type': 'multipart/form-data' }
     })
 
     ElNotification({
-      title: 'Uploaded!',
-      message: syncMode.value === 'manual'
-        ? 'Track added successfully with manual synced lyrics'
-        : 'Track added successfully',
+      title: statusOverride === 'published' ? '🚀 Published!' : '📝 Saved!',
+      message: statusOverride === 'published' ? 'Track is now live.' : 'Draft saved.',
       type: 'success',
-      duration: 2000
+      duration: 2200
     })
 
     router.push('/admin')
   } catch (e) {
     ElNotification({
-      title: 'Error',
-      message: e?.response?.data?.message || 'Upload failed',
+      title: 'Upload failed',
+      message: e?.response?.data?.message || e?.message || 'Something went wrong',
       type: 'error',
-      duration: 2500
+      duration: 3000
     })
   } finally {
     loading.value = false

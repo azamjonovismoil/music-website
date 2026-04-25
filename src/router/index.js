@@ -6,8 +6,9 @@ const APP_NAME = 'ExclusiveMusics'
 const routes = [
   {
     path: '/',
-    redirect: '/login',
-    meta: { guestOnly: true, title: 'Welcome' },
+    name: 'Landing',
+    component: () => import('../pages/home/user_page.vue'),
+    meta: { title: 'Welcome' },
   },
 
   {
@@ -21,12 +22,6 @@ const routes = [
     name: 'Signup',
     component: () => import('../pages/auth/signup_page.vue'),
     meta: { guestOnly: true, title: 'Sign up' },
-  },
-  {
-    path: '/verify-email',
-    name: 'VerifyEmail',
-    component: () => import('../pages/auth/verify_email_page.vue'),
-    meta: { requiresAuth: true, title: 'Verify email' },
   },
   {
     path: '/forgot-password',
@@ -101,15 +96,17 @@ const router = createRouter({
   scrollBehavior: () => ({ top: 0 }),
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  const isAuth = !!auth.user
+  if (!auth.initialized) {
+    await auth.fetchMe()
+  }
+
+  const isAuth = auth.isLoggedIn
   const isAdmin = auth.isAdmin
-  const isVerified = auth.isEmailVerified
 
   if (to.meta.guestOnly && isAuth) {
-    if (!isVerified) return next('/verify-email')
     return next(isAdmin ? '/admin' : '/user')
   }
 
@@ -120,17 +117,12 @@ router.beforeEach((to, from, next) => {
     })
   }
 
-  if (isAuth && !isVerified && to.path !== '/verify-email') {
-    return next('/verify-email')
-  }
-
   if (to.meta.requiresAdmin && !isAdmin) {
     return next('/user')
   }
 
   next()
 })
-
 
 router.afterEach((to) => {
   document.title = to.meta?.title

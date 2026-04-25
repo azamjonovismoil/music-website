@@ -1,21 +1,17 @@
 <template>
   <header class="app-header">
     <div class="header-inner">
-
-      <!-- LEFT -->
       <div class="header-left">
-        <!-- Logo -->
         <div class="brand" @click="goHome">
           <img src="/src/assets/header_icon.png" alt="Music." class="brand-logo" @error="logoErr = true" />
           <span v-if="logoErr" class="brand-name">Music<span class="brand-dot">.</span></span>
         </div>
 
-        <button class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
+        <button v-if="authStore.user" class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
           <HomeIcon class="hdr-icon" />
         </button>
 
-        <!-- Search -->
-        <div v-if="showSearch" class="search-wrap" :class="{ expanded: searchFocused || search }">
+        <div v-if="showSearch && authStore.user" class="search-wrap" :class="{ expanded: searchFocused || search }">
           <MagnifyingGlassIcon class="search-icon-el" />
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="clearSearch" type="text"
@@ -29,20 +25,17 @@
         </div>
       </div>
 
-      <!-- RIGHT -->
       <div class="header-right">
         <button class="hdr-btn icon-btn theme-btn" @click="toggleTheme" :title="isDark ? 'Light mode' : 'Dark mode'">
           <SunIcon v-if="isDark" class="hdr-icon" />
           <MoonIcon v-else class="hdr-icon" />
         </button>
 
-        <!-- Guest -->
         <template v-if="!authStore.user">
           <button class="hdr-btn ghost-btn" @click="router.push('/login')">Login</button>
           <button class="hdr-btn accent-btn" @click="router.push('/signup')">Sign up</button>
         </template>
 
-        <!-- Logged in -->
         <template v-else>
           <button v-if="authStore.isAdmin" class="hdr-btn accent-btn add-btn" @click="router.push('/admin/add-music')">
             <PlusIcon class="hdr-icon" />
@@ -64,21 +57,27 @@
                 <div class="dropdown-user">
                   <div class="dropdown-avatar">{{ firstLetter }}</div>
                   <div>
-                    <p class="dropdown-name">{{ authStore.userName || 'User' }}</p>
+                    <p class="dropdown-name">{{ authStore.userName }}</p>
                     <p class="dropdown-role">{{ authStore.isAdmin ? 'Administrator' : 'Member' }}</p>
                   </div>
                 </div>
+
                 <div class="dropdown-divider" />
+
                 <button class="dropdown-item" @click="nav('/profile')">
                   <UserIcon class="di-icon" /> Profile
                 </button>
+
                 <button v-if="authStore.isAdmin" class="dropdown-item" @click="nav('/admin')">
                   <Squares2X2Icon class="di-icon" /> Admin panel
                 </button>
+
                 <button class="dropdown-item" @click="nav('/library/downloaded')">
                   <ArrowDownTrayIcon class="di-icon" /> Downloads
                 </button>
+
                 <div class="dropdown-divider" />
+
                 <button class="dropdown-item danger" :disabled="loggingOut" @click="logout">
                   <ArrowRightOnRectangleIcon class="di-icon" />
                   {{ loggingOut ? 'Logging out…' : 'Log out' }}
@@ -104,10 +103,11 @@ import { useAuthStore } from '@/stores/auth'
 import '@/styles/global.css'
 import '@/styles/header_page.css'
 
-const props = defineProps({
+defineProps({
   search: { type: String, default: '' },
   showSearch: { type: Boolean, default: true },
 })
+
 const emit = defineEmits(['update:search'])
 
 const router = useRouter()
@@ -121,14 +121,31 @@ const isDark = ref(true)
 const logoErr = ref(false)
 
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
-const goHome = () => router.push(authStore.isAdmin ? '/admin' : authStore.user ? '/user' : '/')
-const clearSearch = () => { emit('update:search', ''); searchRef.value?.blur() }
-const nav = (path) => { menuOpen.value = false; router.push(path) }
+
+const goHome = () => {
+  if (!authStore.user) return router.push('/')
+  return router.push(authStore.isAdmin ? '/admin' : '/user')
+}
+
+const clearSearch = () => {
+  emit('update:search', '')
+  searchRef.value?.blur()
+}
+
+const nav = (path) => {
+  menuOpen.value = false
+  router.push(path)
+}
 
 const logout = async () => {
-  loggingOut.value = true; menuOpen.value = false
-  try { await authStore.logout(); router.push('/login') }
-  finally { loggingOut.value = false }
+  loggingOut.value = true
+  menuOpen.value = false
+  try {
+    await authStore.logout()
+    router.push('/')
+  } finally {
+    loggingOut.value = false
+  }
 }
 
 const toggleTheme = () => {
@@ -139,13 +156,17 @@ const toggleTheme = () => {
 }
 
 const handleKey = (e) => {
+  if (!authStore.user) return
   if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
-    e.preventDefault(); searchRef.value?.focus()
+    e.preventDefault()
+    searchRef.value?.focus()
   }
 }
 
 const handleOut = (e) => {
-  if (profileRef.value && !profileRef.value.contains(e.target)) menuOpen.value = false
+  if (profileRef.value && !profileRef.value.contains(e.target)) {
+    menuOpen.value = false
+  }
 }
 
 onMounted(() => {

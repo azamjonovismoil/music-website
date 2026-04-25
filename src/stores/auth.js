@@ -10,42 +10,47 @@ const api = axios.create({
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const loading = ref(false)
+  const initialized = ref(false)
 
-  const isAdmin = computed(() => user.value?.isAdmin === 1)
-  const isEmailVerified = computed(() => user.value?.isEmailVerified === true)
+  const isLoggedIn = computed(() => !!user.value)
+  const isAdmin = computed(() => Number(user.value?.isAdmin) === 1)
+  const userName = computed(() => user.value?.name || 'User')
 
-  const setUser = (u) => { user.value = u }
+  const setUser = (u) => {
+    user.value = u
+  }
 
   const fetchMe = async () => {
     try {
       const { data } = await api.get('/auth/me')
-      setUser(data.user)
+      user.value = data.user
     } catch {
       user.value = null
+    } finally {
+      initialized.value = true
     }
   }
 
   const login = async (credentials) => {
-    const { data } = await api.post('/auth/login', credentials)
-    setUser(data.user)
-    return data
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/login', credentials)
+      user.value = data.user
+      return data
+    } finally {
+      loading.value = false
+    }
   }
 
   const register = async (payload) => {
-    const { data } = await api.post('/auth/register', payload)
-    setUser(data.user)
-    return data
-  }
-
-  const verifyEmail = async (code) => {
-    const { data } = await api.post('/auth/verify-email', { code })
-    setUser(data.user)
-    return data
-  }
-
-  const resendVerificationEmail = async () => {
-    const { data } = await api.post('/auth/resend-verification')
-    return data
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/register', payload)
+      user.value = data.user
+      return data
+    } finally {
+      loading.value = false
+    }
   }
 
   const forgotPassword = async (email) => {
@@ -63,14 +68,26 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = async () => {
-    await api.post('/auth/logout').catch(() => { })
+    try {
+      await api.post('/auth/logout')
+    } catch { }
     user.value = null
   }
 
   return {
-    user, loading, isAdmin, isEmailVerified,
-    fetchMe, login, register, verifyEmail,
-    resendVerificationEmail, forgotPassword,
-    resetPassword, loginWithGoogle, logout,
+    user,
+    loading,
+    initialized,
+    isLoggedIn,
+    isAdmin,
+    userName,
+    setUser,
+    fetchMe,
+    login,
+    register,
+    forgotPassword,
+    resetPassword,
+    loginWithGoogle,
+    logout,
   }
 })

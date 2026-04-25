@@ -69,7 +69,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import { Message, Lock, Headset } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
@@ -77,6 +77,7 @@ import '@/styles/global.css'
 import '@/styles/auth_pages.css'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -93,17 +94,17 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    const res = await authStore.login({
+    await authStore.login({
       email: email.value.trim(),
       password: password.value,
     })
-    if (res?.needsEmailVerification) {
-      notify('warning', 'Please verify your email first')
-      router.push('/verify-email')
-    } else {
-      notify('success', 'Welcome back!')
-      router.push('/')
-    }
+
+    notify('success', 'Welcome back!')
+
+    const redirect = route.query.redirect
+    if (redirect) return router.push(String(redirect))
+
+    router.push(authStore.isAdmin ? '/admin' : '/user')
   } catch (err) {
     notify('error', err?.response?.data?.message || 'Login failed')
   } finally {

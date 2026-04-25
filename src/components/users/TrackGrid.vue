@@ -1,6 +1,5 @@
 <template>
   <div class="track-grid-root">
-    <!-- Toolbar -->
     <div class="tg-toolbar">
       <div class="tg-chips">
         <button v-for="f in filters" :key="f.key" class="chip" :class="{ active: activeFilter === f.key }"
@@ -15,7 +14,6 @@
       </select>
     </div>
 
-    <!-- Head -->
     <div class="tg-head">
       <h2>{{ title }}</h2>
       <span class="result-badge">{{ tracks.length }}</span>
@@ -25,14 +23,12 @@
       </span>
     </div>
 
-    <!-- Empty -->
     <div v-if="!tracks.length" class="tg-empty">
       <MusicalNoteIcon class="tg-empty-icon" />
       <h3>No tracks found</h3>
       <p>Try changing filters or search query.</p>
     </div>
 
-    <!-- Grid -->
     <div v-else class="cards-grid">
       <div v-for="m in tracks" :key="m._id" class="u-card" :class="{ playing: currentMusic?._id === m._id }"
         @click="$emit('select-track', m)">
