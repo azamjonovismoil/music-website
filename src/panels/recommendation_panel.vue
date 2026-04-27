@@ -1,9 +1,13 @@
 <template>
   <section class="recommendation-panel">
     <div class="recommendation-header">
-      <span class="recommendation-kicker">Smart picks</span>
-      <h3>Recommendations</h3>
-      <p>Based on current track, artist, tags, and recent listening.</p>
+      <div>
+        <span class="recommendation-kicker">Smart picks</span>
+        <h3>Recommendations</h3>
+        <p>Based on current track, artist, tags, and recent listening.</p>
+      </div>
+
+      <button class="queue-open-btn" @click="$emit('open-queue')">Queue</button>
     </div>
 
     <div v-if="recommendedTracks.length" class="recommendation-list">
@@ -35,7 +39,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import '../styles/recommendation_panel.css'
+import '@/styles/recommendation_panel.css'
 
 const props = defineProps({
   musics: { type: Array, default: () => [] },
@@ -43,7 +47,7 @@ const props = defineProps({
   playHistory: { type: Array, default: () => [] }
 })
 
-defineEmits(['play', 'queue'])
+defineEmits(['play', 'queue', 'open-queue'])
 
 const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 
@@ -51,8 +55,8 @@ const fallbackCover =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
-      <rect width="100%" height="100%" fill="#111827"/>
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-size="18" font-family="Arial">
+      <rect width="100%" height="100%" fill="#0b1628"/>
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#7ea4cf" font-size="18" font-family="Arial">
         No Cover
       </text>
     </svg>
@@ -100,22 +104,17 @@ const recommendedTracks = computed(() => {
     .filter((music) => music._id !== current?._id)
     .map((music) => {
       let score = 0
-
       if (currentArtist && music.artist === currentArtist) score += 5
-
       if (music.tags?.length) {
         music.tags.forEach((tag) => {
           if (currentTags.includes(tag)) score += 3
           if (tagScoreMap.value[tag]) score += tagScoreMap.value[tag]
         })
       }
-
       if (music.artist && artistScoreMap.value[music.artist]) {
         score += artistScoreMap.value[music.artist] * 2
       }
-
       if (music.liked) score += 2
-
       return { ...music, score }
     })
     .sort((a, b) => b.score - a.score)

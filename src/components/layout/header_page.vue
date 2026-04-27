@@ -3,8 +3,9 @@
     <div class="header-inner">
       <div class="header-left">
         <div class="brand" @click="goHome">
-          <img src="/src/assets/header_icon.png" alt="Music." class="brand-logo" @error="logoErr = true" />
-          <span v-if="logoErr" class="brand-name">Music<span class="brand-dot">.</span></span>
+          <img v-if="!logoErr" src="/src/assets/header_icon.png" alt="Music." class="brand-logo"
+            @error="logoErr = true" />
+          <span v-else class="brand-name">Music<span class="brand-dot">.</span></span>
         </div>
 
         <button v-if="authStore.user" class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
@@ -15,7 +16,7 @@
           <MagnifyingGlassIcon class="search-icon-el" />
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="clearSearch" type="text"
-            placeholder="Search tracks, artists…" class="search-input" />
+            placeholder="Search tracks, artists..." class="search-input" />
           <transition name="fade">
             <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="clearSearch">
               <XMarkIcon class="search-clear-icon" />
@@ -65,15 +66,18 @@
                 <div class="dropdown-divider" />
 
                 <button class="dropdown-item" @click="nav('/profile')">
-                  <UserIcon class="di-icon" /> Profile
+                  <UserIcon class="di-icon" />
+                  Profile
                 </button>
 
                 <button v-if="authStore.isAdmin" class="dropdown-item" @click="nav('/admin')">
-                  <Squares2X2Icon class="di-icon" /> Admin panel
+                  <Squares2X2Icon class="di-icon" />
+                  Admin panel
                 </button>
 
                 <button class="dropdown-item" @click="nav('/library/downloaded')">
-                  <ArrowDownTrayIcon class="di-icon" /> Downloads
+                  <ArrowDownTrayIcon class="di-icon" />
+                  Downloads
                 </button>
 
                 <div class="dropdown-divider" />

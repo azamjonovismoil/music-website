@@ -1,11 +1,14 @@
 <template>
   <div class="track-detail">
     <button class="detail-back" @click="$emit('back')">
-      <ChevronLeftIcon class="back-icon" /> Back
+      <ChevronLeftIcon class="back-icon" />
+      Back
     </button>
 
     <div class="detail-hero">
-      <img :src="getCover(track)" class="detail-cover" alt="cover" @error="e => e.target.src = fallback" />
+      <div class="detail-cover-wrap">
+        <img :src="getCover(track)" class="detail-cover" alt="cover" @error="e => e.target.src = fallback" />
+      </div>
 
       <div class="detail-info">
         <p class="detail-kicker">Track</p>
@@ -14,15 +17,17 @@
         <p v-if="track.album" class="detail-album">{{ track.album }}</p>
 
         <div v-if="track.tags?.length" class="detail-tags">
-          <span v-for="t in track.tags.slice(0, 5)" :key="t" class="detail-tag">#{{ t }}</span>
+          <span v-for="t in track.tags.slice(0, 6)" :key="t" class="detail-tag">#{{ t }}</span>
         </div>
 
         <div class="detail-actions">
           <button class="detail-play-btn" @click="$emit('play', track)">
-            <PlayIcon class="dp-icon" /> Play
+            <PlayIcon class="dp-icon" />
+            Play
           </button>
 
-          <button class="detail-icon-btn" :class="{ liked: track.liked }" @click="$emit('toggle-like', track)">
+          <button class="detail-icon-btn" :class="{ liked: track.liked }" @click="$emit('toggle-like', track)"
+            :title="track.liked ? 'Unlike' : 'Like'">
             <HeartSolidIcon v-if="track.liked" class="dib-icon" />
             <HeartIcon v-else class="dib-icon" />
           </button>
@@ -36,17 +41,19 @@
           </button>
         </div>
 
-        <div v-if="track.releaseDate || track.language || track.country" class="detail-meta">
+        <div v-if="track.releaseDate || track.language || track.country || track.duration" class="detail-meta">
+          <div v-if="track.duration" class="dmi">
+            <span class="dmi-label">Duration</span>
+            <span class="dmi-val">{{ fmtDur(track.duration) }}</span>
+          </div>
           <div v-if="track.releaseDate" class="dmi">
-            <span class="dmi-label">Release</span>
+            <span class="dmi-label">Released</span>
             <span class="dmi-val">{{ String(track.releaseDate).slice(0, 10) }}</span>
           </div>
-
           <div v-if="track.language" class="dmi">
             <span class="dmi-label">Language</span>
             <span class="dmi-val">{{ track.language }}</span>
           </div>
-
           <div v-if="track.country" class="dmi">
             <span class="dmi-label">Country</span>
             <span class="dmi-val">{{ track.country }}</span>
@@ -58,9 +65,9 @@
     </div>
 
     <div v-if="track.lyrics" class="detail-lyrics">
-      <p class="dmi-label" style="margin-bottom:10px">Lyrics</p>
+      <p class="dmi-label" style="margin-bottom: 12px">Lyrics</p>
       <p class="detail-lyrics-text">
-        {{ track.lyrics.slice(0, 500) }}{{ track.lyrics.length > 500 ? '…' : '' }}
+        {{ track.lyrics.slice(0, 600) }}{{ track.lyrics.length > 600 ? '…' : '' }}
       </p>
     </div>
   </div>
@@ -72,15 +79,23 @@ import {
   PlayIcon,
   HeartIcon,
   QueueListIcon,
-  PlusIcon
+  PlusIcon,
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 
 defineProps({
   track: { type: Object, required: true },
   getCover: { type: Function, required: true },
-  fallback: { type: String, default: '' }
+  fallback: { type: String, default: '' },
 })
 
 defineEmits(['back', 'play', 'toggle-like', 'add-to-playlist', 'add-to-queue'])
+
+const fmtDur = (s) => {
+  const total = Number(s || 0)
+  if (!total) return ''
+  const m = Math.floor(total / 60)
+  const sec = String(Math.floor(total % 60)).padStart(2, '0')
+  return `${m}:${sec}`
+}
 </script>

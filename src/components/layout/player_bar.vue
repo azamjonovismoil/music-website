@@ -2,9 +2,9 @@
   <transition name="player-rise">
     <div v-if="music" class="player-shell">
       <div class="player-bar" :class="{ playing: isPlaying }">
-        <audio ref="audioRef" :key="music.audioUrl" :src="music.audioUrl" preload="metadata"
-          crossorigin="use-credentials" @timeupdate="onTimeUpdate" @loadedmetadata="onMeta" @progress="onProgress"
-          @waiting="isLoading = true" @playing="onPlaying" @pause="onPause" @ended="onEnded" @error="onAudioError" />
+        <audio ref="audioRef" :key="audioSrc" :src="audioSrc" preload="metadata" crossorigin="use-credentials"
+          @timeupdate="onTimeUpdate" @loadedmetadata="onMeta" @progress="onProgress" @waiting="isLoading = true"
+          @playing="onPlaying" @pause="onPause" @ended="onEnded" @error="onAudioError" />
 
         <div class="player-left">
           <div class="cover-wrap" @click="goDetail">
@@ -117,7 +117,7 @@
               <div class="vol-thumb" :style="{ left: effectiveVol + '%' }"></div>
 
               <input v-model="volume" class="vol-input" type="range" min="0" max="1" step="0.01" @input="changeVol"
-                @mousedown="showVolHint" @touchstart="showVolHint" />
+                @mousedown="showVolHint" @touchstart.passive="showVolHint" />
             </div>
           </div>
         </div>
@@ -153,7 +153,7 @@ const emit = defineEmits([
   'add-to-playlist',
   'open-artist',
   'open-detail',
-  'auth-required'
+  'auth-required',
 ])
 
 const player = usePlayerStore()
@@ -181,6 +181,13 @@ const fallback =
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0a1628"/><text x="50%" y="50%" fill="#1e3460" font-size="40" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
   )
+
+const audioSrc = computed(() => {
+  if (props.music?.audioUrl) return props.music.audioUrl
+  if (props.music?.streamUrl) return `${API_ROOT}${props.music.streamUrl}`
+  if (props.music?.url) return `${API_ROOT}/${String(props.music.url).replace(/^\/+/, '')}`
+  return ''
+})
 
 const coverSrc = computed(() => {
   const c = props.music?.coverUrl || props.music?.cover || ''
@@ -383,14 +390,13 @@ watch(
 )
 
 watch(
-  () => props.music?.audioUrl,
+  () => audioSrc.value,
   async (url) => {
     if (!url) return
     await nextTick()
     if (!audioRef.value) return
 
     resetPlaybackState()
-    player.setTrack(props.music)
 
     audioRef.value.pause()
     audioRef.value.load()

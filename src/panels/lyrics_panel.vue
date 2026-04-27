@@ -64,14 +64,14 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { usePlayerStore } from '../stores/player'
-import '../styles/lyrics_panel.css'
+import { usePlayerStore } from '@/stores/player'
+import '@/styles/lyrics_panel.css'
 
 const props = defineProps({
-  playerBarRef: { type: Object, default: null }
+  playerBarRef: { type: Object, default: null },
 })
 
-const BASE_URL = 'http://localhost:7139'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 const player = usePlayerStore()
 
 const lyricsScrollRef = ref(null)
@@ -94,7 +94,7 @@ const coverUrl = computed(() => {
   if (!music.value?.cover && !music.value?.coverUrl) return fallbackCover
   if (music.value?.coverUrl) return music.value.coverUrl
   if (music.value?.cover?.startsWith('http')) return music.value.cover
-  return `${BASE_URL}${music.value.cover}`
+  return `${API_ROOT}${music.value.cover}`
 })
 
 const activeLyricIndex = computed(() => {

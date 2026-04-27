@@ -1,10 +1,14 @@
 <template>
   <div class="track-grid-root">
+    <!-- Toolbar -->
     <div class="tg-toolbar">
       <div class="tg-chips">
         <button v-for="f in filters" :key="f.key" class="chip" :class="{ active: activeFilter === f.key }"
-          @click="$emit('update:activeFilter', f.key)">{{ f.label }}</button>
+          @click="$emit('update:activeFilter', f.key)">
+          {{ f.label }}
+        </button>
       </div>
+
       <select :value="sortBy" class="sort-select" @change="$emit('update:sortBy', $event.target.value)">
         <option value="newest">Newest first</option>
         <option value="oldest">Oldest first</option>
@@ -14,6 +18,7 @@
       </select>
     </div>
 
+    <!-- Head -->
     <div class="tg-head">
       <h2>{{ title }}</h2>
       <span class="result-badge">{{ tracks.length }}</span>
@@ -23,12 +28,14 @@
       </span>
     </div>
 
+    <!-- Empty -->
     <div v-if="!tracks.length" class="tg-empty">
       <MusicalNoteIcon class="tg-empty-icon" />
       <h3>No tracks found</h3>
       <p>Try changing filters or search query.</p>
     </div>
 
+    <!-- Grid -->
     <div v-else class="cards-grid">
       <div v-for="m in tracks" :key="m._id" class="u-card" :class="{ playing: currentMusic?._id === m._id }"
         @click="$emit('select-track', m)">
@@ -54,8 +61,20 @@
         <div class="u-info">
           <div class="u-title">{{ m.title }}</div>
           <div class="u-artist">{{ m.artist || 'Unknown' }}</div>
+
           <div class="u-actions" v-if="playlist">
-            <button class="mini-action danger" @click.stop="$emit('remove-from-playlist', m)">Remove</button>
+            <button class="mini-action danger" @click.stop="$emit('remove-from-playlist', m)">
+              Remove
+            </button>
+          </div>
+
+          <div class="u-actions" v-else>
+            <button class="mini-action" @click.stop="$emit('add-to-playlist', m)" title="Add to playlist">
+              + Playlist
+            </button>
+            <button class="mini-action" @click.stop="$emit('add-to-queue', m)" title="Add to queue">
+              Queue
+            </button>
           </div>
         </div>
       </div>
@@ -80,10 +99,16 @@ defineProps({
 })
 
 defineEmits([
-  'update:activeFilter', 'update:sortBy',
-  'select-track', 'play-track', 'toggle-like',
-  'add-to-playlist', 'add-to-queue',
-  'remove-from-playlist', 'edit-playlist', 'delete-playlist',
+  'update:activeFilter',
+  'update:sortBy',
+  'select-track',
+  'play-track',
+  'toggle-like',
+  'add-to-playlist',
+  'add-to-queue',
+  'remove-from-playlist',
+  'edit-playlist',
+  'delete-playlist',
 ])
 
 const filters = [

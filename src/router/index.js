@@ -50,16 +50,10 @@ const routes = [
   },
 
   {
-    path: '/library/downloaded',
-    name: 'Downloaded',
+    path: '/library/:type(downloaded|favourites)',
+    name: 'LibraryType',
     component: () => import('../pages/library/library_page.vue'),
-    meta: { requiresAuth: true, title: 'Downloaded' },
-  },
-  {
-    path: '/library/favourites',
-    name: 'Favourites',
-    component: () => import('../pages/library/library_page.vue'),
-    meta: { requiresAuth: true, title: 'Favourites' },
+    meta: { requiresAuth: true, title: 'Library' },
   },
 
   {
@@ -99,7 +93,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  if (!auth.initialized) {
+  if (!auth.bootstrapped && !auth.initialized) {
     await auth.fetchMe()
   }
 

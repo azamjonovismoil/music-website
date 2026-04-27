@@ -10,14 +10,16 @@
       <main class="add-music-main">
         <div class="am-topbar">
           <div class="am-topbar-left">
-            <button class="icon-btn" @click="router.push('/admin')" type="button">
+            <button class="icon-btn" @click="handleCancel" type="button">
               <ArrowLeftIcon class="icon-sm" />
             </button>
 
             <div>
               <p class="page-kicker">Music Admin</p>
               <h1 class="page-title">Add new track</h1>
-              <p class="page-subtitle">Create a clean, searchable, production-ready music entry.</p>
+              <p class="page-subtitle">
+                Create a clean, searchable, publish-ready music entry.
+              </p>
             </div>
           </div>
 
@@ -41,7 +43,7 @@
               </div>
 
               <div class="upload-grid">
-                <label class="upload-zone" :class="{ 'has-file': audioName }">
+                <label class="upload-zone" :class="{ 'has-file': audioName, invalid: errors.song }">
                   <input type="file" class="upload-hidden" accept="audio/mpeg,audio/mp3,audio/wav,audio/mp4,audio/x-m4a"
                     @change="onAudio" />
 
@@ -55,11 +57,9 @@
                         <p class="audio-sub">{{ audioDuration || 'Reading metadata…' }}</p>
                       </div>
                     </div>
-
                     <div class="audio-wave">
                       <span /><span /><span /><span /><span /><span /><span />
                     </div>
-
                     <span class="replace-text">Click to replace</span>
                   </div>
 
@@ -93,6 +93,8 @@
                   </div>
                 </label>
               </div>
+
+              <p v-if="errors.song" class="field-error top-error">{{ errors.song }}</p>
             </section>
 
             <section class="card">
@@ -107,36 +109,47 @@
               </div>
 
               <div class="form-grid">
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.title }">
                   <label class="field-label">Title <span class="req">*</span></label>
-                  <input v-model="form.title" class="field-input" type="text" placeholder="Track title" />
+                  <input v-model="form.title" class="field-input" type="text" placeholder="Track title"
+                    @input="clearFieldError('title')" />
+                  <span v-if="errors.title" class="field-error">{{ errors.title }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.artist }">
                   <label class="field-label">Artist <span class="req">*</span></label>
-                  <input v-model="form.artist" class="field-input" type="text" placeholder="Artist name" />
+                  <input v-model="form.artist" class="field-input" type="text" placeholder="Artist name"
+                    @input="clearFieldError('artist')" />
+                  <span v-if="errors.artist" class="field-error">{{ errors.artist }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.author }">
                   <label class="field-label">Author / Composer</label>
-                  <input v-model="form.author" class="field-input" type="text" placeholder="Original composer" />
+                  <input v-model="form.author" class="field-input" type="text" placeholder="Original composer"
+                    @input="clearFieldError('author')" />
+                  <span v-if="errors.author" class="field-error">{{ errors.author }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.featuredArtists }">
                   <label class="field-label">Featured artists</label>
-                  <input v-model="form.featuredArtists" class="field-input" type="text"
-                    placeholder="Artist A, Artist B" />
+                  <input v-model="form.featuredArtists" class="field-input" type="text" placeholder="Artist A, Artist B"
+                    @input="clearFieldError('featuredArtists')" />
                   <span class="field-hint">Comma-separated</span>
+                  <span v-if="errors.featuredArtists" class="field-error">{{ errors.featuredArtists }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.album }">
                   <label class="field-label">Album / EP</label>
-                  <input v-model="form.album" class="field-input" type="text" placeholder="Album name" />
+                  <input v-model="form.album" class="field-input" type="text" placeholder="Album name"
+                    @input="clearFieldError('album')" />
+                  <span v-if="errors.album" class="field-error">{{ errors.album }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.country }">
                   <label class="field-label">Country</label>
-                  <input v-model="form.country" class="field-input" type="text" placeholder="Uzbekistan" />
+                  <input v-model="form.country" class="field-input" type="text" placeholder="Uzbekistan"
+                    @input="clearFieldError('country')" />
+                  <span v-if="errors.country" class="field-error">{{ errors.country }}</span>
                 </div>
               </div>
             </section>
@@ -161,53 +174,69 @@
               </div>
 
               <div class="form-grid spaced-top">
-                <div class="form-field full">
+                <div class="form-field full" :class="{ invalid: errors.genre }">
                   <label class="field-label">Genre</label>
+
                   <div v-if="form.genre.length" class="chips-row">
                     <span v-for="g in form.genre" :key="g" class="sel-chip">
                       {{ g }}
                       <button type="button" @click="removeArr('genre', g)">×</button>
                     </span>
                   </div>
+
                   <div class="tag-grid">
                     <button v-for="g in allGenres" :key="g" type="button" class="tag-opt"
-                      :class="{ active: form.genre.includes(g) }" @click="toggleArr('genre', g)">
+                      :class="{ active: form.genre.includes(g) }"
+                      @click="toggleArr('genre', g); clearFieldError('genre')">
                       {{ g }}
                     </button>
+
                     <input v-model="genreInput" class="tag-custom-input" placeholder="+ Custom genre"
-                      @keydown.enter.prevent="addCustom('genre')" @keydown.comma.prevent="addCustom('genre')" />
+                      @keydown.enter.prevent="addCustomGenre" @keydown.comma.prevent="addCustomGenre" />
                   </div>
+
+                  <span v-if="errors.genre" class="field-error">{{ errors.genre }}</span>
                 </div>
 
-                <div class="form-field full">
+                <div class="form-field full" :class="{ invalid: errors.mood }">
                   <label class="field-label">Mood</label>
+
                   <div v-if="form.mood.length" class="chips-row">
                     <span v-for="m in form.mood" :key="m" class="sel-chip mood-chip">
                       {{ m }}
                       <button type="button" @click="removeArr('mood', m)">×</button>
                     </span>
                   </div>
+
                   <div class="tag-grid">
                     <button v-for="m in allMoods" :key="m" type="button" class="tag-opt"
-                      :class="{ active: form.mood.includes(m) }" @click="toggleArr('mood', m)">
+                      :class="{ active: form.mood.includes(m) }" @click="toggleArr('mood', m); clearFieldError('mood')">
                       {{ m }}
                     </button>
                   </div>
+
+                  <span v-if="errors.mood" class="field-error">{{ errors.mood }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.language }">
                   <label class="field-label">Language</label>
-                  <input v-model="form.language" class="field-input" type="text" placeholder="Uzbek" />
+                  <input v-model="form.language" class="field-input" type="text" placeholder="Uzbek"
+                    @input="clearFieldError('language')" />
+                  <span v-if="errors.language" class="field-error">{{ errors.language }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.releaseDate }">
                   <label class="field-label">Release date</label>
-                  <input v-model="form.releaseDate" class="field-input" type="date" />
+                  <input v-model="form.releaseDate" class="field-input" type="date"
+                    @input="clearFieldError('releaseDate')" />
+                  <span v-if="errors.releaseDate" class="field-error">{{ errors.releaseDate }}</span>
                 </div>
 
-                <div class="form-field full">
+                <div class="form-field full" :class="{ invalid: errors.tags }">
                   <label class="field-label">Tags</label>
-                  <input v-model="form.tags" class="field-input" type="text" placeholder="sad, acoustic, live" />
+                  <input v-model="form.tags" class="field-input" type="text" placeholder="sad, acoustic, live"
+                    @input="clearFieldError('tags')" />
+                  <span v-if="errors.tags" class="field-error">{{ errors.tags }}</span>
                 </div>
               </div>
             </section>
@@ -219,32 +248,40 @@
                 </div>
                 <div>
                   <h3>Publishing</h3>
-                  <p>Status and flags.</p>
+                  <p>Status and content flags.</p>
                 </div>
               </div>
 
-              <div class="publish-wrap">
-                <div class="seg-control">
-                  <button v-for="s in statusOpts" :key="s.value" type="button" class="seg-btn"
-                    :class="[s.value, { active: form.status === s.value }]" @click="form.status = s.value">
-                    <span class="seg-dot" />
-                    {{ s.label }}
-                  </button>
+              <div class="better-publish">
+                <div class="publish-status-block" :class="{ invalid: errors.status }">
+                  <label class="field-label">Status</label>
+                  <div class="publish-status-seg">
+                    <button v-for="s in statusOpts" :key="s.value" type="button" class="seg-btn"
+                      :class="[s.value, { active: form.status === s.value }]"
+                      @click="form.status = s.value; clearFieldError('status')">
+                      <span class="seg-dot" />
+                      {{ s.label }}
+                    </button>
+                  </div>
+                  <span v-if="errors.status" class="field-error">{{ errors.status }}</span>
                 </div>
 
-                <div class="flags-row">
-                  <button class="flag-btn" :class="{ on: form.isExplicit }" type="button"
-                    @click="form.isExplicit = !form.isExplicit">
-                    <span class="flag-pip" /> 🔞 Explicit
-                  </button>
-                  <button class="flag-btn" :class="{ on: form.isFeatured }" type="button"
-                    @click="form.isFeatured = !form.isFeatured">
-                    <span class="flag-pip" /> ⭐ Featured
-                  </button>
-                  <button class="flag-btn" :class="{ on: form.isRecommended }" type="button"
-                    @click="form.isRecommended = !form.isRecommended">
-                    <span class="flag-pip" /> 🎯 Recommended
-                  </button>
+                <div class="publish-flags-block">
+                  <label class="field-label">Flags</label>
+                  <div class="flags-grid">
+                    <button class="flag-btn" :class="{ on: form.isExplicit }" type="button"
+                      @click="form.isExplicit = !form.isExplicit">
+                      <span class="flag-pip" /> 🔞 Explicit
+                    </button>
+                    <button class="flag-btn" :class="{ on: form.isFeatured }" type="button"
+                      @click="form.isFeatured = !form.isFeatured">
+                      <span class="flag-pip" /> ⭐ Featured
+                    </button>
+                    <button class="flag-btn" :class="{ on: form.isRecommended }" type="button"
+                      @click="form.isRecommended = !form.isRecommended">
+                      <span class="flag-pip" /> 🎯 Recommended
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>
@@ -261,14 +298,18 @@
               </div>
 
               <div class="two-col-grid">
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.bio }">
                   <label class="field-label">Track description</label>
-                  <textarea v-model="form.bio" class="field-textarea" rows="4" placeholder="Short description" />
+                  <textarea v-model="form.bio" class="field-textarea" rows="4" placeholder="Short description"
+                    @input="clearFieldError('bio')" />
+                  <span v-if="errors.bio" class="field-error">{{ errors.bio }}</span>
                 </div>
 
-                <div class="form-field">
+                <div class="form-field" :class="{ invalid: errors.artistBio }">
                   <label class="field-label">Artist bio</label>
-                  <textarea v-model="form.artistBio" class="field-textarea" rows="4" placeholder="Brief bio" />
+                  <textarea v-model="form.artistBio" class="field-textarea" rows="4" placeholder="Brief bio"
+                    @input="clearFieldError('artistBio')" />
+                  <span v-if="errors.artistBio" class="field-error">{{ errors.artistBio }}</span>
                 </div>
               </div>
 
@@ -296,13 +337,9 @@
 
                 <div class="sync-mode-seg">
                   <button class="seg-sm" :class="{ active: syncMode === 'manual' }" @click="syncMode = 'manual'"
-                    type="button">
-                    Manual
-                  </button>
+                    type="button">Manual</button>
                   <button class="seg-sm" :class="{ active: syncMode === 'auto' }" @click="syncMode = 'auto'"
-                    type="button">
-                    Auto AI
-                  </button>
+                    type="button">Auto AI</button>
                 </div>
               </div>
 
@@ -331,30 +368,33 @@
             <section class="card footer-card">
               <div class="footer-checklist">
                 <span class="check-item" :class="{ ok: !!audioFile }">
-                  <CheckIcon v-if="audioFile" class="icon-xs" /><span v-else class="check-dot" />
+                  <CheckIcon v-if="audioFile" class="icon-xs" />
+                  <span v-else class="check-dot" />
                   Audio
                 </span>
                 <span class="check-item" :class="{ ok: form.title.trim() }">
-                  <CheckIcon v-if="form.title.trim()" class="icon-xs" /><span v-else class="check-dot" />
+                  <CheckIcon v-if="form.title.trim()" class="icon-xs" />
+                  <span v-else class="check-dot" />
                   Title
                 </span>
                 <span class="check-item" :class="{ ok: form.artist.trim() }">
-                  <CheckIcon v-if="form.artist.trim()" class="icon-xs" /><span v-else class="check-dot" />
+                  <CheckIcon v-if="form.artist.trim()" class="icon-xs" />
+                  <span v-else class="check-dot" />
                   Artist
                 </span>
                 <span class="check-item" :class="{ ok: form.genre.length > 0 }">
-                  <CheckIcon v-if="form.genre.length > 0" class="icon-xs" /><span v-else class="check-dot" />
+                  <CheckIcon v-if="form.genre.length > 0" class="icon-xs" />
+                  <span v-else class="check-dot" />
                   Genre
                 </span>
               </div>
 
               <div class="footer-actions">
-                <button class="btn btn-ghost" @click="router.push('/admin')" type="button">Cancel</button>
+                <button class="btn btn-ghost" @click="handleCancel" type="button">Cancel</button>
                 <button class="btn btn-draft" @click="submitAs('draft')" :disabled="loading" type="button">
                   Save draft
                 </button>
-                <button class="btn btn-primary" @click="submitAs('published')" :disabled="loading || !canPublish"
-                  type="button">
+                <button class="btn btn-primary" @click="submitAs('published')" :disabled="loading" type="button">
                   <CloudArrowUpIcon class="icon-sm" />
                   {{ loading ? 'Uploading…' : 'Publish track' }}
                 </button>
@@ -400,7 +440,14 @@
 
                 <div class="track-preview-meta">
                   <h4>{{ form.title || 'Untitled track' }}</h4>
-                  <p>{{ form.artist || 'Unknown artist' }}</p>
+                  <p>{{ previewArtist }}</p>
+                </div>
+
+                <div class="preview-chip-row">
+                  <span v-if="form.genre.length" class="mini-chip">{{ form.genre[0] }}</span>
+                  <span v-if="form.mood.length" class="mini-chip purple">{{ form.mood[0] }}</span>
+                  <span v-if="form.isExplicit" class="mini-chip rose">Explicit</span>
+                  <span v-if="form.isFeatured" class="mini-chip amber">Featured</span>
                 </div>
               </div>
             </section>
@@ -412,10 +459,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-import { ElNotification, ElMessage } from 'element-plus'
+import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
 import {
   ArrowLeftIcon, MusicalNoteIcon, MicrophoneIcon, TagIcon, DocumentTextIcon,
   PhotoIcon, CloudArrowUpIcon, RocketLaunchIcon, ArrowPathIcon, CheckIcon, SparklesIcon
@@ -426,7 +473,7 @@ import AdminSidebar from '@/components/layout/admin_sidebar.vue'
 import '@/styles/global.css'
 import '@/styles/add_music_page.css'
 
-const API_ROOT = import.meta.env.VITE_API_ROOT || 'http://localhost:7139'
+const API_ROOT = import.meta.env.VITE_API_ROOT || 'http://localhost:5000'
 const SYNC_URL = import.meta.env.VITE_SYNC_URL || 'http://localhost:8001'
 const router = useRouter()
 
@@ -446,6 +493,7 @@ const audioName = ref('')
 const audioDuration = ref('')
 const genreInput = ref('')
 const activePreset = ref(null)
+const errors = reactive({})
 
 const allGenres = ['Pop', 'Rap', 'Lo-fi', 'Indie', 'Rock', 'Electronic', 'OST', 'Acoustic', 'R&B', 'Chill', 'Jazz', 'Classical', 'Dance', 'Soul', 'Folk', 'Reggae']
 const allMoods = ['Calm', 'Sad', 'Happy', 'Energetic', 'Romantic', 'Dreamy', 'Dark', 'Melancholic', 'Chill', 'Motivational', 'Nostalgic', 'Aggressive']
@@ -487,46 +535,88 @@ const form = reactive({
   isRecommended: false
 })
 
+const initialSnapshot = ref('')
+
+const snapshot = () => JSON.stringify({
+  ...form,
+  cover: !!coverFile.value,
+  song: !!audioFile.value,
+})
+
+const isDirty = computed(() => snapshot() !== initialSnapshot.value)
+
 const statusLabel = computed(() => ({
   draft: 'Draft',
   published: 'Published',
   archived: 'Archived'
 }[form.status] || 'Draft'))
 
-const canPublish = computed(() => form.title.trim() && form.artist.trim() && !!audioFile.value)
+const previewArtist = computed(() => {
+  const featured = parseList(form.featuredArtists)
+  if (!form.artist.trim()) return 'Unknown artist'
+  if (!featured.length) return form.artist.trim()
+  return `${form.artist.trim()} (feat. ${featured.join(', ')})`
+})
 
-const lineCount = computed(() => form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : 'No lyrics yet')
+const lineCount = computed(() =>
+  form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : 'No lyrics yet'
+)
 
 const progressSteps = computed(() => [
   { label: 'Audio uploaded', done: !!audioFile.value },
   { label: 'Title added', done: !!form.title.trim() },
   { label: 'Artist added', done: !!form.artist.trim() },
   { label: 'Genre selected', done: form.genre.length > 0 },
-  { label: 'Ready to publish', done: !!canPublish.value }
+  { label: 'Ready to publish', done: !!(form.title.trim() && form.artist.trim() && audioFile.value && form.genre.length) }
 ])
 
 const progressPct = computed(() => {
-  const done = progressSteps.value.filter(s => s.done).length
+  const done = progressSteps.value.filter((s) => s.done).length
   return Math.round((done / progressSteps.value.length) * 100)
 })
 
-const syncPillClass = computed(() => syncLoading.value ? 'loading' : form.syncedLyricsRaw.trim() ? 'ready' : 'none')
-const syncPillText = computed(() => syncLoading.value ? 'Generating…' : form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set')
+const syncPillClass = computed(() =>
+  syncLoading.value ? 'loading' : form.syncedLyricsRaw.trim() ? 'ready' : 'none'
+)
+
+const syncPillText = computed(() =>
+  syncLoading.value ? 'Generating…' : form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set'
+)
+
+const clearAllErrors = () => {
+  Object.keys(errors).forEach((k) => delete errors[k])
+}
+
+const clearFieldError = (key) => {
+  if (errors[key]) delete errors[key]
+}
+
+const applyServerErrors = (serverErrors = {}) => {
+  clearAllErrors()
+  Object.entries(serverErrors).forEach(([key, value]) => {
+    errors[key] = value
+  })
+}
+
+const fmtTime = (t) => (!t || isNaN(t)) ? '' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
+const parseTags = (s = '') => String(s).split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean)
+const parseList = (s = '') => String(s).split(',').map((t) => t.trim()).filter(Boolean)
 
 const toggleArr = (field, val) => {
   form[field] = form[field].includes(val)
-    ? form[field].filter(x => x !== val)
+    ? form[field].filter((x) => x !== val)
     : [...form[field], val]
 }
 
 const removeArr = (field, val) => {
-  form[field] = form[field].filter(x => x !== val)
+  form[field] = form[field].filter((x) => x !== val)
 }
 
-const addCustom = (field) => {
+const addCustomGenre = () => {
   const v = genreInput.value.trim().replace(/,$/, '')
-  if (v && !form[field].includes(v)) form[field] = [...form[field], v]
+  if (v && !form.genre.includes(v)) form.genre = [...form.genre, v]
   genreInput.value = ''
+  clearFieldError('genre')
 }
 
 const applyPreset = (p) => {
@@ -535,12 +625,9 @@ const applyPreset = (p) => {
   if (p.mood) form.mood = [...new Set([...form.mood, ...p.mood])]
   if (p.language) form.language = p.language
   if (p.country) form.country = p.country
-  if (p.isFeatured) form.isFeatured = p.isFeatured
+  if (p.isFeatured !== undefined) form.isFeatured = p.isFeatured
+  clearFieldError('genre')
 }
-
-const fmtTime = t => (!t || isNaN(t)) ? '' : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
-const parseTags = (s = '') => String(s).split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean)
-const parseList = (s = '') => String(s).split(',').map(t => t.trim()).filter(Boolean)
 
 const onCover = (e) => {
   const f = e.target.files?.[0]
@@ -557,6 +644,8 @@ const onAudio = async (e) => {
 
   audioFile.value = f
   audioName.value = f.name
+  audioDuration.value = ''
+  clearFieldError('song')
 
   const a = document.createElement('audio')
   a.preload = 'metadata'
@@ -593,7 +682,7 @@ const generateSync = async () => {
   } catch (e) {
     ElNotification({
       title: 'Sync error',
-      message: e?.response?.data?.detail || 'Failed',
+      message: e?.response?.data?.detail || 'Failed to generate sync',
       type: 'error',
       duration: 3000
     })
@@ -602,7 +691,7 @@ const generateSync = async () => {
   }
 }
 
-const buildFD = () => {
+const buildFD = (statusOverride) => {
   const fd = new FormData()
   fd.append('title', form.title.trim())
   fd.append('artist', form.artist.trim())
@@ -619,7 +708,7 @@ const buildFD = () => {
   fd.append('artistBio', form.artistBio.trim())
   fd.append('lyrics', form.lyrics.trim())
   fd.append('syncedLyricsRaw', form.syncedLyricsRaw.trim())
-  fd.append('status', form.status)
+  fd.append('status', statusOverride)
   fd.append('isExplicit', String(form.isExplicit))
   fd.append('isFeatured', String(form.isFeatured))
   fd.append('isRecommended', String(form.isRecommended))
@@ -629,30 +718,32 @@ const buildFD = () => {
 }
 
 const submitAs = async (statusOverride) => {
-  if (!form.title.trim()) return ElMessage.error('Title is required')
-  if (!form.artist.trim()) return ElMessage.error('Artist is required')
-  if (!audioFile.value) return ElMessage.error('Audio file is required')
-
-  form.status = statusOverride
+  clearAllErrors()
   loading.value = true
 
   try {
-    await api.post('/music', buildFD(), {
+    const { data } = await api.post('/music', buildFD(statusOverride), {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
 
+    initialSnapshot.value = snapshot()
+
     ElNotification({
-      title: statusOverride === 'published' ? '🚀 Published!' : '📝 Saved!',
-      message: statusOverride === 'published' ? 'Track is now live.' : 'Draft saved.',
+      title: statusOverride === 'published' ? 'Published' : 'Draft saved',
+      message: statusOverride === 'published' ? 'Track is now live.' : 'Draft saved successfully.',
       type: 'success',
       duration: 2200
     })
 
     router.push('/admin')
+    return data
   } catch (e) {
+    const serverErrors = e?.response?.data?.errors
+    if (serverErrors) applyServerErrors(serverErrors)
+
     ElNotification({
-      title: 'Upload failed',
-      message: e?.response?.data?.message || e?.message || 'Something went wrong',
+      title: 'Save failed',
+      message: e?.response?.data?.message || 'Something went wrong',
       type: 'error',
       duration: 3000
     })
@@ -660,4 +751,36 @@ const submitAs = async (statusOverride) => {
     loading.value = false
   }
 }
+
+const handleCancel = async () => {
+  if (!isDirty.value) {
+    router.push('/admin')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      'You have unsaved changes. Leave this page?',
+      'Unsaved changes',
+      {
+        confirmButtonText: 'Leave',
+        cancelButtonText: 'Stay',
+        type: 'warning',
+      }
+    )
+    router.push('/admin')
+  } catch { }
+}
+
+watch(
+  () => form.title,
+  () => clearFieldError('title')
+)
+
+watch(
+  () => form.artist,
+  () => clearFieldError('artist')
+)
+
+initialSnapshot.value = snapshot()
 </script>

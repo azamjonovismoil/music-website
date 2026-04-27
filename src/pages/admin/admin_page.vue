@@ -15,25 +15,16 @@
             <h1 v-else-if="viewMode === 'music'">{{ selectedMusic?.title || 'Track details' }}</h1>
             <h1 v-else>{{ selectedArtist || 'Artist tracks' }}</h1>
 
-            <p v-if="viewMode === 'library'">
-              Organize tracks, monitor stats and manage your library from one dashboard.
-            </p>
-            <p v-else-if="viewMode === 'music'">
-              Track details, metadata and content overview.
-            </p>
-            <p v-else>
-              All tracks by this artist in your library.
-            </p>
+            <p v-if="viewMode === 'library'">Organize tracks, monitor stats and manage your library.</p>
+            <p v-else-if="viewMode === 'music'">Track details, metadata and content overview.</p>
+            <p v-else>All tracks by this artist in your library.</p>
           </div>
 
-          <div style="display:flex; gap:10px; align-items:center;">
-            <button v-if="viewMode !== 'library'" class="btn-accent" @click="goLibrary"
-              style="background:transparent;border:1px solid var(--border);color:var(--text-primary);">
-              Back
-            </button>
-
-            <button class="btn-accent" @click="router.push('/admin/add-music')">
-              <PlusIcon style="width:17px;height:17px" /> Add track
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button v-if="viewMode !== 'library'" class="btn btn-ghost" @click="goLibrary">Back</button>
+            <button class="btn btn-primary" @click="router.push('/admin/add-music')">
+              <PlusIcon style="width:16px;height:16px" />
+              Add track
             </button>
           </div>
         </section>
@@ -43,7 +34,7 @@
             <div class="stat-top">
               <span>Total tracks</span>
               <div class="stat-icon-wrap blue">
-                <MusicalNoteIcon style="width:18px;height:18px" />
+                <MusicalNoteIcon style="width:17px;height:17px" />
               </div>
             </div>
             <strong>{{ musics.length }}</strong>
@@ -54,7 +45,7 @@
             <div class="stat-top">
               <span>Liked tracks</span>
               <div class="stat-icon-wrap rose">
-                <HeartIcon style="width:18px;height:18px" />
+                <HeartIcon style="width:17px;height:17px" />
               </div>
             </div>
             <strong>{{ likedCount }}</strong>
@@ -65,7 +56,7 @@
             <div class="stat-top">
               <span>Queue size</span>
               <div class="stat-icon-wrap amber">
-                <el-icon style="font-size:18px">
+                <el-icon style="font-size:17px">
                   <List />
                 </el-icon>
               </div>
@@ -80,12 +71,10 @@
             <template v-if="viewMode === 'library'">
               <button class="chip" :class="{ active: filter === 'all' }" @click="filter = 'all'">All</button>
               <button class="chip" :class="{ active: filter === 'liked' }" @click="filter = 'liked'">Liked</button>
-              <button class="chip" :class="{ active: filter === 'downloadable' }" @click="filter = 'downloadable'">
-                Downloadable
-              </button>
-              <button class="chip" :class="{ active: filter === 'with-tags' }" @click="filter = 'with-tags'">
-                Tagged
-              </button>
+              <button class="chip" :class="{ active: filter === 'downloadable' }"
+                @click="filter = 'downloadable'">Downloadable</button>
+              <button class="chip" :class="{ active: filter === 'with-tags' }"
+                @click="filter = 'with-tags'">Tagged</button>
             </template>
 
             <template v-else-if="viewMode === 'artist'">
@@ -95,9 +84,8 @@
 
             <template v-else>
               <button class="chip active">Track detail</button>
-              <button v-if="selectedMusic?.artist" class="chip" @click="openArtist(selectedMusic.artist)">
-                More from artist
-              </button>
+              <button v-if="selectedMusic?.artist" class="chip" @click="openArtist(selectedMusic.artist)">More from
+                artist</button>
             </template>
           </div>
 
@@ -113,79 +101,78 @@
           </div>
         </section>
 
-        <div class="content-grid">
-          <section class="library-card">
-            <template v-if="viewMode === 'library'">
-              <div class="section-head">
-                <div>
-                  <p class="page-label">Library</p>
-                  <h2>All tracks</h2>
-                </div>
-                <span class="result-badge">{{ filtered.length }} results</span>
+        <section class="library-card">
+          <template v-if="viewMode === 'library'">
+            <div class="section-head">
+              <div>
+                <p class="page-label">Library</p>
+                <h2>All tracks</h2>
               </div>
+              <span class="result-badge">{{ filtered.length }} results</span>
+            </div>
 
-              <div v-if="filtered.length === 0" class="empty-state">
+            <div v-if="filtered.length === 0" class="empty-state">
+              <div>
                 <MusicalNoteIcon
-                  style="width:38px;height:38px;color:var(--text-hint);display:block;margin:0 auto 12px" />
+                  style="width:36px;height:36px;color:var(--text-hint);display:block;margin:0 auto 12px" />
                 <h3>No tracks found</h3>
                 <p>Try another search or filter.</p>
               </div>
+            </div>
 
-              <div v-else class="music-grid">
-                <AdminMusicCard v-for="m in filtered" :key="m._id" :music="m" :is-active="currentMusic?._id === m._id"
-                  :show-actions="true" @play="playMusic" @edit="openEdit" @toggle-like="toggleLike"
-                  @toggle-download="toggleDownload" @delete="deleteMusic" @open-about="openAbout" />
+            <div v-else class="music-grid">
+              <AdminMusicCard v-for="m in filtered" :key="m._id" :music="m" :is-active="currentMusic?._id === m._id"
+                :show-actions="true" @play="playMusic" @edit="openEdit" @toggle-like="toggleLike"
+                @toggle-download="toggleDownload" @delete="deleteMusic" @open-about="openAbout" @queue="addToQueue" />
+            </div>
+          </template>
+
+          <template v-else-if="viewMode === 'music' && selectedMusic">
+            <MusicDetail :music="selectedMusic" @back="goLibrary" @play="playMusic" @edit="openEdit"
+              @toggle-like="toggleLike" @toggle-download="toggleDownload" @delete="deleteMusic"
+              @open-artist="openArtist" />
+          </template>
+
+          <template v-else-if="viewMode === 'artist'">
+            <div class="section-head">
+              <div>
+                <p class="page-label">Artist</p>
+                <h2>{{ selectedArtist }}</h2>
               </div>
-            </template>
+              <span class="result-badge">{{ artistTracks.length }} tracks</span>
+            </div>
 
-            <template v-else-if="viewMode === 'music' && selectedMusic">
-              <MusicDetail :music="selectedMusic" @back="goLibrary" @play="playMusic" @edit="openEdit"
-                @toggle-like="toggleLike" @toggle-download="toggleDownload" @delete="deleteMusic"
-                @open-artist="openArtist" />
-            </template>
-
-            <template v-else-if="viewMode === 'artist'">
-              <div class="section-head">
-                <div>
-                  <p class="page-label">Artist</p>
-                  <h2>{{ selectedArtist }}</h2>
-                </div>
-                <span class="result-badge">{{ artistTracks.length }} tracks</span>
-              </div>
-
-              <div v-if="artistTracks.length === 0" class="empty-state">
+            <div v-if="artistTracks.length === 0" class="empty-state">
+              <div>
                 <h3>No tracks found</h3>
                 <p>This artist has no tracks in the library.</p>
               </div>
+            </div>
 
-              <div v-else class="music-grid">
-                <AdminMusicCard v-for="m in artistTracks" :key="m._id" :music="m"
-                  :is-active="currentMusic?._id === m._id" :show-actions="true" @play="playMusic" @edit="openEdit"
-                  @toggle-like="toggleLike" @toggle-download="toggleDownload" @delete="deleteMusic"
-                  @open-about="openAbout" />
-              </div>
-            </template>
-          </section>
-
-          <aside class="recommendation-slot">
-            <RecommendationPanel v-if="!isQueueOpen" :musics="musics" :current-music="currentMusic"
-              :play-history="playHistory" @play="playMusic" @queue="addToQueue" @open-queue="isQueueOpen = true" />
-            <QueueSidebar v-else :queue="queue" :current-music="currentMusic" @close="isQueueOpen = false"
-              @play="playMusic" @remove="removeFromQueue" @clear="queue = []" />
-          </aside>
-        </div>
+            <div v-else class="music-grid">
+              <AdminMusicCard v-for="m in artistTracks" :key="m._id" :music="m" :is-active="currentMusic?._id === m._id"
+                :show-actions="true" @play="playMusic" @edit="openEdit" @toggle-like="toggleLike"
+                @toggle-download="toggleDownload" @delete="deleteMusic" @open-about="openAbout" @queue="addToQueue" />
+            </div>
+          </template>
+        </section>
       </main>
+
+      <aside class="right-slot">
+        <RecommendationPanel v-if="!isQueueOpen" :musics="musics" :current-music="currentMusic"
+          :play-history="playHistory" @play="playMusic" @queue="addToQueue" @open-queue="isQueueOpen = true" />
+
+        <QueueSidebar v-else :queue="queue" :current-music="currentMusic" @close="isQueueOpen = false" @play="playMusic"
+          @remove="removeFromQueue" @clear="queue = []" />
+      </aside>
     </div>
 
-    <div v-if="player.showLyricsPanel" class="lyrics-backdrop" @click="player.closeLyrics()" />
-    <div v-if="player.showLyricsPanel" class="lyrics-wrap">
-      <LyricsPanel :player-bar-ref="playerBarRef" />
-    </div>
+    <LyricsPanel v-if="player.showLyricsPanel" :player-bar-ref="playerBarRef" />
 
     <PlayerBar ref="playerBarRef" :key="currentMusic?._id || 'empty'" :music="currentMusic" :queue-open="isQueueOpen"
       @prev="playPrev" @next="playNext" @shuffle-next="playShuffle" @toggle-queue="isQueueOpen = !isQueueOpen"
-      @toggle-like="toggleLike" @add-to-playlist="openPlaylistDrawer" @open-artist="openArtist"
-      @open-detail="openAbout" />
+      @toggle-like="toggleLike" @add-to-playlist="openPlaylistDrawer" @open-artist="openArtist" @open-detail="openAbout"
+      @auth-required="handleAuthRequired" />
 
     <PlaylistDrawer :open="playlistDrawerOpen" :track="playlistTrack" :playlists="playlists"
       @close="playlistDrawerOpen = false" @create="createPlaylist" @select="addTrackToPlaylist" />
@@ -201,7 +188,6 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { List } from '@element-plus/icons-vue'
 import { MusicalNoteIcon, HeartIcon, PlusIcon } from '@heroicons/vue/24/outline'
-
 import HeaderPage from '@/components/layout/header_page.vue'
 import AdminSidebar from '@/components/layout/admin_sidebar.vue'
 import AdminMusicCard from '@/cards/admin_music_card.vue'
@@ -217,10 +203,7 @@ import '@/styles/global.css'
 import '@/styles/admin_page.css'
 
 const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
-const api = axios.create({
-  baseURL: `${API_ROOT}/api`,
-  withCredentials: true,
-})
+const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 
 const router = useRouter()
 const player = usePlayerStore()
@@ -237,74 +220,57 @@ const currentIndex = ref(-1)
 const isQueueOpen = ref(false)
 const showEdit = ref(false)
 const editMusic = ref(null)
-
 const viewMode = ref('library')
 const selectedMusic = ref(null)
 const selectedArtist = ref('')
-
 const playlistDrawerOpen = ref(false)
 const playlistTrack = ref(null)
 const playlists = ref(JSON.parse(localStorage.getItem('playlists') || '[]'))
 
 const likedCount = computed(() => musics.value.filter(m => m.liked).length)
 
+const applySort = (arr) => {
+  const r = [...arr]
+  r.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'oldest': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+      case 'title-asc': return (a.title || '').localeCompare(b.title || '')
+      case 'title-desc': return (b.title || '').localeCompare(a.title || '')
+      case 'artist-asc': return (a.artist || '').localeCompare(b.artist || '')
+      case 'liked-first': return Number(b.liked) - Number(a.liked)
+      default: return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    }
+  })
+  return r
+}
+
+const applySearch = (arr) => {
+  if (!searchQuery.value.trim()) return arr
+  const q = searchQuery.value.toLowerCase()
+  return arr.filter(m =>
+    (m.title || '').toLowerCase().includes(q) ||
+    (m.artist || '').toLowerCase().includes(q) ||
+    (m.tags || []).some(t => String(t).toLowerCase().includes(q))
+  )
+}
+
 const filtered = computed(() => {
   let r = [...musics.value]
-
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    r = r.filter(m =>
-      (m.title || '').toLowerCase().includes(q) ||
-      (m.artist || '').toLowerCase().includes(q) ||
-      (m.tags || []).some(t => String(t).toLowerCase().includes(q))
-    )
-  }
-
   if (filter.value === 'liked') r = r.filter(m => m.liked)
-  else if (filter.value === 'downloadable') r = r.filter(m => m.download)
+  else if (filter.value === 'downloadable') r = r.filter(m => m.downloaded || m.download)
   else if (filter.value === 'with-tags') r = r.filter(m => m.tags?.length)
-
-  r.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'oldest': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-      case 'title-asc': return (a.title || '').localeCompare(b.title || '')
-      case 'title-desc': return (b.title || '').localeCompare(a.title || '')
-      case 'artist-asc': return (a.artist || '').localeCompare(b.artist || '')
-      case 'liked-first': return Number(b.liked) - Number(a.liked)
-      default: return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-    }
-  })
-
-  return r
+  return applySort(applySearch(r))
 })
 
-const artistTracks = computed(() => {
-  let r = musics.value.filter(
-    m => (m.artist || '').trim().toLowerCase() === selectedArtist.value.trim().toLowerCase()
-  )
-
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    r = r.filter(m =>
-      (m.title || '').toLowerCase().includes(q) ||
-      (m.artist || '').toLowerCase().includes(q) ||
-      (m.tags || []).some(t => String(t).toLowerCase().includes(q))
+const artistTracks = computed(() =>
+  applySort(
+    applySearch(
+      musics.value.filter(
+        m => (m.artist || '').trim().toLowerCase() === selectedArtist.value.trim().toLowerCase()
+      )
     )
-  }
-
-  r.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'oldest': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-      case 'title-asc': return (a.title || '').localeCompare(b.title || '')
-      case 'title-desc': return (b.title || '').localeCompare(a.title || '')
-      case 'artist-asc': return (a.artist || '').localeCompare(b.artist || '')
-      case 'liked-first': return Number(b.liked) - Number(a.liked)
-      default: return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-    }
-  })
-
-  return r
-})
+  )
+)
 
 const norm = (p) => {
   if (!p) return ''
@@ -314,17 +280,21 @@ const norm = (p) => {
 
 const build = (m) => ({
   ...m,
-  audioUrl: norm(m.url),
+  audioUrl: m.streamUrl ? `${API_ROOT}${m.streamUrl}` : norm(m.url),
   coverUrl: norm(m.cover),
 })
 
 const fetchMusics = async () => {
   try {
-    const { data } = await api.get('/music')
+    const { data } = await api.get('/music/admin/all')
     musics.value = Array.isArray(data) ? data : []
-  } catch (err) {
-    console.error(err)
-    ElMessage.error('Failed to load tracks')
+  } catch {
+    try {
+      const { data } = await api.get('/music')
+      musics.value = Array.isArray(data) ? data : []
+    } catch {
+      ElMessage.error('Failed to load tracks')
+    }
   }
 }
 
@@ -351,6 +321,7 @@ const playMusic = (m) => {
 
   const source = viewMode.value === 'artist' ? artistTracks.value : filtered.value
   currentIndex.value = source.findIndex(x => x._id === m._id)
+
   playHistory.value = [m._id, ...playHistory.value.filter(id => id !== m._id)].slice(0, 30)
   player.setTrack(p)
 }
@@ -359,16 +330,13 @@ const playArtistFirst = () => {
   if (artistTracks.value.length) playMusic(artistTracks.value[0])
 }
 
-const getCurrentSource = () => {
-  if (viewMode.value === 'artist') return artistTracks.value
-  return filtered.value
-}
+const getSource = () => (viewMode.value === 'artist' ? artistTracks.value : filtered.value)
 
 const playPrev = () => {
-  const source = getCurrentSource()
-  if (!source.length) return
-  currentIndex.value = currentIndex.value <= 0 ? source.length - 1 : currentIndex.value - 1
-  playMusic(source[currentIndex.value])
+  const src = getSource()
+  if (!src.length) return
+  currentIndex.value = currentIndex.value <= 0 ? src.length - 1 : currentIndex.value - 1
+  playMusic(src[currentIndex.value])
 }
 
 const playNext = () => {
@@ -376,17 +344,16 @@ const playNext = () => {
     playMusic(queue.value.shift())
     return
   }
-
-  const source = getCurrentSource()
-  if (!source.length) return
-  currentIndex.value = currentIndex.value >= source.length - 1 ? 0 : currentIndex.value + 1
-  playMusic(source[currentIndex.value])
+  const src = getSource()
+  if (!src.length) return
+  currentIndex.value = currentIndex.value >= src.length - 1 ? 0 : currentIndex.value + 1
+  playMusic(src[currentIndex.value])
 }
 
 const playShuffle = () => {
-  const source = getCurrentSource().filter(m => m._id !== currentMusic.value?._id)
-  if (!source.length) return
-  playMusic(source[Math.floor(Math.random() * source.length)])
+  const src = getSource().filter(m => m._id !== currentMusic.value?._id)
+  if (!src.length) return
+  playMusic(src[Math.floor(Math.random() * src.length)])
 }
 
 const addToQueue = (m) => {
@@ -401,35 +368,49 @@ const removeFromQueue = (id) => {
   queue.value = queue.value.filter(i => i._id !== id)
 }
 
-const sync = (data) => {
+const syncMusicData = (data) => {
   const i = musics.value.findIndex(m => m._id === data._id)
-  if (i !== -1) musics.value[i] = data
+  if (i !== -1) musics.value[i] = { ...musics.value[i], ...data }
 
   if (currentMusic.value?._id === data._id) {
-    currentMusic.value = build(data)
-    player.setTrack(currentMusic.value)
+    const built = build(data)
+    currentMusic.value = built
+    player.setTrack(built)
   }
 
-  if (selectedMusic.value?._id === data._id) {
-    selectedMusic.value = data
-  }
-
-  queue.value = queue.value.map(i => (i._id === data._id ? build(data) : i))
+  if (selectedMusic.value?._id === data._id) selectedMusic.value = data
+  queue.value = queue.value.map(i => i._id === data._id ? build(data) : i)
 }
 
+const likeInFlight = ref(new Set())
+
 const toggleLike = async (m) => {
+  if (likeInFlight.value.has(m._id)) return
+  likeInFlight.value.add(m._id)
+
+  const optimistic = {
+    ...m,
+    liked: !m.liked,
+    likeCount: m.liked ? Math.max(0, (m.likeCount || 0) - 1) : (m.likeCount || 0) + 1,
+  }
+
+  syncMusicData(optimistic)
+
   try {
     const { data } = await api.patch(`/music/${m._id}/like`)
-    sync(data)
+    syncMusicData(data)
   } catch {
+    syncMusicData(m)
     ElMessage.error('Failed to update like')
+  } finally {
+    likeInFlight.value.delete(m._id)
   }
 }
 
 const toggleDownload = async (m) => {
   try {
     const { data } = await api.patch(`/music/${m._id}/download`)
-    sync(data)
+    syncMusicData(data)
   } catch {
     ElMessage.error('Failed to update download')
   }
@@ -445,13 +426,12 @@ const handleSaved = (data) => {
   if (i !== -1) musics.value[i] = data
 
   if (currentMusic.value?._id === data._id) {
-    currentMusic.value = build(data)
-    player.setTrack(currentMusic.value)
+    const built = build(data)
+    currentMusic.value = built
+    player.setTrack(built)
   }
 
-  if (selectedMusic.value?._id === data._id) {
-    selectedMusic.value = data
-  }
+  if (selectedMusic.value?._id === data._id) selectedMusic.value = data
 }
 
 const deleteMusic = async (m) => {
@@ -459,11 +439,9 @@ const deleteMusic = async (m) => {
     await ElMessageBox.confirm(`Delete "${m.title}"?`, 'Delete track', {
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
-      type: 'warning'
+      type: 'warning',
     })
-
     await api.delete(`/music/${m._id}`)
-
     musics.value = musics.value.filter(x => x._id !== m._id)
     queue.value = queue.value.filter(x => x._id !== m._id)
 
@@ -488,33 +466,29 @@ const openPlaylistDrawer = (track) => {
 }
 
 const createPlaylist = (name) => {
-  playlists.value.unshift({
-    id: Date.now(),
-    name,
-    tracks: [],
-    count: 0,
-  })
+  playlists.value.unshift({ id: Date.now(), name, tracks: [], count: 0 })
   localStorage.setItem('playlists', JSON.stringify(playlists.value))
   ElMessage.success('Playlist created')
 }
 
 const addTrackToPlaylist = (playlist) => {
   if (!playlistTrack.value) return
-
-  const pIndex = playlists.value.findIndex(p => p.id === playlist.id)
-  if (pIndex === -1) return
-
-  const exists = playlists.value[pIndex].tracks.some(t => t._id === playlistTrack.value._id)
+  const idx = playlists.value.findIndex(p => p.id === playlist.id)
+  if (idx === -1) return
+  const exists = playlists.value[idx].tracks.some(t => t._id === playlistTrack.value._id)
   if (!exists) {
-    playlists.value[pIndex].tracks.push(playlistTrack.value)
-    playlists.value[pIndex].count = playlists.value[pIndex].tracks.length
+    playlists.value[idx].tracks.push(playlistTrack.value)
+    playlists.value[idx].count = playlists.value[idx].tracks.length
     localStorage.setItem('playlists', JSON.stringify(playlists.value))
     ElMessage.success(`Added to ${playlist.name}`)
   } else {
     ElMessage.warning('Track already in playlist')
   }
-
   playlistDrawerOpen.value = false
+}
+
+const handleAuthRequired = () => {
+  ElMessage.error('Audio not found or session required')
 }
 
 onMounted(fetchMusics)

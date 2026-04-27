@@ -33,7 +33,8 @@
             <article v-for="music in filteredMusics" :key="music._id" class="library-track-card"
               :class="{ active: currentMusic?._id === music._id }" @click="selectMusic(music)">
               <div class="library-track-card__cover-wrap">
-                <img :src="getCoverUrl(music.cover)" alt="" class="library-track-card__cover" @error="onImageError" />
+                <img :src="music.coverUrl || fallbackCover" alt="" class="library-track-card__cover"
+                  @error="onImageError" />
 
                 <div class="library-track-card__overlay"></div>
 
@@ -43,7 +44,7 @@
               </div>
 
               <div class="library-track-card__body">
-                <h3>{{ music.title }}</h3>
+                <h3>{{ music.title || 'Untitled track' }}</h3>
                 <p>{{ music.artist || 'Unknown artist' }}</p>
 
                 <div v-if="music.tags?.length" class="library-track-card__tags">
@@ -51,11 +52,12 @@
                 </div>
 
                 <div class="library-track-card__actions">
-                  <button class="library-mini-btn" @click.stop="toggleLike(music)">
+                  <button class="library-mini-btn" :class="{ liked: music.liked }" @click.stop="toggleLike(music)">
                     <HeartIcon class="library-mini-btn__icon" />
                   </button>
 
-                  <button class="library-mini-btn" @click.stop="downloadMusic(music)">
+                  <button class="library-mini-btn" :class="{ downloaded: music.downloaded }"
+                    @click.stop="downloadMusic(music)">
                     <ArrowDownTrayIcon class="library-mini-btn__icon" />
                   </button>
                 </div>
@@ -80,25 +82,25 @@ import { PlayIcon, HeartIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outlin
 
 import HeaderPage from '@/components/layout/header_page.vue'
 import AdminSidebar from '@/components/layout/admin_sidebar.vue'
+import UserSidebar from '@/components/users/UserSidebar.vue'
 import PlayerBar from '@/components/layout/player_bar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { usePlayerStore } from '@/stores/player'
+import '@/styles/global.css'
 import '@/styles/library_page.css'
 
 const route = useRoute()
-const BASE_URL = 'http://localhost:7139'
+const API_ROOT = (import.meta.env.VITE_API_ROOT || 'http://localhost:7139').replace(/\/+$/, '')
 const authStore = useAuthStore()
 const player = usePlayerStore()
-const api = axios.create({ baseURL: BASE_URL, withCredentials: true })
+const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 
 const musics = ref([])
 const currentMusic = ref(null)
 const search = ref('')
 const loading = ref(false)
 
-const sidebarComponent = computed(() =>
-  authStore.isAdmin ? AdminSidebar : UserSidebar
-)
+const sidebarComponent = computed(() => authStore.isAdmin ? AdminSidebar : UserSidebar)
 
 const fallbackCover =
   'data:image/svg+xml;utf8,' +
@@ -135,19 +137,22 @@ const pageSubtitle = computed(() => {
 
 const normalizeFileUrl = (filePath) => {
   if (!filePath) return ''
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath
-  return `${BASE_URL}/${String(filePath).replace(/^\/+/, '')}`
+  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('data:')) return filePath
+  return `${API_ROOT}/${String(filePath).replace(/^\/+/, '')}`
 }
 
-const getCoverUrl = (cover) => {
-  return cover ? normalizeFileUrl(cover) : fallbackCover
-}
-
-const buildPlayerMusic = (music) => ({
+const normalizeMusic = (music = {}) => ({
   ...music,
-  audioUrl: normalizeFileUrl(music.url),
-  coverUrl: getCoverUrl(music.cover),
+  liked: Boolean(music.liked),
+  downloaded: Boolean(music.downloaded),
+  tags: Array.isArray(music.tags) ? music.tags : [],
+  genre: Array.isArray(music.genre) ? music.genre : [],
+  mood: Array.isArray(music.mood) ? music.mood : [],
+  coverUrl: music.cover ? normalizeFileUrl(music.cover) : fallbackCover,
+  audioUrl: music.streamUrl ? `${API_ROOT}${music.streamUrl}` : normalizeFileUrl(music.url),
 })
+
+const buildPlayerMusic = (music) => normalizeMusic(music)
 
 const onImageError = (event) => {
   event.target.src = fallbackCover
@@ -156,9 +161,9 @@ const onImageError = (event) => {
 const fetchMusics = async () => {
   loading.value = true
   try {
-    const { data } = await api.get('/api/music')
-    musics.value = Array.isArray(data) ? data : []
-  } catch (error) {
+    const { data } = await api.get('/music')
+    musics.value = Array.isArray(data) ? data.map(normalizeMusic) : []
+  } catch {
     musics.value = []
     ElMessage.error('Failed to load songs')
   } finally {
@@ -170,7 +175,7 @@ const filteredMusics = computed(() => {
   let list = [...musics.value]
 
   if (type.value === 'favourites') list = list.filter((music) => music.liked)
-  if (type.value === 'downloaded') list = list.filter((music) => music.download)
+  if (type.value === 'downloaded') list = list.filter((music) => music.downloaded)
 
   const q = search.value.trim().toLowerCase()
   if (!q) return list
@@ -179,7 +184,7 @@ const filteredMusics = computed(() => {
     const title = (music.title || '').toLowerCase()
     const artist = (music.artist || '').toLowerCase()
     const album = (music.album || '').toLowerCase()
-    const genre = (music.genre || '').toLowerCase()
+    const genre = Array.isArray(music.genre) ? music.genre.join(' ').toLowerCase() : ''
     const tags = Array.isArray(music.tags) ? music.tags.join(' ').toLowerCase() : ''
 
     return (
@@ -200,18 +205,14 @@ const selectMusic = (music) => {
 
 const playPrev = () => {
   if (!currentMusic.value || !filteredMusics.value.length) return
-  const currentIndex = filteredMusics.value.findIndex(
-    (item) => item._id === currentMusic.value._id
-  )
+  const currentIndex = filteredMusics.value.findIndex((item) => item._id === currentMusic.value._id)
   const prevIndex = currentIndex <= 0 ? filteredMusics.value.length - 1 : currentIndex - 1
   selectMusic(filteredMusics.value[prevIndex])
 }
 
 const playNext = () => {
   if (!currentMusic.value || !filteredMusics.value.length) return
-  const currentIndex = filteredMusics.value.findIndex(
-    (item) => item._id === currentMusic.value._id
-  )
+  const currentIndex = filteredMusics.value.findIndex((item) => item._id === currentMusic.value._id)
   const nextIndex = currentIndex >= filteredMusics.value.length - 1 ? 0 : currentIndex + 1
   selectMusic(filteredMusics.value[nextIndex])
 }
@@ -224,37 +225,39 @@ const playShuffle = () => {
 }
 
 const updateMusicInList = (updatedMusic) => {
-  const index = musics.value.findIndex((item) => item._id === updatedMusic._id)
-  if (index !== -1) musics.value[index] = updatedMusic
+  const normalized = normalizeMusic(updatedMusic)
+  const index = musics.value.findIndex((item) => item._id === normalized._id)
+  if (index !== -1) musics.value[index] = normalized
 
-  if (currentMusic.value?._id === updatedMusic._id) {
-    const prepared = buildPlayerMusic(updatedMusic)
-    currentMusic.value = prepared
-    player.setTrack(prepared)
+  if (currentMusic.value?._id === normalized._id) {
+    currentMusic.value = normalized
+    player.setTrack(normalized)
   }
 }
 
 const toggleLike = async (music) => {
   try {
-    const { data } = await api.patch(`/api/music/${music._id}/like`)
+    const { data } = await api.patch(`/music/${music._id}/like`)
     updateMusicInList(data)
-  } catch (error) {
+  } catch {
     ElMessage.error('Failed to update like')
   }
 }
 
 const downloadMusic = async (music) => {
   try {
-    const { data } = await api.patch(`/api/music/${music._id}/download`)
+    const { data } = await api.patch(`/music/${music._id}/download`)
     updateMusicInList(data)
 
-    const a = document.createElement('a')
-    a.href = normalizeFileUrl(data.url || music.url)
-    a.download = `${data.title || music.title || 'music'}.mp3`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  } catch (error) {
+    if (!music.downloaded) {
+      const a = document.createElement('a')
+      a.href = data.streamUrl ? `${API_ROOT}${data.streamUrl}` : normalizeFileUrl(data.url || music.url)
+      a.download = `${data.title || music.title || 'music'}.mp3`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    }
+  } catch {
     ElMessage.error('Failed to download track')
   }
 }
@@ -267,7 +270,7 @@ watch(
 )
 
 onMounted(async () => {
-  if (!authStore.bootstrapped) await authStore.fetchMe()
+  if (!authStore.bootstrapped && !authStore.initialized) await authStore.fetchMe()
   await fetchMusics()
 })
-</script>А
+</script>
