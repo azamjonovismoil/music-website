@@ -208,7 +208,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed, h } from 'vue'
 import { useRouter } from 'vue-router'
-import HeaderPage from '@/components/layout/header_page.vue'
+import HeaderPage from '@/components/layout/HeaderPage.vue'
 import { useAuthStore } from '@/stores/auth'
 import '@/styles/landing_page.css'
 const router = useRouter()
@@ -309,5 +309,4 @@ onMounted(() => {
 onBeforeUnmount(() => clearInterval(progTimer))
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

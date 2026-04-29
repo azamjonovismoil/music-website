@@ -1,120 +1,79 @@
 <template>
   <div class="track-grid-root">
-    <!-- Toolbar -->
-    <div class="tg-toolbar">
-      <div class="tg-chips">
-        <button v-for="f in filters" :key="f.key" class="chip" :class="{ active: activeFilter === f.key }"
-          @click="$emit('update:activeFilter', f.key)">
-          {{ f.label }}
-        </button>
-      </div>
-
-      <select :value="sortBy" class="sort-select" @change="$emit('update:sortBy', $event.target.value)">
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-        <option value="title-asc">Title A–Z</option>
-        <option value="artist-asc">Artist A–Z</option>
-        <option value="liked-first">Liked first</option>
-      </select>
-    </div>
-
-    <!-- Head -->
-    <div class="tg-head">
+    <div v-if="!compactHeader" class="tg-head">
       <h2>{{ title }}</h2>
-      <span class="result-badge">{{ tracks.length }}</span>
-      <span v-if="playlist" class="tg-playlist-actions">
-        <button class="chip" @click="$emit('edit-playlist', playlist)">Edit</button>
-        <button class="chip danger" @click="$emit('delete-playlist', playlist)">Delete</button>
-      </span>
+      <div v-if="playlist" class="tg-playlist-actions">
+        <button class="chip">{{ tracks.length }} tracks</button>
+      </div>
     </div>
 
-    <!-- Empty -->
     <div v-if="!tracks.length" class="tg-empty">
-      <MusicalNoteIcon class="tg-empty-icon" />
+      <svg class="tg-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 18V5l12-2v13" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
+      </svg>
       <h3>No tracks found</h3>
-      <p>Try changing filters or search query.</p>
+      <p>This section is empty right now.</p>
     </div>
 
-    <!-- Grid -->
     <div v-else class="cards-grid">
-      <div v-for="m in tracks" :key="m._id" class="u-card" :class="{ playing: currentMusic?._id === m._id }"
-        @click="$emit('select-track', m)">
+      <article v-for="track in tracks" :key="track._id" class="u-card"
+        :class="{ playing: currentMusic?._id === track._id }" @click="$emit('select-track', track)">
         <div class="u-cover-wrap">
-          <img :src="getCover(m)" class="u-cover" alt="" @error="e => e.target.src = fallback" />
+          <img :src="getCover(track)" class="u-cover" @error="e => e.target.src = fallback" />
 
           <div class="u-overlay">
-            <button class="u-play-btn" @click.stop="$emit('play-track', m)">
-              <PlayIcon class="u-play-icon" />
+            <button class="u-play-btn" @click.stop="$emit('play-track', track)">
+              <svg class="u-play-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M8 5.14v13.72c0 .72.78 1.17 1.4.8l10.2-6.86a.94.94 0 0 0 0-1.6L9.4 4.34A.94.94 0 0 0 8 5.14Z" />
+              </svg>
             </button>
           </div>
 
-          <button class="u-like-btn" :class="{ active: m.liked }" @click.stop="$emit('toggle-like', m)">
-            <HeartSolidIcon v-if="m.liked" class="u-like-icon" />
-            <HeartIcon v-else class="u-like-icon" />
-          </button>
-
-          <div v-if="currentMusic?._id === m._id" class="u-bars">
-            <span /><span /><span />
+          <div v-if="currentMusic?._id === track._id" class="u-bars">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </div>
 
         <div class="u-info">
-          <div class="u-title">{{ m.title }}</div>
-          <div class="u-artist">{{ m.artist || 'Unknown' }}</div>
+          <div class="u-title">{{ track.title }}</div>
+          <div class="u-artist">{{ track.artist || 'Unknown artist' }}</div>
 
-          <div class="u-actions" v-if="playlist">
-            <button class="mini-action danger" @click.stop="$emit('remove-from-playlist', m)">
+          <div class="u-actions">
+            <button class="mini-action" @click.stop="$emit('add-to-queue', track)">Queue</button>
+            <button class="mini-action" @click.stop="$emit('add-to-playlist', track)">Playlist</button>
+            <button v-if="playlist" class="mini-action danger" @click.stop="$emit('remove-from-playlist', track)">
               Remove
             </button>
           </div>
-
-          <div class="u-actions" v-else>
-            <button class="mini-action" @click.stop="$emit('add-to-playlist', m)" title="Add to playlist">
-              + Playlist
-            </button>
-            <button class="mini-action" @click.stop="$emit('add-to-queue', m)" title="Add to queue">
-              Queue
-            </button>
-          </div>
         </div>
-      </div>
+      </article>
     </div>
   </div>
 </template>
 
 <script setup>
-import { MusicalNoteIcon, PlayIcon, HeartIcon } from '@heroicons/vue/24/outline'
-import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
+import '@/styles/track_grid.css'
 
 defineProps({
   title: { type: String, default: 'Tracks' },
   tracks: { type: Array, default: () => [] },
   playlist: { type: Object, default: null },
   currentMusic: { type: Object, default: null },
-  activeFilter: { type: String, default: 'all' },
-  sortBy: { type: String, default: 'newest' },
   getCover: { type: Function, required: true },
   fallback: { type: String, default: '' },
-  defaultPlaylistColor: { type: String, default: '' },
+  compactHeader: { type: Boolean, default: false },
 })
 
 defineEmits([
-  'update:activeFilter',
-  'update:sortBy',
   'select-track',
   'play-track',
-  'toggle-like',
   'add-to-playlist',
   'add-to-queue',
   'remove-from-playlist',
-  'edit-playlist',
-  'delete-playlist',
 ])
-
-const filters = [
-  { key: 'all', label: 'All' },
-  { key: 'liked', label: 'Liked' },
-  { key: 'downloadable', label: 'Downloaded' },
-  { key: 'with-tags', label: 'Tagged' },
-]
 </script>

@@ -1,38 +1,52 @@
+.edit-modal-overlay {
+  background: rgba(3, 8, 18, 0.72) !important;
+  backdrop-filter: blur(10px);
+}
+
 .edit-dialog {
-  --el-dialog-header-padding: 12px 14px 10px !important;
-  --el-dialog-body-padding: 12px !important;
-  --el-dialog-footer-padding: 10px 12px 12px !important;
-  background: var(--bg-card) !important;
+  --el-dialog-header-padding: 0 !important;
+  --el-dialog-body-padding: 0 !important;
+  --el-dialog-footer-padding: 0 !important;
+  background-color: var(--modal-bg, #111827) !important;
 }
 
 .edit-dialog .el-dialog {
-  width: min(980px, calc(100vw - 24px)) !important;
-  max-width: 980px !important;
-  background: var(--bg-card) !important;
+  width: min(1120px, calc(100vw - 28px)) !important;
+  max-width: 1120px !important;
+  margin-top: 6vh !important;
+  background: var(--modal-bg, #111827) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 20px !important;
+  border-radius: 24px !important;
   overflow: hidden !important;
   box-shadow: var(--shadow-lg) !important;
 }
 
 [data-theme='light'] .edit-dialog .el-dialog {
+  background: var(--modal-bg, #ffffff) !important;
   border-color: var(--accent-border) !important;
+  box-shadow:
+    0 20px 60px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(59, 130, 246, 0.06) !important;
 }
 
 .edit-dialog .el-dialog__header {
-  padding: 12px 14px 10px !important;
+  padding: 16px 18px 14px !important;
   border-bottom: 1px solid var(--border);
+  background: transparent !important;
+  margin: 0 !important;
 }
 
 .edit-dialog .el-dialog__body {
-  padding: 12px !important;
-  max-height: 76vh;
+  padding: 14px !important;
+  max-height: 78vh;
   overflow: hidden;
+  background: transparent !important;
 }
 
 .edit-dialog .el-dialog__footer {
-  padding: 10px 12px 12px !important;
+  padding: 12px 14px 14px !important;
   border-top: 1px solid var(--border);
+  background: transparent !important;
 }
 
 .edit-head {
@@ -44,7 +58,7 @@
 
 .edit-head h2 {
   margin: 0 0 4px;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.1;
 }
@@ -52,7 +66,7 @@
 .edit-head p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
@@ -61,7 +75,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 10px;
+  padding: 7px 11px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
@@ -98,19 +112,19 @@
 
 .edit-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 250px;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  gap: 14px;
   align-items: start;
 }
 
 .edit-main {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: calc(76vh - 10px);
+  gap: 12px;
+  max-height: calc(78vh - 12px);
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 3px;
+  padding-right: 4px;
 }
 
 .edit-side {
@@ -118,8 +132,8 @@
   top: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-height: calc(76vh - 10px);
+  gap: 12px;
+  max-height: calc(78vh - 12px);
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -140,29 +154,30 @@
 .edit-section,
 .preview-card,
 .upload-card {
-  background: var(--bg-card2);
+  background: var(--modal-surface, #182131);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: var(--shadow-xs);
 }
 
 [data-theme='light'] .edit-section,
 [data-theme='light'] .preview-card,
 [data-theme='light'] .upload-card {
+  background: var(--modal-surface, #f8fbff);
   border-color: var(--accent-border);
 }
 
 .edit-section {
-  padding: 12px;
+  padding: 14px;
 }
 
 .preview-card,
 .upload-card {
-  padding: 10px;
+  padding: 12px;
 }
 
 .edit-section-head {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .edit-section-head.between {
@@ -174,7 +189,7 @@
 
 .edit-section-head h3 {
   margin: 0 0 4px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 850;
   line-height: 1.2;
 }
@@ -189,7 +204,7 @@
 .edit-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 9px;
+  gap: 10px;
 }
 
 .full {
@@ -235,8 +250,8 @@
 }
 
 .edit-input {
-  padding: 10px 12px;
-  min-height: 40px;
+  padding: 11px 12px;
+  min-height: 42px;
 }
 
 .edit-input.area {
@@ -247,12 +262,12 @@
 }
 
 .edit-input.big {
-  min-height: 140px;
+  min-height: 148px;
 }
 
 .edit-input.lrc {
   font-family: 'Fira Mono', monospace;
-  min-height: 120px;
+  min-height: 124px;
 }
 
 .edit-input:hover,
@@ -328,8 +343,8 @@
 .tag-opt,
 .flag-btn,
 .seg-btn {
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 34px;
+  padding: 0 11px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -513,7 +528,7 @@
 }
 
 .preview-scroll {
-  max-height: calc(76vh - 150px);
+  max-height: calc(78vh - 150px);
   overflow-y: auto;
   padding-right: 2px;
 }
@@ -521,11 +536,11 @@
 .preview-cover-wrap {
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .preview-cover {
@@ -545,7 +560,7 @@
 
 .preview-copy h4 {
   margin: 0 0 4px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1.15;
 }
@@ -607,7 +622,7 @@
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   border-radius: 10px;
-  padding: 7px 8px;
+  padding: 8px;
 }
 
 .preview-stat span {
@@ -631,7 +646,7 @@
 }
 
 .upload-box {
-  min-height: 38px;
+  min-height: 40px;
   border-radius: 10px;
   border: 1px dashed var(--border);
   display: flex;
@@ -664,9 +679,9 @@
 }
 
 .edit-btn {
-  height: 36px;
-  padding: 0 13px;
-  border-radius: 10px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
   font-weight: 850;
   font-size: 12px;
   cursor: pointer;
@@ -693,7 +708,7 @@
 
 @media (max-width: 1180px) {
   .edit-dialog .el-dialog {
-    width: min(900px, calc(100vw - 20px)) !important;
+    width: min(940px, calc(100vw - 20px)) !important;
   }
 
   .edit-shell {
@@ -714,6 +729,7 @@
 @media (max-width: 900px) {
   .edit-dialog .el-dialog {
     width: calc(100vw - 16px) !important;
+    margin-top: 2vh !important;
   }
 
   .edit-grid,
@@ -754,7 +770,7 @@
   .edit-section,
   .preview-card,
   .upload-card {
-    padding: 9px;
+    padding: 10px;
     border-radius: 14px;
   }
 

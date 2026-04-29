@@ -26,8 +26,12 @@
             Play
           </button>
 
-          <button class="detail-icon-btn" :class="{ liked: track.liked }" @click="$emit('toggle-like', track)"
-            :title="track.liked ? 'Unlike' : 'Like'">
+          <button
+            class="detail-icon-btn"
+            :class="{ liked: track.liked }"
+            @click="$emit('toggle-like', track)"
+            :title="track.liked ? 'Unlike' : 'Like'"
+          >
             <HeartSolidIcon v-if="track.liked" class="dib-icon" />
             <HeartIcon v-else class="dib-icon" />
           </button>
@@ -65,7 +69,7 @@
     </div>
 
     <div v-if="track.lyrics" class="detail-lyrics">
-      <p class="dmi-label" style="margin-bottom: 12px">Lyrics</p>
+      <p class="dmi-label detail-lyrics-head">Lyrics</p>
       <p class="detail-lyrics-text">
         {{ track.lyrics.slice(0, 600) }}{{ track.lyrics.length > 600 ? '…' : '' }}
       </p>

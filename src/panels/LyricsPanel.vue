@@ -33,7 +33,7 @@
               active: index === activeLyricIndex,
               passed: index < activeLyricIndex,
               upcoming: index > activeLyricIndex
-            }" @click="seekTo(line.time)">
+            }">
             <template v-if="Array.isArray(line.words) && line.words.length">
               <span v-for="(word, wordIndex) in line.words" :key="`${index}-${wordIndex}`" class="lyric-word"
                 :class="{ active: isWordActive(word) }">
@@ -66,10 +66,6 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { usePlayerStore } from '@/stores/player'
 import '@/styles/lyrics_panel.css'
-
-const props = defineProps({
-  playerBarRef: { type: Object, default: null },
-})
 
 const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 const player = usePlayerStore()
@@ -116,14 +112,6 @@ const isWordActive = (word) => {
   const start = Number(word?.start || 0)
   const end = Number(word?.end || start)
   return player.currentTime >= start && player.currentTime <= end
-}
-
-const seekTo = async (time) => {
-  const bar = props.playerBarRef?.value || props.playerBarRef
-  if (!bar?.seekToTime) return
-  bar.seekToTime(time)
-  await bar.playAudio?.()
-  player.setCurrentTime(time)
 }
 
 const scrollToActiveLyric = () => {

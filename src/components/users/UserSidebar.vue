@@ -1,105 +1,101 @@
 <template>
-  <aside class="user-sidebar" :class="{ collapsed: isCollapsed }">
-    <!-- Toggle -->
-    <button class="sb-toggle" @click="isCollapsed = !isCollapsed">
-      <ChevronLeftIcon class="sb-toggle-icon" :class="{ flipped: isCollapsed }" />
-    </button>
+  <aside class="user-sidebar" :class="{ collapsed }">
+    <div class="us-top">
+      <button class="us-collapse" @click="toggleCollapsed" :title="collapsed ? 'Expand' : 'Collapse'">
+        <ChevronLeftIcon class="us-collapse-icon" :class="{ rotated: collapsed }" />
+      </button>
+    </div>
 
-    <!-- Nav -->
-    <nav class="sb-nav">
-      <button v-for="item in navItems" :key="item.key" class="sb-nav-item"
-        :class="{ active: activeView === item.key && !activePlaylistId }" @click="$emit('select-view', item.key)"
-        :title="isCollapsed ? item.label : undefined">
-        <component :is="item.icon" class="sb-nav-icon" />
-        <span class="sb-nav-label">{{ item.label }}</span>
+    <nav class="us-nav">
+      <button class="us-link" :class="{ active: activeView === 'home' }" @click="$emit('select-view', 'home')">
+        <HomeIcon class="us-icon" />
+        <span v-if="!collapsed">Home</span>
+      </button>
+
+      <button class="us-link" :class="{ active: activeView === 'liked' }" @click="$emit('select-view', 'liked')">
+        <StarIcon class="us-icon" />
+        <span v-if="!collapsed">Liked songs</span>
+      </button>
+
+      <button class="us-link" :class="{ active: activeView === 'downloaded' }"
+        @click="$emit('select-view', 'downloaded')">
+        <ArrowDownTrayIcon class="us-icon" />
+        <span v-if="!collapsed">Downloads</span>
       </button>
     </nav>
 
-    <div class="sb-divider" />
+    <div class="us-divider"></div>
 
-    <!-- Playlists -->
-    <div class="sb-playlists">
-      <div class="sb-pl-head">
-        <span class="sb-pl-title">Playlists</span>
-        <button class="sb-pl-add" @click="$emit('create-playlist')" title="New playlist">
-          <PlusIcon class="sb-plus-icon" />
-        </button>
+    <div class="us-playlists">
+      <div class="us-playlists-head" v-if="!collapsed">
+        <span>Playlists</span>
+        <button class="us-add" @click="$emit('create-playlist')" title="Create playlist">+</button>
       </div>
 
-      <div class="sb-pl-list">
-        <div v-if="!playlists.length" class="sb-pl-empty">No playlists yet</div>
+      <div v-else class="us-playlists-head collapsed-head">
+        <button class="us-add" @click="$emit('create-playlist')" title="Create playlist">+</button>
+      </div>
 
-        <div v-for="pl in playlists" :key="pl._id" class="sb-pl-item">
-          <!-- Row -->
-          <div class="sb-pl-row" :class="{ active: activePlaylistId === pl._id }" @click="handlePlaylistClick(pl)">
-            <div class="sb-pl-thumb" :style="{ background: pl.color || defaultPlaylistColor }" />
-            <div class="sb-pl-info">
-              <div class="sb-pl-name">{{ pl.name }}</div>
-              <div class="sb-pl-meta">{{ pl.tracks?.length || pl.count || 0 }} tracks</div>
+      <div class="us-playlist-list">
+        <button v-for="pl in playlists" :key="pl._id" class="us-playlist"
+          :class="{ active: activePlaylistId === pl._id }" @click="$emit('open-playlist', pl)" :title="pl.name">
+          <div class="us-playlist-color" :style="{ background: pl.color || defaultPlaylistColor }"></div>
+
+          <template v-if="!collapsed">
+            <div class="us-playlist-meta">
+              <strong>{{ pl.name }}</strong>
+              <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
             </div>
-            <ChevronRightIcon class="sb-pl-chevron" :class="{ open: openPlaylistId === pl._id }" />
-          </div>
 
-          <!-- Track accordion -->
-          <transition name="pl-expand">
-            <div v-if="openPlaylistId === pl._id && pl.tracks?.length" class="sb-pl-tracks">
-              <div v-for="track in pl.tracks.slice(0, 8)" :key="track._id" class="sb-track-row"
-                :class="{ playing: currentMusicId === track._id }" @click="$emit('play-from-playlist', track, pl)">
-                <div class="sb-track-dot" :class="{ playing: currentMusicId === track._id }" />
-                <span class="sb-track-name">{{ track.title }}</span>
-                <span class="sb-track-artist">{{ track.artist }}</span>
-              </div>
-              <div v-if="pl.tracks.length > 8" class="sb-track-more">
-                +{{ pl.tracks.length - 8 }} more
-              </div>
+            <div class="us-playlist-actions" @click.stop>
+              <button class="us-mini" @click="$emit('rename-playlist', pl)">✎</button>
+              <button class="us-mini danger" @click="$emit('delete-playlist', pl)">×</button>
             </div>
-          </transition>
-
-          <!-- Actions (visible when active) -->
-          <div v-if="activePlaylistId === pl._id && !isCollapsed" class="sb-pl-actions">
-            <button class="sb-pl-btn" @click.stop="$emit('rename-playlist', pl)">
-              <PencilIcon class="sb-act-icon" /> Edit
-            </button>
-            <button class="sb-pl-btn danger" @click.stop="$emit('delete-playlist', pl)">
-              <TrashIcon class="sb-act-icon" /> Delete
-            </button>
-          </div>
-        </div>
+          </template>
+        </button>
       </div>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon, PencilIcon, TrashIcon } from '@heroicons/vue/24/outline'
-import { HomeFilled, Star, Download } from '@element-plus/icons-vue'
-import '@/styles/UserSidebar.css'
+import { ref, onMounted } from 'vue'
+import {
+  HomeIcon,
+  StarIcon,
+  ArrowDownTrayIcon,
+  ChevronLeftIcon,
+} from '@heroicons/vue/24/outline'
+import '@/styles/user_sidebar.css'
 
-const props = defineProps({
+defineProps({
   playlists: { type: Array, default: () => [] },
   activeView: { type: String, default: 'home' },
-  activePlaylistId: { type: String, default: null },
-  currentMusicId: { type: String, default: null },
-  defaultPlaylistColor: { type: String, default: 'linear-gradient(135deg,#0ea5e9,#2563eb)' },
+  activePlaylistId: { type: String, default: '' },
+  currentMusicId: { type: String, default: '' },
+  defaultPlaylistColor: { type: String, default: 'linear-gradient(135deg,#4f7cff,#7c5cff)' },
 })
 
 const emit = defineEmits([
-  'select-view', 'create-playlist', 'open-playlist',
-  'rename-playlist', 'delete-playlist', 'play-from-playlist',
+  'select-view',
+  'create-playlist',
+  'open-playlist',
+  'rename-playlist',
+  'delete-playlist',
+  'play-from-playlist',
+  'collapsed-change',
 ])
 
-const isCollapsed = ref(false)
-const openPlaylistId = ref(null)
+const collapsed = ref(false)
 
-const navItems = [
-  { key: 'home', label: 'Home', icon: HomeFilled },
-  { key: 'liked', label: 'Liked songs', icon: Star },
-  { key: 'downloaded', label: 'Downloads', icon: Download },
-]
-
-const handlePlaylistClick = (pl) => {
-  openPlaylistId.value = openPlaylistId.value === pl._id ? null : pl._id
-  emit('open-playlist', pl)
+const toggleCollapsed = () => {
+  collapsed.value = !collapsed.value
+  localStorage.setItem('mw-user-sidebar-collapsed', collapsed.value ? '1' : '0')
+  emit('collapsed-change', collapsed.value)
 }
+
+onMounted(() => {
+  collapsed.value = localStorage.getItem('mw-user-sidebar-collapsed') === '1'
+  emit('collapsed-change', collapsed.value)
+})
 </script>

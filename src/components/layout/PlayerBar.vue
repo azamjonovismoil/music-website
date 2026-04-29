@@ -3,12 +3,12 @@
     <div v-if="music" class="player-shell">
       <div class="player-bar" :class="{ playing: isPlaying }">
         <audio ref="audioRef" :key="audioSrc" :src="audioSrc" preload="metadata" crossorigin="use-credentials"
-          @timeupdate="onTimeUpdate" @loadedmetadata="onMeta" @progress="onProgress" @waiting="isLoading = true"
-          @playing="onPlaying" @pause="onPause" @ended="onEnded" @error="onAudioError" />
+          playsinline @timeupdate="onTimeUpdate" @loadedmetadata="onMeta" @progress="onProgress"
+          @waiting="isLoading = true" @playing="onPlaying" @pause="onPause" @ended="onEnded" @error="onAudioError" />
 
         <div class="player-left">
           <div class="cover-wrap" @click="goDetail">
-            <img class="player-cover" :src="coverSrc" alt="cover" @error="e => (e.target.src = fallback)" />
+            <img class="player-cover" :src="coverSrc" alt="cover" @error="onCoverError" />
             <div class="cover-go">
               <ArrowTopRightOnSquareIcon class="cover-go-icon" />
             </div>
@@ -16,7 +16,7 @@
 
           <div class="player-info">
             <div class="title-row">
-              <button class="track-btn track-title marquee-wrap" @click="goDetail">
+              <button class="track-btn track-title marquee-wrap" type="button" @click="goDetail">
                 <span class="marquee-text" :class="{ scrolling: shouldScrollTitle }">
                   {{ music.title || 'Unknown' }}
                 </span>
@@ -28,17 +28,17 @@
             </div>
 
             <div class="artist-row">
-              <button class="track-btn track-artist" @click="goArtistDetail">
+              <button class="track-btn track-artist" type="button" @click="goArtistDetail">
                 {{ music.artist || 'Unknown artist' }}
               </button>
 
-              <button class="ctrl like-btn" :class="{ active: music.liked }" @click="$emit('toggle-like', music)"
-                title="Favourite">
+              <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" title="Favourite"
+                @click="handleToggleLike">
                 <HeartSolidIcon v-if="music.liked" class="ctrl-icon" />
                 <HeartIcon v-else class="ctrl-icon" />
               </button>
 
-              <button class="ctrl playlist-btn" @click="handleAddToPlaylist" title="Add to playlist">
+              <button class="ctrl playlist-btn" type="button" title="Add to playlist" @click="handleAddToPlaylist">
                 <PlusIcon class="ctrl-icon" />
               </button>
             </div>
@@ -47,30 +47,33 @@
 
         <div class="player-center">
           <div class="controls">
-            <button class="ctrl" :class="{ active: isShuffle }" @click="isShuffle = !isShuffle" title="Shuffle">
+            <button class="ctrl" :class="{ active: isShuffle }" type="button" title="Shuffle"
+              @click="isShuffle = !isShuffle">
               <ArrowsRightLeftIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" @click="$emit('prev')" title="Previous">
+            <button class="ctrl" type="button" title="Previous" @click="$emit('prev')">
               <BackwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl play-ctrl" @click="togglePlay" title="Play/Pause">
+            <button class="ctrl play-ctrl" type="button" title="Play/Pause" @click="togglePlay">
               <ArrowPathIcon v-if="isLoading" class="play-icon spin" />
               <PauseIcon v-else-if="isPlaying" class="play-icon" />
               <PlayIcon v-else class="play-icon" />
             </button>
 
-            <button class="ctrl" @click="handleNext" title="Next">
+            <button class="ctrl" type="button" title="Next" @click="handleNext">
               <ForwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" :class="{ active: repeatMode !== 'off' }" @click="cycleRepeat" title="Repeat">
+            <button class="ctrl" :class="{ active: repeatMode !== 'off' }" type="button" title="Repeat"
+              @click="cycleRepeat">
               <ArrowPathRoundedSquareIcon class="ctrl-icon" />
               <span v-if="repeatMode === 'one'" class="repeat-badge">1</span>
             </button>
 
-            <button class="ctrl" :class="{ active: queueOpen }" @click="$emit('toggle-queue')" title="Queue">
+            <button class="ctrl" :class="{ active: queueOpen }" type="button" title="Queue"
+              @click="$emit('toggle-queue')">
               <QueueListIcon class="ctrl-icon" />
             </button>
           </div>
@@ -78,7 +81,7 @@
           <div class="progress-area">
             <span class="time">{{ fmt(currentTime) }}</span>
 
-            <div class="progress-track" ref="trackRef" @click="seekClick">
+            <div class="progress-track" @click="seekClick">
               <div class="progress-buf" :style="{ width: buffered + '%' }" />
               <div class="progress-fill" :style="{ width: pct + '%' }" />
               <div class="progress-thumb" :style="{ left: pct + '%' }" />
@@ -91,9 +94,13 @@
         </div>
 
         <div class="player-right">
-          <button class="ctrl lyrics-btn" :class="{ active: player.showLyricsPanel }" @click="player.toggleLyrics()"
-            title="Lyrics">
+          <button class="ctrl lyrics-btn" :class="{ active: lyricsOpen }" :disabled="!hasLyrics" type="button"
+            :title="hasLyrics ? 'Lyrics' : 'No lyrics available'" @click="handleLyricsOpen">
             <MicrophoneIcon class="ctrl-icon" />
+          </button>
+
+          <button class="ctrl expand-btn" type="button" title="Expand / Karaoke mode" @click="handleExpand">
+            <ArrowsPointingOutIcon class="ctrl-icon" />
           </button>
 
           <div class="vol-wrap">
@@ -106,7 +113,8 @@
               </div>
             </transition>
 
-            <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" @click="toggleMute" title="Mute">
+            <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" title="Mute"
+              @click="toggleMute">
               <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
               <SpeakerWaveIcon v-else class="ctrl-icon" />
             </button>
@@ -128,20 +136,31 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { usePlayerStore } from '@/stores/player'
-import '@/styles/player_bar.css'
 import {
-  PlayIcon, PauseIcon, BackwardIcon, ForwardIcon,
-  SpeakerWaveIcon, SpeakerXMarkIcon,
-  ArrowsRightLeftIcon, ArrowPathRoundedSquareIcon,
-  QueueListIcon, ArrowPathIcon,
-  MicrophoneIcon, ArrowTopRightOnSquareIcon, PlusIcon, HeartIcon
+  PlayIcon,
+  PauseIcon,
+  BackwardIcon,
+  ForwardIcon,
+  SpeakerWaveIcon,
+  SpeakerXMarkIcon,
+  ArrowsRightLeftIcon,
+  ArrowPathRoundedSquareIcon,
+  QueueListIcon,
+  ArrowPathIcon,
+  MicrophoneIcon,
+  ArrowTopRightOnSquareIcon,
+  PlusIcon,
+  HeartIcon,
+  ArrowsPointingOutIcon,
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
+import { usePlayerStore } from '@/stores/player'
+import '@/styles/player_bar.css'
 
 const props = defineProps({
   music: { type: Object, default: null },
   queueOpen: { type: Boolean, default: false },
+  lyricsOpen: { type: Boolean, default: false },
 })
 
 const emit = defineEmits([
@@ -154,10 +173,12 @@ const emit = defineEmits([
   'open-artist',
   'open-detail',
   'auth-required',
+  'expand',
+  'open-lyrics',
 ])
 
 const player = usePlayerStore()
-const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
+const API_ROOT = (import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com').replace(/\/+$/, '')
 
 const audioRef = ref(null)
 const isPlaying = ref(false)
@@ -183,9 +204,12 @@ const fallback =
   )
 
 const audioSrc = computed(() => {
-  if (props.music?.audioUrl) return props.music.audioUrl
-  if (props.music?.streamUrl) return `${API_ROOT}${props.music.streamUrl}`
-  if (props.music?.url) return `${API_ROOT}/${String(props.music.url).replace(/^\/+/, '')}`
+  if (!props.music?._id) return ''
+  if (props.music.audioUrl) return props.music.audioUrl
+  if (props.music.streamUrl?.startsWith('http')) return props.music.streamUrl
+  if (props.music.streamUrl) return `${API_ROOT}${props.music.streamUrl}`
+  if (props.music.url?.startsWith('http')) return props.music.url
+  if (props.music.url) return `${API_ROOT}/${String(props.music.url).replace(/^\/+/, '')}`
   return ''
 })
 
@@ -196,22 +220,26 @@ const coverSrc = computed(() => {
   return `${API_ROOT}/${c.replace(/^\/+/, '')}`
 })
 
-const pct = computed(() =>
-  duration.value ? Math.min((progress.value / duration.value) * 100, 100) : 0
-)
+const hasLyrics = computed(() => {
+  const synced = props.music?.syncedLyrics
+  const plain = props.music?.lyrics
+  return (Array.isArray(synced) && synced.length > 0) || Boolean(String(plain || '').trim())
+})
 
-const effectiveVol = computed(() =>
-  isMuted.value ? 0 : Math.min(volume.value * 100, 100)
-)
+const pct = computed(() => (duration.value ? Math.min((progress.value / duration.value) * 100, 100) : 0))
+const effectiveVol = computed(() => (isMuted.value ? 0 : Math.min(volume.value * 100, 100)))
 
 const fmt = (t) => {
-  if (!t || isNaN(t)) return '0:00'
+  if (!t || Number.isNaN(t)) return '0:00'
   return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
 }
 
 const updateMarquee = () => {
-  const title = props.music?.title || ''
-  shouldScrollTitle.value = title.length > 26
+  shouldScrollTitle.value = (props.music?.title || '').length > 26
+}
+
+const onCoverError = (e) => {
+  e.target.src = fallback
 }
 
 const resetPlaybackState = () => {
@@ -226,17 +254,32 @@ const resetPlaybackState = () => {
 }
 
 const goDetail = () => {
-  if (!props.music) return
-  emit('open-detail', props.music)
+  if (props.music) emit('open-detail', props.music)
 }
 
 const goArtistDetail = () => {
-  if (!props.music?.artist) return
-  emit('open-artist', props.music.artist)
+  if (props.music?.artist) emit('open-artist', props.music.artist)
+}
+
+const handleToggleLike = () => {
+  if (props.music) emit('toggle-like', props.music)
+}
+
+const handleAddToPlaylist = () => {
+  if (props.music) emit('add-to-playlist', props.music)
+}
+
+const handleLyricsOpen = () => {
+  if (!hasLyrics.value || !props.music) return
+  emit('open-lyrics', props.music)
+}
+
+const handleExpand = () => {
+  if (props.music) emit('expand', props.music)
 }
 
 const play = async () => {
-  if (!audioRef.value) return
+  if (!audioRef.value || !audioSrc.value) return
   try {
     isLoading.value = true
     await audioRef.value.play()
@@ -269,14 +312,9 @@ const handleNext = () => {
   isShuffle.value ? emit('shuffle-next') : emit('next')
 }
 
-const handleAddToPlaylist = () => {
-  if (!props.music) return
-  emit('add-to-playlist', props.music)
-}
-
 const onTimeUpdate = () => {
   if (!audioRef.value) return
-  currentTime.value = audioRef.value.currentTime
+  currentTime.value = audioRef.value.currentTime || 0
   progress.value = currentTime.value
   player.setCurrentTime(currentTime.value)
 }
@@ -300,9 +338,10 @@ const onAudioError = () => {
 
 const seekInput = () => {
   if (!audioRef.value) return
-  audioRef.value.currentTime = Number(progress.value)
-  currentTime.value = Number(progress.value)
-  player.setCurrentTime(currentTime.value)
+  const t = Number(progress.value)
+  audioRef.value.currentTime = t
+  currentTime.value = t
+  player.setCurrentTime(t)
 }
 
 const seekClick = (e) => {
@@ -330,9 +369,9 @@ const toggleMute = () => {
   if (!audioRef.value) return
 
   if (isMuted.value || volume.value === 0) {
-    const r = lastVol.value > 0 ? lastVol.value : 0.7
-    volume.value = r
-    audioRef.value.volume = r
+    const restored = lastVol.value > 0 ? lastVol.value : 0.7
+    volume.value = restored
+    audioRef.value.volume = restored
     audioRef.value.muted = false
     isMuted.value = false
   } else {
@@ -383,21 +422,22 @@ const onEnded = async () => {
 
 watch(
   () => props.music?.title,
-  () => {
-    updateMarquee()
-  },
+  () => updateMarquee(),
   { immediate: true }
 )
 
 watch(
   () => audioSrc.value,
   async (url) => {
-    if (!url) return
+    if (!url) {
+      resetPlaybackState()
+      return
+    }
+
     await nextTick()
     if (!audioRef.value) return
 
     resetPlaybackState()
-
     audioRef.value.pause()
     audioRef.value.load()
     audioRef.value.volume = volume.value
@@ -411,7 +451,10 @@ watch(
 )
 
 onMounted(() => {
-  if (audioRef.value) audioRef.value.volume = volume.value
+  if (audioRef.value) {
+    audioRef.value.volume = volume.value
+    audioRef.value.muted = volume.value === 0
+  }
   updateMarquee()
 })
 

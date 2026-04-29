@@ -1,83 +1,170 @@
-:root {
-  color-scheme: light;
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
-  /* bg */
-  --bg-main: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-sidebar: #f1f5f9;
-  --bg-card: #ffffff;
-  --bg-soft: #eef2ff;
-  --bg-hover: #e2e8f0;
-  --bg-elevated: rgba(255, 255, 255, 0.8);
-
-  /* text */
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-soft: #64748b;
-
-  /* brand */
-  --accent: #2563eb;
-  --accent-2: #3b82f6;
-  --accent-3: #1d4ed8;
-  --accent-rgb: 37, 99, 235;
-
-  /* feedback */
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #22c55e;
-
-  /* border */
-  --border: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.14);
-
-  /* shadow */
-  --shadow-sm: 0 8px 20px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 16px 32px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 24px 50px rgba(15, 23, 42, 0.12);
-
-  /* radius */
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-pill: 999px;
-
-  /* effects */
-  --blur-md: 14px;
-
-  /* transition */
-  --transition-fast: 0.18s ease;
-  --transition-base: 0.28s ease;
-}
-
+:root,
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --bg-main: #0a0f1d;
-  --bg-surface: #0f172a;
-  --bg-sidebar: #0b1220;
-  --bg-card: #111827;
-  --bg-soft: #172036;
-  --bg-hover: #1e293b;
-  --bg-elevated: rgba(17, 24, 39, 0.82);
+  --modal-bg: #111827;
+  --modal-surface: #182131;
 
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --text-soft: #64748b;
+  /* brand */
+  --accent: #5b8cff;
+  --accent-mid: #4f7cff;
+  --accent-deep: #315ff4;
+  --accent-glow: rgba(91, 140, 255, 0.2);
+  --accent-subtle: rgba(91, 140, 255, 0.1);
+  --accent-border: rgba(91, 140, 255, 0.2);
+  --accent-soft: rgba(91, 140, 255, 0.12);
 
+  /* surfaces */
+  --bg-base: #0a1020;
+  --bg-surface: rgba(10, 16, 32, 0.76);
+  --bg-sidebar: rgba(13, 20, 37, 0.78);
+  --bg-panel: rgba(14, 22, 39, 0.78);
+
+  --bg-card: rgba(255, 255, 255, 0.07);
+  --bg-card2: rgba(255, 255, 255, 0.12);
+  --bg-card-2: rgba(255, 255, 255, 0.09);
+  --bg-card-3: rgba(255, 255, 255, 0.14);
+  --bg-card-hover: rgba(255, 255, 255, 0.12);
+  --bg-elevated: rgba(255, 255, 255, 0.16);
+
+  --bg-input: rgba(255, 255, 255, 0.1);
+  --bg-input-focus: rgba(255, 255, 255, 0.14);
+
+  /* text */
+  --text-primary: #eef4ff;
+  --text-secondary: #a9b8d3;
+  --text-muted: #7f91af;
+  --text-hint: #5f718f;
+
+  /* border */
+  --border: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(91, 140, 255, 0.26);
+  --border-focus: rgba(91, 140, 255, 0.36);
+  --border-strong: rgba(91, 140, 255, 0.3);
+
+  /* feedback */
+  --green: #22c55e;
+  --green-bg: rgba(34, 197, 94, 0.1);
+  --green-border: rgba(34, 197, 94, 0.22);
+
+  --rose: #ef4444;
+  --rose-bg: rgba(239, 68, 68, 0.1);
+  --rose-border: rgba(239, 68, 68, 0.22);
+
+  --amber: #f59e0b;
+  --amber-bg: rgba(245, 158, 11, 0.1);
+  --amber-border: rgba(245, 158, 11, 0.22);
+
+  --purple: #8b5cf6;
+  --purple-bg: rgba(139, 92, 246, 0.1);
+  --purple-border: rgba(139, 92, 246, 0.22);
+
+  /* shadow */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.38);
+  --shadow-accent: 0 10px 24px rgba(91, 140, 255, 0.22);
+
+  /* radius */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+  --r-full: 999px;
+
+  /* motion */
+  --t-fast: 0.14s ease;
+  --t-mid: 0.22s ease;
+  --t-slow: 0.3s ease;
+
+  /* typography */
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Sora', system-ui, sans-serif;
+
+  /* layout */
+  --header-h: 68px;
+  --player-h: 82px;
+  --sidebar-w: 220px;
+  --rightbar-w: 280px;
+  --content-max: 1480px;
+
+  /* misc */
+  --scrollbar: rgba(91, 140, 255, 0.16);
+  --glass-blur: 18px;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --modal-bg: #ffffff;
+  --modal-surface: #f8fbff;
+
+  /* brand */
   --accent: #3b82f6;
-  --accent-2: #60a5fa;
-  --accent-3: #2563eb;
-  --accent-rgb: 59, 130, 246;
+  --accent-mid: #2563eb;
+  --accent-deep: #1d4ed8;
+  --accent-glow: rgba(59, 130, 246, 0.12);
+  --accent-subtle: rgba(59, 130, 246, 0.08);
+  --accent-border: rgba(59, 130, 246, 0.18);
+  --accent-soft: rgba(59, 130, 246, 0.1);
 
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #22c55e;
+  /* blue solid light */
+  --bg-base: #edf4fb;
+  --bg-surface: #edf4fb;
+  --bg-sidebar: #e9f0f8;
+  --bg-panel: #eef4fb;
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --bg-card: #ffffff;
+  --bg-card2: #f6f9ff;
+  --bg-card-2: #f1f6fd;
+  --bg-card-3: #eaf2fc;
+  --bg-card-hover: #f4f8ff;
+  --bg-elevated: #e1ecf9;
 
-  --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.18);
-  --shadow-md: 0 16px 36px rgba(0, 0, 0, 0.24);
-  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.32);
+  --bg-input: #ffffff;
+  --bg-input-focus: #ffffff;
+
+  /* text */
+  --text-primary: #0f172a;
+  --text-secondary: #50647f;
+  --text-muted: #70829a;
+  --text-hint: #94a3b8;
+
+  /* border */
+  --border: rgba(37, 99, 235, 0.1);
+  --border-hover: rgba(37, 99, 235, 0.2);
+  --border-focus: rgba(37, 99, 235, 0.28);
+  --border-strong: rgba(37, 99, 235, 0.18);
+
+  /* feedback */
+  --green: #059669;
+  --green-bg: rgba(5, 150, 105, 0.08);
+  --green-border: rgba(5, 150, 105, 0.18);
+
+  --rose: #e11d48;
+  --rose-bg: rgba(225, 29, 72, 0.08);
+  --rose-border: rgba(225, 29, 72, 0.18);
+
+  --amber: #d97706;
+  --amber-bg: rgba(217, 119, 6, 0.08);
+  --amber-border: rgba(217, 119, 6, 0.18);
+
+  --purple: #7c3aed;
+  --purple-bg: rgba(124, 58, 237, 0.08);
+  --purple-border: rgba(124, 58, 237, 0.18);
+
+  /* shadow */
+  --shadow-xs: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 10px 24px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.1);
+  --shadow-accent: 0 8px 18px rgba(37, 99, 235, 0.16);
+
+  --scrollbar: rgba(37, 99, 235, 0.12);
+  --glass-blur: 0px;
 }

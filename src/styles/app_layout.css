@@ -1,0 +1,115 @@
+/* ============================================================
+   app-layout.css  — shared layout shell for ALL pages
+   AdminPage, AddMusicPage, LibraryPage all use this.
+   ============================================================ */
+
+/* root shell */
+.app-page {
+  min-height: 100vh;
+  background: var(--bg-base);
+  padding-bottom: calc(var(--player-h) + 24px);
+}
+
+/* 3-column grid: sidebar | main | (optional right rail) */
+.app-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  min-height: calc(100vh - var(--header-h));
+}
+
+.app-layout--with-right {
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) 320px;
+}
+
+/* left sidebar rail */
+.app-sidebar {
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-right: 1px solid var(--border);
+  background: var(--bg-surface);
+  z-index: 10;
+  scrollbar-width: none;
+}
+.app-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+/* right rail */
+.app-right {
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-left: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 14px;
+  scrollbar-width: none;
+}
+.app-right::-webkit-scrollbar {
+  display: none;
+}
+
+/* main content area */
+.app-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 28px 40px;
+}
+
+/* ── Light mode tweaks ──────────────────────────── */
+[data-theme='light'] .app-page {
+  background:
+    radial-gradient(ellipse 55% 38% at 75% 0%, rgba(59, 130, 246, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 10% 90%, rgba(124, 58, 237, 0.04) 0%, transparent 50%),
+    var(--bg-base);
+}
+
+[data-theme='light'] .app-sidebar,
+[data-theme='light'] .app-right {
+  background: rgba(252, 253, 255, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 1380px) {
+  .app-layout--with-right {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr) 280px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .app-layout,
+  .app-layout--with-right {
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  }
+  .app-right {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .app-layout,
+  .app-layout--with-right {
+    grid-template-columns: 1fr;
+  }
+  .app-sidebar {
+    display: none;
+  }
+  .app-main {
+    padding: 16px 14px 28px;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-main {
+    padding: 12px 12px 24px;
+    gap: 12px;
+  }
+}

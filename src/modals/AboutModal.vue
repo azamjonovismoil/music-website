@@ -107,10 +107,10 @@ import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
-import HeaderPage from '@/components/layout/header_page.vue'
+import HeaderPage from '@/components/layout/HeaderPage.vue'
 import UserSidebar from '@/components/layout/user_sidebar.vue'
 import RecommendationPanel from '@/panels/recommendation_panel.vue'
-import PlayerBar from '@/components/layout/player_bar.vue'
+import PlayerBar from '@/components/layout/PlayerBar.vue'
 
 const BASE_URL = 'http://localhost:7139'
 const route = useRoute()

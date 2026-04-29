@@ -33,10 +33,10 @@
           <div class="custom-color-row">
             <input class="color-picker" type="color" :value="hexColor"
               @input="$emit('update:color', $event.target.value)" />
-            <input :value="selectedColor" type="text" placeholder="#0ea5e9 or linear-gradient(...)"
+            <input :value="selectedColor" type="text" placeholder="#4f7cff or linear-gradient(...)"
               @input="$emit('update:color', $event.target.value)" />
           </div>
-          <small class="helper-text">Hex color yoki gradient yozsa ham bo‘ladi</small>
+          <small class="helper-text">Hex yoki gradient yozsa ham bo‘ladi</small>
         </div>
       </div>
 
@@ -74,6 +74,162 @@ defineEmits([
 const hexColor = computed(() => {
   const value = String(props.selectedColor || '').trim()
   if (/^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(value)) return value
-  return '#0ea5e9'
+  return '#4f7cff'
 })
 </script>
+
+<style>
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 24, 0.62);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  z-index: 2000;
+  padding: 18px;
+}
+
+.modal-card {
+  width: min(100%, 520px);
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+[data-theme='dark'] .modal-card {
+  background: rgba(20, 27, 40, 0.82);
+  backdrop-filter: blur(16px);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head h3 {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--bg-card-2);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.modal-body {
+  padding: 16px 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  padding: 12px 13px;
+  transition: var(--t-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--border-focus);
+  background: var(--bg-input-focus);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.color-option {
+  height: 42px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.color-option.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--accent-border);
+}
+
+.custom-color-row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+}
+
+.color-picker {
+  padding: 0 !important;
+  min-height: 46px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.helper-text {
+  color: var(--text-hint);
+  font-size: 11px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.secondary-btn,
+.primary-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.secondary-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-card-2);
+  color: var(--text-primary);
+}
+
+.primary-btn {
+  border: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+  color: #fff;
+  box-shadow: var(--shadow-accent);
+}
+
+.primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+</style>

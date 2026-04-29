@@ -2,80 +2,202 @@
   <div class="user-page">
     <HeaderPage v-model:search="searchQuery" :show-search="true" />
 
-    <div class="user-layout">
-      <UserSidebar :playlists="playlists" :active-view="activeView" :active-playlist-id="activePlaylist?._id"
-        :current-music-id="currentMusic?._id" :default-playlist-color="defaultPlaylistColor" @select-view="selectView"
-        @create-playlist="openCreatePlaylist" @open-playlist="openPlaylist" @rename-playlist="openRenamePlaylist"
-        @delete-playlist="deletePlaylist" @play-from-playlist="playFromPlaylist" />
+    <div class="user-layout" :class="{ collapsed: sidebarCollapsed }">
+      <aside class="left-sidebar">
+        <UserSidebar
+          :playlists="playlists"
+          :active-view="activeView"
+          :active-playlist-id="activePlaylist?._id"
+          :current-music-id="currentMusic?._id"
+          :default-playlist-color="defaultPlaylistColor"
+          @select-view="selectView"
+          @create-playlist="openCreatePlaylist"
+          @open-playlist="openPlaylist"
+          @rename-playlist="openRenamePlaylist"
+          @delete-playlist="deletePlaylist"
+          @play-from-playlist="playFromPlaylist"
+          @collapsed-change="sidebarCollapsed = $event"
+        />
+      </aside>
 
       <main class="user-main">
-        <transition name="detail-slide">
-          <TrackDetail v-if="selected" :track="selected" :get-cover="getCover" :fallback="fallback"
-            @back="selected = null" @play="playMusic" @toggle-like="toggleLike" @add-to-playlist="openAddToPlaylist"
-            @add-to-queue="addToQueue" />
-        </transition>
+        <section v-if="heroTrack" class="hero-spot">
+          <div class="hero-spot-bg">
+            <img :src="getCover(heroTrack)" alt="" @error="e => e.target.src = fallback" />
+          </div>
 
-        <template v-if="!selected">
-          <section v-if="activeView === 'home' && continueListening.length" class="shelf">
-            <div class="shelf-head">
-              <h3>Continue listening</h3>
-            </div>
-            <div class="resume-row">
-              <div v-for="m in continueListening" :key="m._id" class="resume-card" @click="openTrackDetail(m)">
-                <img :src="getCover(m)" class="resume-cover" @error="e => e.target.src = fallback" />
-                <div class="resume-meta">
-                  <div class="resume-title">{{ m.title }}</div>
-                  <div class="resume-artist">{{ m.artist }}</div>
-                  <div class="resume-bar">
-                    <div class="resume-bar-fill" :style="{ width: resumePct(m) + '%' }" />
-                  </div>
-                </div>
+          <div class="hero-spot-inner">
+            <img :src="getCover(heroTrack)" class="hero-spot-cover" @error="e => e.target.src = fallback" />
+
+            <div class="hero-spot-main">
+              <p class="hero-kicker">Featured track</p>
+              <h1 class="hero-spot-title">{{ heroTrack.title || 'Untitled track' }}</h1>
+
+              <div class="hero-spot-sub">
+                <span>{{ heroTrack.artist || 'Unknown artist' }}</span>
+                <span v-if="heroTrack.album">• {{ heroTrack.album }}</span>
+                <span v-if="heroTrack.duration">• {{ fmtDur(heroTrack.duration) }}</span>
               </div>
-            </div>
-          </section>
 
-          <section v-if="activeView === 'home' && recentlyPlayed.length" class="shelf">
-            <div class="shelf-head">
-              <h3>Recently played</h3>
-            </div>
-            <div class="recent-row">
-              <div v-for="m in recentlyPlayed" :key="m._id" class="recent-card" @click="openTrackDetail(m)">
-                <img :src="getCover(m)" class="recent-cover" @error="e => e.target.src = fallback" />
-                <div class="recent-title">{{ m.title }}</div>
+              <div v-if="heroTrack.genre?.length || heroTrack.language" class="hero-spot-meta">
+                <span v-if="heroTrack.genre?.length" class="meta-chip">{{ heroTrack.genre[0] }}</span>
+                <span v-if="heroTrack.language" class="meta-chip">{{ heroTrack.language }}</span>
               </div>
-            </div>
-          </section>
 
-          <TrackGrid :title="viewLabel" :tracks="visibleMusics" :playlist="activePlaylist" :current-music="currentMusic"
-            :active-filter="activeFilter" :sort-by="sortBy" :get-cover="getCover" :fallback="fallback"
-            :default-playlist-color="defaultPlaylistColor" @update:activeFilter="activeFilter = $event"
-            @update:sortBy="sortBy = $event" @select-track="openTrackDetail" @play-track="playMusic"
-            @toggle-like="toggleLike" @add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue"
-            @remove-from-playlist="removeTrackFromPlaylist(activePlaylist._id, $event._id)" />
-        </template>
+              <div class="hero-spot-actions">
+                <button class="btn btn-primary" @click="playMusic(heroTrack)">Play</button>
+                <button class="mini-round" @click="addToQueue(heroTrack)" title="Add to queue">≡</button>
+                <button class="mini-round" @click="openAddToPlaylist(heroTrack)" title="Add to playlist">+</button>
+                <button class="mini-round" @click="player.showKaraokeMode = true" title="Karaoke">♪</button>
+              </div>
+
+              <p v-if="heroTrack.bio || heroTrack.description" class="hero-spot-desc">
+                {{ heroTrack.bio || heroTrack.description }}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="activeView === 'home' && recentlyPlayed.length" class="up-section">
+          <div class="section-head">
+            <div>
+              <p class="page-label">History</p>
+              <h2>Recently played</h2>
+            </div>
+          </div>
+
+          <div class="recent-row">
+            <article
+              v-for="m in recentlyPlayed.slice(0, 8)"
+              :key="m._id"
+              class="recent-card"
+              :class="{ active: heroTrack?._id === m._id }"
+              @click="openTrackDetail(m)"
+            >
+              <img :src="getCover(m)" class="recent-cover" @error="e => e.target.src = fallback" />
+              <div class="recent-info">
+                <strong>{{ m.title }}</strong>
+                <span>{{ m.artist }}</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section v-if="heroTrack && sameArtistTracks.length" class="artist-section">
+          <div class="section-head">
+            <div>
+              <p class="page-label">Artist collection</p>
+              <h2>More from {{ heroTrack.artist }}</h2>
+            </div>
+            <span class="result-badge">{{ sameArtistTracks.length }}</span>
+          </div>
+
+          <TrackGrid
+            :title="`More from ${heroTrack.artist}`"
+            :tracks="sameArtistTracks"
+            :current-music="currentMusic"
+            :get-cover="getCover"
+            :fallback="fallback"
+            :compact-header="true"
+            @select-track="openTrackDetail"
+            @play-track="playMusic"
+            @add-to-playlist="openAddToPlaylist"
+            @add-to-queue="addToQueue"
+          />
+        </section>
+
+        <section class="tracks-section">
+          <div class="section-head">
+            <div>
+              <p class="page-label">{{ activePlaylist ? 'Playlist' : 'Library' }}</p>
+              <h2>{{ viewLabel }}</h2>
+            </div>
+            <span class="result-badge">{{ visibleMusics.length }}</span>
+          </div>
+
+          <TrackGrid
+            :title="viewLabel"
+            :tracks="visibleMusics"
+            :playlist="activePlaylist"
+            :current-music="currentMusic"
+            :get-cover="getCover"
+            :fallback="fallback"
+            :compact-header="true"
+            @select-track="openTrackDetail"
+            @play-track="playMusic"
+            @add-to-playlist="openAddToPlaylist"
+            @add-to-queue="addToQueue"
+            @remove-from-playlist="removeTrackFromPlaylist(activePlaylist._id, $event._id)"
+          />
+        </section>
       </main>
 
-      <RightPanel :is-queue-open="isQueueOpen" :queue="queue" :current-music="currentMusic"
-        :recommendations="recommendations" :get-cover="getCover" :fallback="fallback"
-        @toggle-queue="isQueueOpen = !isQueueOpen" @close-queue="isQueueOpen = false" @play-track="playMusic"
-        @remove-from-queue="id => queue = queue.filter(i => i._id !== id)" @clear-queue="queue = []"
-        @select-track="openTrackDetail" @add-to-queue="addToQueue" />
+      <aside class="right-panel-slot">
+        <RightPanel
+          :is-queue-open="isQueueOpen"
+          :queue="queue"
+          :current-music="currentMusic"
+          :recommendations="recommendations"
+          :get-cover="getCover"
+          :fallback="fallback"
+          @toggle-queue="isQueueOpen = $event"
+          @play-track="playMusic"
+          @remove-from-queue="id => queue = queue.filter(i => i._id !== id)"
+          @clear-queue="queue = []"
+          @select-track="openTrackDetail"
+          @add-to-queue="addToQueue"
+        />
+      </aside>
     </div>
 
-    <CreatePlaylists :open="showCreatePlaylistModal" :loading="playlistLoading" :is-edit="Boolean(playlistEditId)"
-      :name="playlistForm.name" :description="playlistForm.description" :selected-color="playlistForm.color"
-      :colors="playlistColors" @close="closePlaylistModal" @submit="submitPlaylist"
-      @update:name="playlistForm.name = $event" @update:description="playlistForm.description = $event"
-      @update:color="playlistForm.color = $event" />
+    <CreatePlaylists
+      :open="showCreatePlaylistModal"
+      :loading="playlistLoading"
+      :is-edit="Boolean(playlistEditId)"
+      :name="playlistForm.name"
+      :description="playlistForm.description"
+      :selected-color="playlistForm.color"
+      :colors="playlistColors"
+      @close="closePlaylistModal"
+      @submit="submitPlaylist"
+      @update:name="playlistForm.name = $event"
+      @update:description="playlistForm.description = $event"
+      @update:color="playlistForm.color = $event"
+    />
 
-    <AddToPlaylistModal :open="showAddToPlaylistModal" :track="trackForPlaylist" :playlists="playlists"
-      :default-playlist-color="defaultPlaylistColor" @close="closeAddToPlaylist"
-      @select="addTrackToPlaylist($event._id, trackForPlaylist._id)" />
+    <AddToPlaylistModal
+      :open="showAddToPlaylistModal"
+      :track="trackForPlaylist"
+      :playlists="playlists"
+      :default-playlist-color="defaultPlaylistColor"
+      @close="closeAddToPlaylist"
+      @select="addTrackToPlaylist($event._id, trackForPlaylist._id)"
+    />
 
-    <PlayerBar :key="currentMusic?._id || 'empty'" :music="currentMusic" :queue-open="isQueueOpen" @prev="playPrev"
-      @next="playNext" @shuffle-next="playShuffle" @toggle-queue="isQueueOpen = !isQueueOpen" @toggle-like="toggleLike"
-      @toggle-download="toggleDownload" @add-to-playlist="openAddToPlaylist" @open-detail="openTrackDetail"
-      @auth-required="openAuthModal" @progress-save="saveProgress" @track-ended="completeProgress" />
+    <PlayerBar
+      :key="currentMusic?._id || 'empty'"
+      :music="currentMusic"
+      :queue-open="isQueueOpen"
+      :lyrics-open="player.showKaraokeMode"
+      @prev="playPrev"
+      @next="playNext"
+      @shuffle-next="playShuffle"
+      @toggle-queue="isQueueOpen = !isQueueOpen"
+      @toggle-download="toggleDownload"
+      @add-to-playlist="openAddToPlaylist"
+      @open-detail="openTrackDetail"
+      @auth-required="openAuthModal"
+      @expand="player.showKaraokeMode = true"
+      @open-lyrics="player.showKaraokeMode = true"
+    />
+
+    <KaraokeMode
+      v-if="player.showKaraokeMode && currentMusic"
+      :music="currentMusic"
+      :current-time="player.currentTime"
+      :is-playing="player.isPlaying"
+      @close="player.showKaraokeMode = false"
+    />
 
     <AuthRequiredModal :open="showAuthModal" @close="closeAuthModal" @login="goLogin" @signup="goSignup" />
   </div>
@@ -87,14 +209,14 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-import HeaderPage from '@/components/layout/header_page.vue'
-import PlayerBar from '@/components/layout/player_bar.vue'
+import HeaderPage from '@/components/layout/HeaderPage.vue'
+import PlayerBar from '@/components/layout/PlayerBar.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
 import TrackGrid from '@/components/users/TrackGrid.vue'
-import TrackDetail from '@/components/users/TrackDetail.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import AddToPlaylistModal from '@/components/users/AddToPlayListModal.vue'
 import RightPanel from '@/components/users/RightPanel.vue'
+import KaraokeMode from '@/components/users/KaraokeMode.vue'
 import AuthRequiredModal from '@/modals/AuthRequiredModal.vue'
 
 import { usePlayerStore } from '@/stores/player'
@@ -109,57 +231,42 @@ const authStore = useAuthStore()
 
 const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 const API_URL = import.meta.env.VITE_API_URL || `${API_ROOT}/api`
+const api = axios.create({ baseURL: API_URL, withCredentials: true })
 
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-})
-
+const sidebarCollapsed = ref(false)
 const musics = ref([])
 const playlists = ref([])
 const queue = ref([])
 const playHistory = ref([])
 const recentlyPlayed = ref([])
-const continueListening = ref([])
-
 const searchQuery = ref('')
-const sortBy = ref('newest')
-const activeFilter = ref('all')
 const activeView = ref('home')
 const isQueueOpen = ref(false)
 const currentMusic = ref(null)
 const currentIndex = ref(-1)
 const selected = ref(null)
 const activePlaylist = ref(null)
-
 const showCreatePlaylistModal = ref(false)
 const showAddToPlaylistModal = ref(false)
 const showAuthModal = ref(false)
-
 const playlistLoading = ref(false)
 const playlistEditId = ref(null)
 const trackForPlaylist = ref(null)
 
-const defaultPlaylistColor = 'linear-gradient(135deg,#0ea5e9,#2563eb)'
+const defaultPlaylistColor = 'linear-gradient(135deg,#4f7cff,#7c5cff)'
 const playlistColors = [
-  'linear-gradient(135deg,#0ea5e9,#2563eb)',
-  'linear-gradient(135deg,#8b5cf6,#ec4899)',
-  'linear-gradient(135deg,#f59e0b,#ef4444)',
-  'linear-gradient(135deg,#10b981,#06b6d4)',
-  'linear-gradient(135deg,#6366f1,#3b82f6)',
-  'linear-gradient(135deg,#14b8a6,#22c55e)',
+  'linear-gradient(135deg,#4f7cff,#7c5cff)',
+  'linear-gradient(135deg,#2563eb,#06b6d4)',
+  'linear-gradient(135deg,#3b82f6,#6366f1)',
+  'linear-gradient(135deg,#0f172a,#334155)',
 ]
 
-const playlistForm = ref({
-  name: '',
-  description: '',
-  color: defaultPlaylistColor,
-})
+const playlistForm = ref({ name: '', description: '', color: defaultPlaylistColor })
 
 const fallback =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0a1628"/><text x="50%" y="50%" fill="#1e3460" font-size="40" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
+    `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="50%" fill="#334155" font-size="48" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
   )
 
 watch([showCreatePlaylistModal, showAddToPlaylistModal, showAuthModal], ([c, a, auth]) => {
@@ -194,18 +301,24 @@ const norm = (p) => {
 
 const build = (m) => ({
   ...m,
-  audioUrl: norm(m.url),
+  audioUrl: m?.streamUrl ? `${API_ROOT}${m.streamUrl}` : norm(m.url),
   coverUrl: norm(m.cover),
 })
 
-const resumePct = (m) => {
-  if (!m?.resumeTime || !m?.duration) return 0
-  return Math.min((m.resumeTime / m.duration) * 100, 100)
+const fmtDur = (s) => {
+  const total = Number(s || 0)
+  if (!total) return ''
+  const m = Math.floor(total / 60)
+  const sec = String(Math.floor(total % 60)).padStart(2, '0')
+  return `${m}:${sec}`
 }
+
+const heroTrack = computed(() =>
+  selected.value || currentMusic.value || recentlyPlayed.value[0] || visibleMusics.value[0] || null
+)
 
 const viewLabel = computed(() => {
   if (activePlaylist.value) return activePlaylist.value.name
-
   return {
     home: 'All tracks',
     liked: 'Liked songs',
@@ -219,30 +332,16 @@ const filteredMusics = computed(() => {
   if (activeView.value === 'liked') r = r.filter(m => m.liked)
   else if (activeView.value === 'downloaded') r = r.filter(m => m.downloaded)
 
-  if (activeFilter.value === 'liked') r = r.filter(m => m.liked)
-  else if (activeFilter.value === 'downloadable') r = r.filter(m => m.downloaded)
-  else if (activeFilter.value === 'with-tags') r = r.filter(m => m.tags?.length)
-
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
     r = r.filter(m =>
       (m.title || '').toLowerCase().includes(q) ||
       (m.artist || '').toLowerCase().includes(q) ||
-      (m.album || '').toLowerCase().includes(q) ||
-      (m.tags || []).some(t => String(t).toLowerCase().includes(q))
+      (m.album || '').toLowerCase().includes(q)
     )
   }
 
-  r.sort((a, b) => {
-    switch (sortBy.value) {
-      case 'oldest': return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-      case 'title-asc': return (a.title || '').localeCompare(b.title || '')
-      case 'artist-asc': return (a.artist || '').localeCompare(b.artist || '')
-      case 'liked-first': return Number(b.liked) - Number(a.liked)
-      default: return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-    }
-  })
-
+  r.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
   return r
 })
 
@@ -253,27 +352,34 @@ const visibleMusics = computed(() => {
 
   if (searchQuery.value.trim()) {
     const q = searchQuery.value.toLowerCase()
-    list = list.filter(
-      m =>
-        (m.title || '').toLowerCase().includes(q) ||
-        (m.artist || '').toLowerCase().includes(q)
+    list = list.filter(m =>
+      (m.title || '').toLowerCase().includes(q) ||
+      (m.artist || '').toLowerCase().includes(q)
     )
   }
 
   return list
 })
 
+const sameArtistTracks = computed(() => {
+  const baseTrack = heroTrack.value
+  const artist = (baseTrack?.artist || '').trim().toLowerCase()
+  if (!artist) return []
+
+  return musics.value
+    .filter(m => m._id !== baseTrack?._id)
+    .filter(m => String(m.artist || '').trim().toLowerCase() === artist)
+    .slice(0, 6)
+})
+
 const recommendations = computed(() => {
   const cur = currentMusic.value
-  const curTags = cur?.tags || []
   const curArtist = cur?.artist || ''
-  const tagScore = {}
   const artScore = {}
 
   playHistory.value.forEach(id => {
     const m = musics.value.find(x => x._id === id)
     if (!m) return
-    m.tags?.forEach(t => { tagScore[t] = (tagScore[t] || 0) + 1 })
     if (m.artist) artScore[m.artist] = (artScore[m.artist] || 0) + 1
   })
 
@@ -282,12 +388,7 @@ const recommendations = computed(() => {
     .map(m => {
       let s = 0
       if (curArtist && m.artist === curArtist) s += 5
-      m.tags?.forEach(t => {
-        if (curTags.includes(t)) s += 3
-        if (tagScore[t]) s += tagScore[t]
-      })
       if (m.artist && artScore[m.artist]) s += artScore[m.artist] * 2
-      if (m.liked) s += 2
       return { ...m, score: s }
     })
     .sort((a, b) => b.score - a.score)
@@ -329,16 +430,6 @@ const fetchRecentlyPlayed = async () => {
   }
 }
 
-const fetchContinueListening = async () => {
-  if (!authStore.user) return
-  try {
-    const { data } = await api.get('/music/me/continue-listening')
-    continueListening.value = Array.isArray(data) ? data : []
-  } catch {
-    continueListening.value = []
-  }
-}
-
 const openPlaylist = async (pl) => {
   const { data } = await api.get(`/playlists/${pl._id}`)
   activePlaylist.value = data
@@ -376,7 +467,7 @@ const submitPlaylist = async () => {
   try {
     if (playlistEditId.value) {
       const { data } = await api.patch(`/playlists/${playlistEditId.value}`, playlistForm.value)
-      playlists.value = playlists.value.map(p => (p._id === data._id ? data : p))
+      playlists.value = playlists.value.map(p => p._id === data._id ? data : p)
       if (activePlaylist.value?._id === data._id) activePlaylist.value = data
       ElMessage.success('Playlist updated')
     } else {
@@ -394,14 +485,12 @@ const submitPlaylist = async () => {
 
 const deletePlaylist = async (pl) => {
   if (!requireAuth()) return
-
   try {
     await ElMessageBox.confirm(`Delete "${pl.name}"?`, 'Delete playlist', {
       confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
       type: 'warning',
     })
-
     await api.delete(`/playlists/${pl._id}`)
     playlists.value = playlists.value.filter(p => p._id !== pl._id)
     if (activePlaylist.value?._id === pl._id) activePlaylist.value = null
@@ -426,7 +515,7 @@ const addTrackToPlaylist = async (playlistId, musicId) => {
   if (!requireAuth()) return
   try {
     const { data } = await api.post(`/playlists/${playlistId}/tracks`, { musicId })
-    playlists.value = playlists.value.map(p => (p._id === playlistId ? data : p))
+    playlists.value = playlists.value.map(p => p._id === playlistId ? data : p)
     if (activePlaylist.value?._id === playlistId) activePlaylist.value = data
     closeAddToPlaylist()
     ElMessage.success('Added to playlist')
@@ -440,8 +529,7 @@ const removeTrackFromPlaylist = async (playlistId, musicId) => {
   try {
     const { data } = await api.delete(`/playlists/${playlistId}/tracks/${musicId}`)
     activePlaylist.value = data
-    playlists.value = playlists.value.map(p => (p._id === playlistId ? data : p))
-    if (selected.value?._id === musicId) selected.value = null
+    playlists.value = playlists.value.map(p => p._id === playlistId ? data : p)
     ElMessage.success('Removed from playlist')
   } catch {
     ElMessage.error('Failed to remove track')
@@ -451,41 +539,22 @@ const removeTrackFromPlaylist = async (playlistId, musicId) => {
 const registerPlay = async (track) => {
   try {
     await api.post(`/music/${track._id}/play`)
-    await fetchRecentlyPlayed()
-  } catch { }
-}
-
-const saveProgress = async ({ musicId, currentTime, duration }) => {
-  try {
-    await api.patch(`/music/${musicId}/progress`, { currentTime, duration, completed: false })
-  } catch { }
-}
-
-const completeProgress = async ({ musicId, duration }) => {
-  try {
-    await api.patch(`/music/${musicId}/progress`, { currentTime: duration, duration, completed: true })
-    await fetchContinueListening()
-  } catch { }
+  } catch {}
 }
 
 const playMusic = async (m) => {
   if (!requireAuth()) return
-
   const p = build(m)
   currentMusic.value = p
   currentIndex.value = visibleMusics.value.findIndex(x => x._id === m._id)
   playHistory.value = [m._id, ...playHistory.value.filter(id => id !== m._id)].slice(0, 30)
   player.setTrack(p)
-
   await registerPlay(m)
-  await fetchContinueListening()
 }
 
 const playFromPlaylist = async (track, playlist) => {
   if (!requireAuth()) return
-  if (!activePlaylist.value || activePlaylist.value._id !== playlist._id) {
-    await openPlaylist(playlist)
-  }
+  if (!activePlaylist.value || activePlaylist.value._id !== playlist._id) await openPlaylist(playlist)
   playMusic(track)
 }
 
@@ -513,32 +582,16 @@ const addToQueue = (m) => {
   const p = build(m)
   if (!queue.value.some(i => i._id === p._id)) {
     queue.value.push(p)
+    isQueueOpen.value = true
     ElMessage.success('Added to queue')
   }
 }
 
 const syncTrackEverywhere = (data) => {
   musics.value = musics.value.map(x => x._id === data._id ? data : x)
-  recentlyPlayed.value = recentlyPlayed.value.map(x => x._id === data._id ? data : x)
-  continueListening.value = continueListening.value.map(x => x._id === data._id ? { ...x, ...data } : x)
-
-  if (selected.value?._id === data._id) selected.value = data
   if (currentMusic.value?._id === data._id) {
     currentMusic.value = build(data)
     player.setTrack(currentMusic.value)
-  }
-  if (activePlaylist.value?.tracks?.length) {
-    activePlaylist.value.tracks = activePlaylist.value.tracks.map(t => t._id === data._id ? data : t)
-  }
-}
-
-const toggleLike = async (m) => {
-  if (!requireAuth()) return
-  try {
-    const { data } = await api.patch(`/music/${m._id}/like`)
-    syncTrackEverywhere(data)
-  } catch {
-    ElMessage.error('Failed to update like')
   }
 }
 
@@ -556,13 +609,8 @@ const toggleDownload = async (m) => {
 onMounted(async () => {
   await authStore.fetchMe()
   await fetchMusics()
-
   if (authStore.user) {
-    await Promise.all([
-      fetchPlaylists(),
-      fetchRecentlyPlayed(),
-      fetchContinueListening(),
-    ])
+    await Promise.all([fetchPlaylists(), fetchRecentlyPlayed()])
   }
 })
 </script>

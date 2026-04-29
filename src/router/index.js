@@ -7,79 +7,79 @@ const routes = [
   {
     path: '/',
     name: 'Landing',
-    component: () => import('../pages/home/user_page.vue'),
+    component: () => import('../pages/home/UserPage.vue'),
     meta: { title: 'Welcome' },
   },
 
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../pages/auth/login_page.vue'),
+    component: () => import('../pages/auth/LoginPage.vue'),
     meta: { guestOnly: true, title: 'Login' },
   },
   {
     path: '/signup',
     name: 'Signup',
-    component: () => import('../pages/auth/signup_page.vue'),
+    component: () => import('../pages/auth/RegistrationPage.vue'),
     meta: { guestOnly: true, title: 'Sign up' },
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
-    component: () => import('../pages/auth/forgot_password_page.vue'),
+    component: () => import('../pages/auth/ForgotPassword.vue'),
     meta: { guestOnly: true, title: 'Forgot password' },
   },
   {
     path: '/reset-password',
     name: 'ResetPassword',
-    component: () => import('../pages/auth/reset_password_page.vue'),
+    component: () => import('../pages/auth/ResetPassword.vue'),
     meta: { guestOnly: true, title: 'Reset password' },
   },
 
   {
     path: '/user',
     name: 'User',
-    component: () => import('../pages/home/user_page.vue'),
+    component: () => import('../pages/home/UserPage.vue'),
     meta: { requiresAuth: true, title: 'Home' },
   },
   {
     path: '/about/:id',
     name: 'About',
-    component: () => import('../pages/home/user_page.vue'),
+    component: () => import('../pages/home/UserPage.vue'),
     meta: { requiresAuth: true, title: 'Artist' },
   },
 
   {
     path: '/library/:type(downloaded|favourites)',
     name: 'LibraryType',
-    component: () => import('../pages/library/library_page.vue'),
+    component: () => import('../pages/library/LibraryPage.vue'),
     meta: { requiresAuth: true, title: 'Library' },
   },
 
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import('../pages/profile/profile_page.vue'),
+    component: () => import('../pages/profile/ProfilePage.vue'),
     meta: { requiresAuth: true, title: 'Profile' },
   },
 
   {
     path: '/admin',
     name: 'Admin',
-    component: () => import('../pages/admin/admin_page.vue'),
+    component: () => import('../pages/admin/AdminPage.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin' },
   },
   {
     path: '/admin/add-music',
     name: 'AddMusic',
-    component: () => import('../pages/admin/add_music_page.vue'),
+    component: () => import('../pages/admin/AddMusic.vue'),
     meta: { requiresAuth: true, requiresAdmin: true, title: 'Add music' },
   },
 
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('../pages/system/not_found_page.vue'),
+    component: () => import('../pages/system/NotFoundPage.vue'),
     meta: { title: 'Page not found' },
   },
 ]
