@@ -1,125 +1,128 @@
 <template>
-  <div class="profile-page">
+  <div class="app-page profile-pg">
     <HeaderPage :show-search="false" />
 
-    <div class="profile-layout">
-      <aside v-if="authStore.isAdmin" class="profile-sidebar">
-        <AdminSidebar />
+    <div class="app-layout">
+      <aside class="app-sidebar">
+        <AdminSidebar v-if="authStore.isAdmin" />
+        <UserSidebar v-else :playlists="[]" active-view="" @select-view="router.push('/')" />
       </aside>
 
-      <main class="profile-main">
-        <section class="profile-hero">
-          <div class="profile-avatar">
-            {{ firstLetter }}
+      <main class="app-main profile-main">
+
+        <!-- banner hero -->
+        <div class="pf-hero">
+          <div class="pf-hero-bg" />
+          <div class="pf-hero-inner">
+            <div class="pf-avatar">{{ firstLetter }}</div>
+            <div class="pf-hero-info">
+              <p class="pf-kicker">Your profile</p>
+              <h1 class="pf-name">{{ form.name || 'Unknown User' }}</h1>
+              <p class="pf-email">{{ form.email }}</p>
+            </div>
+            <span class="pf-role-badge" :class="authStore.isAdmin ? 'admin' : 'member'">
+              <ShieldCheckIcon v-if="authStore.isAdmin" class="pf-role-ico" />
+              <UserIcon v-else class="pf-role-ico" />
+              {{ authStore.isAdmin ? 'Admin' : 'Member' }}
+            </span>
           </div>
+        </div>
 
-          <div class="profile-hero__content">
-            <div class="profile-hero__top">
-              <div>
-                <p class="page-label">Profile</p>
-                <h1>{{ form.name || 'Unknown User' }}</h1>
-              </div>
-
-              <span class="role-badge">
-                <el-icon>
-                  <UserFilled />
-                </el-icon>
-                {{ authStore.isAdmin ? 'Admin' : 'Member' }}
-              </span>
+        <!-- stats row -->
+        <div class="pf-stats">
+          <div class="pf-stat">
+            <div class="pf-stat-icon pf-stat-icon--blue">
+              <MusicalNoteIcon class="pf-stat-ico" />
             </div>
-
-            <p class="profile-email">
-              <el-icon>
-                <Message />
-              </el-icon>
-              {{ form.email || 'No email' }}
-            </p>
-
-            <p class="profile-bio">
-              {{ form.bio || 'No bio added yet.' }}
-            </p>
+            <div class="pf-stat-body">
+              <strong>{{ totalSongs }}</strong>
+              <span>Total tracks</span>
+            </div>
           </div>
-        </section>
-
-        <section class="profile-stats">
-          <article class="stat-card">
-            <div class="stat-icon blue">
-              <el-icon>
-                <Headset />
-              </el-icon>
+          <div class="pf-stat">
+            <div class="pf-stat-icon pf-stat-icon--rose">
+              <HeartIcon class="pf-stat-ico" />
             </div>
-            <strong>{{ totalSongs }}</strong>
-            <span>Total tracks</span>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-icon rose">
-              <HeartIcon class="stat-svg-icon" />
+            <div class="pf-stat-body">
+              <strong>{{ favSongs }}</strong>
+              <span>Favourites</span>
             </div>
-            <strong>{{ favSongs }}</strong>
-            <span>Favourites</span>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-icon amber">
-              <el-icon>
-                <Download />
-              </el-icon>
+          </div>
+          <div class="pf-stat">
+            <div class="pf-stat-icon pf-stat-icon--amber">
+              <ArrowDownTrayIcon class="pf-stat-ico" />
             </div>
-            <strong>{{ dlSongs }}</strong>
-            <span>Downloaded</span>
-          </article>
-        </section>
+            <div class="pf-stat-body">
+              <strong>{{ dlSongs }}</strong>
+              <span>Downloaded</span>
+            </div>
+          </div>
+          <div class="pf-stat">
+            <div class="pf-stat-icon pf-stat-icon--green">
+              <ClockIcon class="pf-stat-ico" />
+            </div>
+            <div class="pf-stat-body">
+              <strong>{{ recentCount }}</strong>
+              <span>Recently played</span>
+            </div>
+          </div>
+        </div>
 
-        <section class="profile-card">
-          <div class="profile-card__head">
+        <!-- edit form card -->
+        <div class="pf-card">
+          <div class="pf-card-head">
             <div>
-              <p class="page-label">Settings</p>
-              <h2>Edit profile</h2>
+              <p class="pf-kicker">Settings</p>
+              <h2 class="pf-card-title">Edit profile</h2>
             </div>
-            <p>Update your personal information and keep your account fresh.</p>
+            <p class="pf-card-desc">Update your personal information.</p>
           </div>
 
-          <div class="profile-form">
-            <div class="profile-field">
-              <label class="profile-label">
-                <el-icon>
-                  <User />
-                </el-icon>
-                Name
+          <div class="pf-form">
+            <div class="pf-field">
+              <label class="pf-label">
+                <UserIcon class="pf-label-ico" /> Name
               </label>
-              <el-input v-model="form.name" placeholder="Your full name" class="profile-input" />
+              <input v-model="form.name" class="pf-input" type="text" placeholder="Your full name" />
             </div>
 
-            <div class="profile-field">
-              <label class="profile-label">
-                <el-icon>
-                  <Message />
-                </el-icon>
-                Email
+            <div class="pf-field">
+              <label class="pf-label">
+                <EnvelopeIcon class="pf-label-ico" /> Email
               </label>
-              <el-input v-model="form.email" type="email" placeholder="Your email" class="profile-input" />
+              <input v-model="form.email" class="pf-input" type="email" placeholder="Your email" />
             </div>
 
-            <div class="profile-field profile-field--full">
-              <label class="profile-label">
-                <el-icon>
-                  <EditPen />
-                </el-icon>
-                Bio
+            <div class="pf-field pf-field--full">
+              <label class="pf-label">
+                <PencilSquareIcon class="pf-label-ico" /> Bio
               </label>
-              <el-input v-model="form.bio" type="textarea" :rows="5" placeholder="Write something about yourself"
-                class="profile-input" />
+              <textarea v-model="form.bio" class="pf-textarea" rows="4" placeholder="Write something about yourself" />
             </div>
           </div>
 
-          <div class="profile-actions">
-            <button class="save-btn" :disabled="saving" @click="saveProfile">
-              <CheckIcon class="save-icon" />
-              {{ saving ? 'Saving...' : 'Save changes' }}
+          <div class="pf-actions">
+            <button class="pf-save-btn" :disabled="saving" @click="saveProfile">
+              <CheckIcon class="pf-save-ico" />
+              {{ saving ? 'Saving…' : 'Save changes' }}
             </button>
           </div>
-        </section>
+        </div>
+
+        <!-- danger zone -->
+        <div class="pf-danger-card">
+          <div class="pf-danger-head">
+            <ExclamationTriangleIcon class="pf-danger-ico" />
+            <div>
+              <h3>Danger zone</h3>
+              <p>These actions are irreversible. Please be certain.</p>
+            </div>
+          </div>
+          <button class="pf-logout-btn" @click="handleLogout">
+            <ArrowRightOnRectangleIcon class="pf-logout-ico" /> Log out
+          </button>
+        </div>
+
       </main>
     </div>
   </div>
@@ -127,107 +130,92 @@
 
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { ElNotification } from 'element-plus'
-import { UserFilled, User, Message, EditPen, Headset, Download } from '@element-plus/icons-vue'
-import { HeartIcon, CheckIcon } from '@heroicons/vue/24/outline'
-import HeaderPage from '@/components/layout/HeaderPage.vue'
+import { ElNotification, ElMessageBox } from 'element-plus'
+import {
+  UserIcon, EnvelopeIcon, PencilSquareIcon, CheckIcon,
+  HeartIcon, ArrowDownTrayIcon, MusicalNoteIcon, ClockIcon,
+  ShieldCheckIcon, ExclamationTriangleIcon, ArrowRightOnRectangleIcon,
+} from '@heroicons/vue/24/outline'
+
+import HeaderPage   from '@/components/layout/HeaderPage.vue'
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
+import UserSidebar  from '@/components/users/UserSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/global.css'
+import '@/styles/app-layout.css'
 import '@/styles/profile_page.css'
 
-const API_ROOT = (import.meta.env.VITE_API_ROOT || 'http://localhost:7139').replace(/\/+$/, '')
+const router    = useRouter()
 const authStore = useAuthStore()
-const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
+const API_ROOT  = (import.meta.env.VITE_API_ROOT || 'http://localhost:5000').replace(/\/+$/, '')
+const api       = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 
-const saving = ref(false)
-const totalSongs = ref(0)
-const favSongs = ref(0)
-const dlSongs = ref(0)
+const saving      = ref(false)
+const totalSongs  = ref(0)
+const favSongs    = ref(0)
+const dlSongs     = ref(0)
+const recentCount = ref(0)
 
-const form = reactive({
-  _id: '',
-  name: '',
-  email: '',
-  bio: ''
-})
-
+const form = reactive({ _id: '', name: '', email: '', bio: '' })
 const firstLetter = computed(() => form.name?.charAt(0)?.toUpperCase() || 'U')
 
 const loadProfile = async () => {
   try {
     const { data } = await api.get('/auth/me')
     const u = data.user || data
-
-    form._id = u.id || u._id || ''
-    form.name = u.name || ''
+    form._id   = u.id || u._id || ''
+    form.name  = u.name || ''
     form.email = u.email || ''
-    form.bio = u.bio || ''
+    form.bio   = u.bio || ''
   } catch (e) {
-    ElNotification({
-      title: 'Error',
-      message: e?.response?.data?.message || 'Failed to load profile',
-      type: 'error',
-      duration: 2400
-    })
+    ElNotification({ title: 'Error', message: e?.response?.data?.message || 'Failed to load', type: 'error', duration: 2400 })
   }
 }
 
 const loadStats = async () => {
   try {
-    const { data } = await api.get('/music')
-    const list = Array.isArray(data) ? data : []
-    totalSongs.value = list.length
-    favSongs.value = list.filter(m => m.liked).length
-    dlSongs.value = list.filter(m => m.downloaded).length
-  } catch { }
+    const [music, recent] = await Promise.allSettled([
+      api.get('/music'),
+      api.get('/music/me/recently-played'),
+    ])
+    if (music.status === 'fulfilled') {
+      const list = Array.isArray(music.value.data) ? music.value.data : []
+      totalSongs.value = list.length
+      favSongs.value   = list.filter(m => m.liked).length
+      dlSongs.value    = list.filter(m => m.downloaded).length
+    }
+    if (recent.status === 'fulfilled') {
+      recentCount.value = Array.isArray(recent.value.data) ? recent.value.data.length : 0
+    }
+  } catch {}
 }
 
 const saveProfile = async () => {
-  if (!form._id) {
-    return ElNotification({
-      title: 'Error',
-      message: 'User ID not found',
-      type: 'error',
-      duration: 2200
-    })
-  }
-
+  if (!form._id) return ElNotification({ title: 'Error', message: 'User ID not found', type: 'error' })
   saving.value = true
   try {
-    const { data } = await api.put(`/auth/profile/${form._id}`, {
-      name: form.name,
-      email: form.email,
-      bio: form.bio
-    })
-
+    const { data } = await api.put(`/auth/profile/${form._id}`, { name: form.name, email: form.email, bio: form.bio })
     const u = data.user || data
-    form._id = u.id || u._id || form._id
-    form.name = u.name || ''
+    form.name  = u.name  || ''
     form.email = u.email || ''
-    form.bio = u.bio || ''
-
-    ElNotification({
-      title: 'Saved',
-      message: 'Profile updated',
-      type: 'success',
-      duration: 2000
-    })
+    form.bio   = u.bio   || ''
+    ElNotification({ title: 'Saved', message: 'Profile updated', type: 'success', duration: 2000 })
   } catch (e) {
-    ElNotification({
-      title: 'Error',
-      message: e?.response?.data?.message || 'Failed to update profile',
-      type: 'error',
-      duration: 2400
-    })
-  } finally {
-    saving.value = false
-  }
+    ElNotification({ title: 'Error', message: e?.response?.data?.message || 'Failed', type: 'error', duration: 2400 })
+  } finally { saving.value = false }
 }
 
-onMounted(async () => {
-  await loadProfile()
-  await loadStats()
-})
+const handleLogout = async () => {
+  try {
+    await ElMessageBox.confirm('Are you sure you want to log out?', 'Log out', {
+      confirmButtonText: 'Log out', cancelButtonText: 'Cancel', type: 'warning',
+    })
+    await api.post('/auth/logout')
+    authStore.user = null
+    router.push('/login')
+  } catch {}
+}
+
+onMounted(async () => { await loadProfile(); await loadStats() })
 </script>
