@@ -20,8 +20,7 @@
           <div class="lib-hero-text">
             <p class="lib-kicker">{{ pageKey === 'liked' ? 'Favourites' : 'Offline' }}</p>
             <h1 class="lib-title">{{ pageKey === 'liked' ? 'Liked songs' : 'Downloaded tracks' }}</h1>
-            <p class="lib-subtitle">{{ pageKey === 'liked' ? 'Tracks you\'ve loved.' : 'Songs available for offline
-              access.' }}</p>
+            <p class="lib-subtitle">{{ pageKey === 'liked' ? 'Tracks you\'ve loved.' : 'Songs available for offline access.' }}</p>
           </div>
           <div class="lib-hero-actions">
             <span class="lib-count-badge">{{ filtered.length }} tracks</span>
@@ -121,7 +120,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
 import { usePlayerStore } from '@/stores/player'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/app-layout.css'
+import '@/styles/app_layout.css'
 import '@/styles/library_page.css'
 
 const router = useRouter()

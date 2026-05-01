@@ -143,7 +143,7 @@ import HeaderPage   from '@/components/layout/HeaderPage.vue'
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 import UserSidebar  from '@/components/users/UserSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/app-layout.css'
+import '@/styles/app_layout.css'
 import '@/styles/profile_page.css'
 
 const router    = useRouter()
