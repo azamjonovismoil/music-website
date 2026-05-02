@@ -6,7 +6,7 @@
       <aside class="app-sidebar">
         <AdminSidebar v-if="authStore.isAdmin" />
         <UserSidebar v-else :playlists="[]" :active-view="pageKey"
-          @select-view="v => router.push(v === 'liked' ? '/library/favourites' : '/library/downloaded')" />
+          @select-view="(v) => router.push(v === 'liked' ? '/library/favourites' : '/library/downloaded')" />
       </aside>
 
       <main class="app-main lib-main">
@@ -20,7 +20,7 @@
             <p class="lib-kicker">{{ pageKey === 'liked' ? 'Favourites' : 'Offline' }}</p>
             <h1 class="lib-title">{{ pageKey === 'liked' ? 'Liked songs' : 'Downloaded tracks' }}</h1>
             <p class="lib-subtitle">
-              {{ pageKey === 'liked' ? 'Tracks you\'ve loved.' : 'Songs available for offline access.' }}
+              {{ pageKey === 'liked' ? "Tracks you've loved." : 'Songs available for offline access.' }}
             </p>
           </div>
 
@@ -125,6 +125,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
 import { usePlayerStore } from '@/stores/player'
 import { useAuthStore } from '@/stores/auth'
+import { API_ROOT, resolveCover, resolveAudio, fallbackCover } from '@/utils/media'
 import '@/styles/app_layout.css'
 import '@/styles/library_page.css'
 
@@ -133,18 +134,12 @@ const route = useRoute()
 const player = usePlayerStore()
 const authStore = useAuthStore()
 
-const API_ROOT = (
-  import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
-).replace(/\/+$/, '')
-
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
   withCredentials: true,
 })
 
-const pageKey = computed(() =>
-  route.path.includes('favourite') ? 'liked' : 'downloaded'
-)
+const pageKey = computed(() => (route.path.includes('favourite') ? 'liked' : 'downloaded'))
 
 const musics = ref([])
 const searchQuery = ref('')
@@ -153,33 +148,16 @@ const currentMusic = ref(null)
 const currentIndex = ref(-1)
 const loading = ref(true)
 
-const fallback =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="50%" fill="#334155" font-size="48" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
-  )
-
 const onImageError = (event) => {
-  event.target.src = fallback
+  event.target.src = fallbackCover
 }
 
-const getCover = (music) => {
-  const cover = music?.coverUrl || music?.cover || ''
-  if (!cover) return fallback
-  if (/^(https?:|data:)/.test(cover)) return cover
-  return `${API_ROOT}/${cover.replace(/^\/+/, '')}`
-}
-
-const norm = (path) => {
-  if (!path) return ''
-  if (/^(https?:|data:|blob:)/.test(path)) return path
-  return `${API_ROOT}/${path.replace(/^\/+/, '')}`
-}
+const getCover = (music) => resolveCover(music)
 
 const build = (music) => ({
   ...music,
-  audioUrl: music?.streamUrl ? `${API_ROOT}${music.streamUrl}` : norm(music.url),
-  coverUrl: norm(music.cover),
+  audioUrl: resolveAudio(music),
+  coverUrl: resolveCover(music),
 })
 
 const filtered = computed(() => {
@@ -210,11 +188,7 @@ const fetchTracks = async () => {
   loading.value = true
 
   try {
-    const endpoint =
-      pageKey.value === 'liked'
-        ? '/music/me/liked/list'
-        : '/music/me/downloaded/list'
-
+    const endpoint = pageKey.value === 'liked' ? '/music/me/liked/list' : '/music/me/downloaded/list'
     const { data } = await api.get(endpoint)
     musics.value = Array.isArray(data) ? data : []
   } catch {
@@ -251,15 +225,13 @@ const playAll = () => {
 
 const playPrev = () => {
   if (!filtered.value.length) return
-  currentIndex.value =
-    currentIndex.value <= 0 ? filtered.value.length - 1 : currentIndex.value - 1
+  currentIndex.value = currentIndex.value <= 0 ? filtered.value.length - 1 : currentIndex.value - 1
   playMusic(filtered.value[currentIndex.value])
 }
 
 const playNext = () => {
   if (!filtered.value.length) return
-  currentIndex.value =
-    currentIndex.value >= filtered.value.length - 1 ? 0 : currentIndex.value + 1
+  currentIndex.value = currentIndex.value >= filtered.value.length - 1 ? 0 : currentIndex.value + 1
   playMusic(filtered.value[currentIndex.value])
 }
 

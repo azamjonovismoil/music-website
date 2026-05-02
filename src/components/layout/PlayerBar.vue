@@ -38,7 +38,8 @@
                 <HeartIcon v-else class="ctrl-icon" />
               </button>
 
-              <button class="ctrl playlist-btn" type="button" title="Add to playlist" @click="handleAddToPlaylist">
+              <button v-if="!isAdmin" class="ctrl playlist-btn" type="button" title="Add to playlist"
+                @click="handleAddToPlaylist">
                 <PlusIcon class="ctrl-icon" />
               </button>
             </div>
@@ -94,12 +95,13 @@
         </div>
 
         <div class="player-right">
-          <button class="ctrl lyrics-btn" :class="{ active: lyricsOpen }" :disabled="!hasLyrics" type="button"
-            :title="hasLyrics ? 'Lyrics' : 'No lyrics available'" @click="handleLyricsOpen">
+          <button v-if="!isAdmin" class="ctrl lyrics-btn" :class="{ active: lyricsOpen }" :disabled="!hasLyrics"
+            type="button" :title="hasLyrics ? 'Lyrics' : 'No lyrics available'" @click="handleLyricsOpen">
             <MicrophoneIcon class="ctrl-icon" />
           </button>
 
-          <button class="ctrl expand-btn" type="button" title="Expand / Karaoke mode" @click="handleExpand">
+          <button v-if="!isAdmin" class="ctrl expand-btn" type="button" title="Expand / Karaoke mode"
+            @click="handleExpand">
             <ArrowsPointingOutIcon class="ctrl-icon" />
           </button>
 
@@ -155,6 +157,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 import { usePlayerStore } from '@/stores/player'
+import { useAuthStore } from '@/stores/auth'
+import { resolveCover, resolveAudio, fallbackCover } from '@/utils/media'
 import '@/styles/player_bar.css'
 
 const props = defineProps({
@@ -178,7 +182,7 @@ const emit = defineEmits([
 ])
 
 const player = usePlayerStore()
-const API_ROOT = (import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com').replace(/\/+$/, '')
+const authStore = useAuthStore()
 
 const audioRef = ref(null)
 const isPlaying = ref(false)
@@ -197,30 +201,12 @@ const shouldScrollTitle = ref(false)
 
 let volTimer = null
 
-const fallback =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0a1628"/><text x="50%" y="50%" fill="#1e3460" font-size="40" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
-  )
-
-const audioSrc = computed(() => {
-  if (!props.music?._id) return ''
-  if (props.music.audioUrl) return props.music.audioUrl
-  if (props.music.streamUrl?.startsWith('http')) return props.music.streamUrl
-  if (props.music.streamUrl) return `${API_ROOT}${props.music.streamUrl}`
-  if (props.music.url?.startsWith('http')) return props.music.url
-  if (props.music.url) return `${API_ROOT}/${String(props.music.url).replace(/^\/+/, '')}`
-  return ''
-})
-
-const coverSrc = computed(() => {
-  const c = props.music?.coverUrl || props.music?.cover || ''
-  if (!c) return fallback
-  if (c.startsWith('http') || c.startsWith('data:')) return c
-  return `${API_ROOT}/${c.replace(/^\/+/, '')}`
-})
+const isAdmin = computed(() => Number(authStore.user?.isAdmin) === 1)
+const audioSrc = computed(() => resolveAudio(props.music || {}))
+const coverSrc = computed(() => resolveCover(props.music || {}) || fallbackCover)
 
 const hasLyrics = computed(() => {
+  if (isAdmin.value) return false
   const synced = props.music?.syncedLyrics
   const plain = props.music?.lyrics
   return (Array.isArray(synced) && synced.length > 0) || Boolean(String(plain || '').trim())
@@ -239,7 +225,7 @@ const updateMarquee = () => {
 }
 
 const onCoverError = (e) => {
-  e.target.src = fallback
+  e.target.src = fallbackCover
 }
 
 const resetPlaybackState = () => {
@@ -266,16 +252,16 @@ const handleToggleLike = () => {
 }
 
 const handleAddToPlaylist = () => {
-  if (props.music) emit('add-to-playlist', props.music)
+  if (props.music && !isAdmin.value) emit('add-to-playlist', props.music)
 }
 
 const handleLyricsOpen = () => {
-  if (!hasLyrics.value || !props.music) return
+  if (!hasLyrics.value || !props.music || isAdmin.value) return
   emit('open-lyrics', props.music)
 }
 
 const handleExpand = () => {
-  if (props.music) emit('expand', props.music)
+  if (props.music && !isAdmin.value) emit('expand', props.music)
 }
 
 const play = async () => {

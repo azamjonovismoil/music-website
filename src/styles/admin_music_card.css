@@ -1,18 +1,25 @@
+/* admin_music_card.css */
+
 .mcard {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all var(--t-fast);
+  position: relative;
   display: flex;
   flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  min-width: 0;
 }
 
 .mcard:hover {
+  transform: translateY(-3px);
   border-color: var(--border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
 .mcard--active {
@@ -22,13 +29,12 @@
     var(--shadow-sm);
 }
 
-/* thumbnail */
+/* thumb */
 .mcard-thumb {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-card2);
   overflow: hidden;
-  background: var(--bg-elevated);
-  flex-shrink: 0;
 }
 
 .mcard-img {
@@ -36,7 +42,7 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.3s ease;
+  transition: transform 0.32s ease;
 }
 
 .mcard:hover .mcard-img {
@@ -48,173 +54,168 @@
   height: 100%;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card-2));
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.14), transparent 35%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(10, 18, 34, 1));
 }
 
 .mcard-fb-ico {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   color: var(--text-hint);
 }
 
 /* status badge */
 .mcard-status {
   position: absolute;
-  top: 7px;
-  left: 7px;
-  padding: 2px 8px;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  padding: 4px 8px;
   border-radius: 999px;
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  backdrop-filter: blur(6px);
-  pointer-events: none;
-}
-
-.mcard-status.published {
-  background: rgba(34, 197, 94, 0.2);
-  color: var(--green);
-  border: 1px solid var(--green-border);
+  backdrop-filter: blur(12px);
 }
 
 .mcard-status.draft {
-  background: rgba(245, 158, 11, 0.18);
   color: var(--amber);
-  border: 1px solid var(--amber-border);
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
-
+.mcard-status.published {
+  color: var(--green);
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
 .mcard-status.archived {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-}
-
-/* lrc badge */
-.mcard-lrc {
-  position: absolute;
-  top: 7px;
-  right: 7px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 700;
-  background: var(--accent-subtle);
-  border: 1px solid var(--accent-border);
-  color: var(--accent);
-  pointer-events: none;
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
 /* overlay */
 .mcard-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.38);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.1), rgba(2, 6, 23, 0.48));
   opacity: 0;
-  transition: opacity var(--t-fast);
+  transition: opacity 0.2s ease;
 }
 
 .mcard:hover .mcard-overlay {
   opacity: 1;
 }
 
-.mcard-play-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--accent);
+.mcard-play-btn,
+.mcard-queue-btn {
+  width: 38px;
+  height: 38px;
   border: none;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform var(--t-fast);
+  transition:
+    transform 0.14s ease,
+    filter 0.14s ease;
+}
+
+.mcard-play-btn {
+  background: linear-gradient(135deg, var(--accent-mid), var(--accent));
   color: #fff;
-}
-
-.mcard-play-btn:hover {
-  transform: scale(1.08);
-}
-
-.mcard-play-ico {
-  width: 18px;
-  height: 18px;
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.28);
 }
 
 .mcard-queue-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
+  background: rgba(10, 18, 34, 0.82);
   color: #fff;
-  transition: background var(--t-fast);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.mcard-play-btn:hover,
 .mcard-queue-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
 }
 
+.mcard-play-ico,
 .mcard-queue-ico {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
-/* playing bars */
+/* bars animation */
 .mcard-bars {
   position: absolute;
-  bottom: 8px;
   right: 8px;
+  bottom: 8px;
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 14px;
-  pointer-events: none;
+  height: 16px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 2;
 }
 
 .mcard-bars span {
-  display: block;
   width: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  animation: mcard-bar 0.9s ease-in-out infinite alternate;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #7dd3fc, #0ea5e9);
+  animation: mcardEq 0.9s ease-in-out infinite alternate;
 }
 
 .mcard-bars span:nth-child(1) {
+  height: 7px;
   animation-delay: 0s;
-  height: 6px;
 }
 .mcard-bars span:nth-child(2) {
-  animation-delay: 0.2s;
-  height: 12px;
+  height: 14px;
+  animation-delay: 0.16s;
 }
 .mcard-bars span:nth-child(3) {
-  animation-delay: 0.1s;
   height: 9px;
+  animation-delay: 0.32s;
 }
 .mcard-bars span:nth-child(4) {
-  animation-delay: 0.3s;
-  height: 5px;
+  height: 12px;
+  animation-delay: 0.48s;
 }
 
-@keyframes mcard-bar {
+@keyframes mcardEq {
   to {
-    height: 14px;
+    height: 4px;
   }
 }
 
-/* card body */
+/* LRC badge */
+.mcard-lrc {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.14);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+/* body */
 .mcard-body {
-  padding: 11px 12px 10px;
+  padding: 10px 11px 11px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+  min-width: 0;
   flex: 1;
 }
 
@@ -224,19 +225,18 @@
 
 .mcard-title {
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-primary);
+  margin: 0 0 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.3;
-  margin-bottom: 2px;
-  font-family: var(--font-display);
 }
 
 .mcard-artist {
   font-size: 11px;
   color: var(--text-muted);
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -246,88 +246,96 @@
 .mcard-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 5px;
+  min-height: 0;
 }
 
 .mcard-tag {
-  padding: 2px 8px;
+  padding: 3px 7px;
   border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
   font-size: 9.5px;
-  font-weight: 600;
-  background: var(--accent-subtle);
-  border: 1px solid var(--accent-border);
-  color: var(--accent);
-  white-space: nowrap;
+  font-weight: 700;
 }
 
 .mcard-tag--dur {
-  background: var(--bg-elevated);
-  border-color: var(--border);
-  color: var(--text-muted);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  background: var(--accent-subtle);
 }
 
 /* stats */
 .mcard-stats {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  min-height: 18px;
 }
 
 .mcard-stat {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  color: var(--text-muted);
   font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-hint);
-}
-
-.mcard-stat-ico {
-  width: 11px;
-  height: 11px;
-  flex-shrink: 0;
+  font-weight: 700;
 }
 
 .mcard-stat--liked {
   color: var(--rose);
 }
+.mcard-stat-ico {
+  width: 11px;
+  height: 11px;
+}
 
 .mcard-explicit {
   margin-left: auto;
-  width: 16px;
+  min-width: 16px;
   height: 16px;
-  border-radius: 3px;
+  padding: 0 4px;
+  border-radius: 5px;
+  display: inline-grid;
+  place-items: center;
   font-size: 9px;
   font-weight: 800;
-  display: grid;
-  place-items: center;
-  background: var(--rose-bg);
-  border: 1px solid var(--rose-border);
-  color: var(--rose);
+  color: #fda4af;
+  background: rgba(127, 29, 29, 0.22);
+  border: 1px solid rgba(244, 63, 94, 0.22);
 }
 
 /* actions */
 .mcard-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   margin-top: auto;
-  padding-top: 4px;
-  border-top: 1px solid var(--border);
+}
+
+.mcard-actions--user {
+  justify-content: flex-start;
 }
 
 .mcard-act {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
   display: grid;
   place-items: center;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-hint);
   cursor: pointer;
-  transition: all var(--t-fast);
+  transition: all 0.14s ease;
   flex-shrink: 0;
+}
+
+.mcard-act:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .mcard-act svg {
@@ -335,41 +343,51 @@
   height: 13px;
 }
 
-.mcard-act:hover {
-  background: var(--bg-elevated);
-  border-color: var(--border);
-  color: var(--text-primary);
-}
-
 .mcard-act--edit:hover {
   color: var(--accent);
-  background: var(--accent-subtle);
   border-color: var(--accent-border);
 }
 
-.mcard-act--liked {
-  color: var(--rose) !important;
+.mcard-act--liked,
+.mcard-act--liked:hover {
+  color: var(--rose);
+  border-color: var(--rose-border);
+  background: var(--rose-bg);
 }
 
-.mcard-act--dl {
-  color: var(--green) !important;
+.mcard-act--dl,
+.mcard-act--dl:hover {
+  color: var(--accent);
+  border-color: var(--accent-border);
+  background: var(--accent-subtle);
 }
 
 .mcard-act--del:hover {
-  color: var(--rose);
-  background: var(--rose-bg);
-  border-color: var(--rose-border);
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.22);
+  background: rgba(127, 29, 29, 0.14);
 }
 
-.mcard-actions--user {
-  justify-content: flex-end;
+/* responsive */
+@media (max-width: 860px) {
+  .mcard {
+    border-radius: 16px;
+  }
+  .mcard-body {
+    padding: 10px;
+    gap: 7px;
+  }
 }
 
-/* light mode */
-[data-theme='light'] .mcard {
-  background: #fff;
-}
-
-[data-theme='light'] .mcard:hover {
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.08);
+@media (max-width: 480px) {
+  .mcard-title {
+    font-size: 12px;
+  }
+  .mcard-artist {
+    font-size: 10.5px;
+  }
+  .mcard-act {
+    width: 28px;
+    height: 28px;
+  }
 }
