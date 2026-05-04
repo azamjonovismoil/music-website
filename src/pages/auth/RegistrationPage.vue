@@ -1,126 +1,620 @@
 <template>
   <div class="auth-page">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <div class="auth-icon">
-          <el-icon>
-            <UserFilled />
-          </el-icon>
-        </div>
-        <h1>Create account</h1>
-        <p>Join ExclusiveMusics and start listening</p>
+    <div class="auth-bg" aria-hidden="true">
+      <div class="orb o1"></div>
+      <div class="orb o2"></div>
+      <div class="grid-lines"></div>
+    </div>
+
+    <div class="auth-left">
+      <router-link to="/" class="logo">
+        <span class="logo-icon">♪</span>
+        <span class="logo-text">ExclusiveMusics</span>
+      </router-link>
+      <div class="al-body">
+        <h1 class="al-title">Join the music</h1>
+        <p class="al-sub">Create your free account and start streaming in seconds.</p>
+        <ul class="al-list">
+          <li v-for="f in features" :key="f"><span class="al-dot"></span>{{ f }}</li>
+        </ul>
       </div>
+      <p class="al-foot">Already have an account? <router-link to="/login" class="link">Sign in</router-link></p>
+    </div>
 
-      <div class="auth-form">
-        <el-input v-model="name" placeholder="Full name" class="auth-input" size="large" autocomplete="name">
-          <template #prefix>
-            <el-icon style="color:#3d5272">
-              <User />
-            </el-icon>
-          </template>
-        </el-input>
+    <div class="auth-right">
+      <div class="form-card">
+        <h2 class="fc-title">Create account</h2>
+        <p class="fc-sub">Free forever. No credit card needed.</p>
 
-        <el-input v-model="email" placeholder="Email address" type="email" class="auth-input" size="large"
-          autocomplete="email">
-          <template #prefix>
-            <el-icon style="color:#3d5272">
-              <Message />
-            </el-icon>
-          </template>
-        </el-input>
-
-        <el-input v-model="password" placeholder="Password (min 6 chars)" show-password class="auth-input" size="large"
-          autocomplete="new-password">
-          <template #prefix>
-            <el-icon style="color:#3d5272">
-              <Lock />
-            </el-icon>
-          </template>
-        </el-input>
-
-        <el-input v-model="bio" placeholder="Short bio (optional)" type="textarea" :rows="2" class="auth-input"
-          autocomplete="off" @keyup.enter="handleSignup" />
-
-        <el-button type="primary" class="auth-btn" size="large" :loading="loading" @click="handleSignup">
-          Create account
-        </el-button>
-
-        <div class="auth-divider"><span>or</span></div>
-
-        <button class="google-btn" :disabled="googleLoading" @click="handleGoogleSignup">
-          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              fill="#4285F4" />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              fill="#34A853" />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-              fill="#FBBC05" />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              fill="#EA4335" />
+        <button class="google-btn" type="button" @click="loginGoogle">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="#34A853"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+            <path fill="#EA4335"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
-          <span>{{ googleLoading ? 'Redirecting…' : 'Continue with Google' }}</span>
+          Continue with Google
         </button>
-      </div>
 
-      <p class="auth-link">
-        Already have an account?
-        <span @click="$router.push('/login')">Sign in</span>
-      </p>
+        <div class="divider"><span>or</span></div>
+
+        <form @submit.prevent="submit" novalidate>
+          <div class="field" :class="{ err: e.name }">
+            <label>Full name</label>
+            <div class="finput" :class="{ focused: f.name }">
+              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <input v-model="form.name" type="text" placeholder="John Doe" @focus="f.name = true"
+                @blur="f.name = false" autocomplete="name" />
+            </div>
+            <span class="ferr" v-if="e.name">{{ e.name }}</span>
+          </div>
+
+          <div class="field" :class="{ err: e.email }">
+            <label>Email</label>
+            <div class="finput" :class="{ focused: f.email }">
+              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                <polyline points="22,6 12,13 2,6" />
+              </svg>
+              <input v-model="form.email" type="email" placeholder="you@example.com" @focus="f.email = true"
+                @blur="f.email = false" autocomplete="email" />
+            </div>
+            <span class="ferr" v-if="e.email">{{ e.email }}</span>
+          </div>
+
+          <div class="field" :class="{ err: e.password }">
+            <label>Password</label>
+            <div class="finput" :class="{ focused: f.password }">
+              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="Min. 6 characters"
+                @focus="f.password = true" @blur="f.password = false" autocomplete="new-password" />
+              <button type="button" class="eye" @click="showPass = !showPass" tabindex="-1">
+                <svg v-if="!showPass" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2">
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              </button>
+            </div>
+            <!-- Password strength -->
+            <div class="pw-str" v-if="form.password">
+              <div class="pw-bar" v-for="n in 4" :key="n"
+                :class="{ on: strength >= n, [`s${strength}`]: strength >= n }"></div>
+              <span class="pw-lbl" :class="`sl${strength}`">{{ labels[strength] }}</span>
+            </div>
+            <span class="ferr" v-if="e.password">{{ e.password }}</span>
+          </div>
+
+          <div class="server-err" v-if="serverErr">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            {{ serverErr }}
+          </div>
+
+          <button class="submit-btn" type="submit" :disabled="loading">
+            <span v-if="loading" class="spin"></span>
+            <span v-else>Create account</span>
+          </button>
+
+          <p class="terms">By registering, you agree to our <a href="#" class="link">Terms of Service</a>.</p>
+        </form>
+
+        <p class="mob-alt">Already have an account? <router-link to="/login" class="link">Sign in</router-link></p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElNotification } from 'element-plus'
-import { User, UserFilled, Message, Lock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/global.css'
-import '@/styles/auth_pages.css'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const auth = useAuthStore()
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const bio = ref('')
+const form = reactive({ name: '', email: '', password: '' })
+const e = reactive({ name: '', email: '', password: '' })
+const f = reactive({ name: false, email: false, password: false })
 const loading = ref(false)
-const googleLoading = ref(false)
+const showPass = ref(false)
+const serverErr = ref('')
 
-const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const notify = (type, msg) => ElNotification({ type, message: msg, duration: 2400 })
+const features = [
+  'Free forever, no credit card',
+  'Stream thousands of tracks',
+  'Real-time synced lyrics',
+  'Personal playlists & favorites',
+]
 
-const handleSignup = async () => {
-  if (name.value.trim().length < 2) return notify('error', 'Name must be at least 2 characters')
-  if (!emailRe.test(email.value.trim())) return notify('error', 'Enter a valid email address')
-  if (password.value.length < 6) return notify('error', 'Password must be at least 6 characters')
+const labels = ['', 'Too weak', 'Weak', 'Good', 'Strong']
 
+const strength = computed(() => {
+  const p = form.password
+  if (!p) return 0
+  let s = 0
+  if (p.length >= 6) s++
+  if (p.length >= 10) s++
+  if (/[A-Z]/.test(p) && /[0-9]/.test(p)) s++
+  if (/[^A-Za-z0-9]/.test(p)) s++
+  return Math.min(s, 4)
+})
+
+const validate = () => {
+  e.name = ''; e.email = ''; e.password = ''
+  let ok = true
+  if (!form.name || form.name.trim().length < 2) { e.name = 'Name must be at least 2 characters'; ok = false }
+  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { e.email = 'Enter a valid email'; ok = false }
+  if (!form.password || form.password.length < 6) { e.password = 'Password must be at least 6 characters'; ok = false }
+  return ok
+}
+
+const submit = async () => {
+  serverErr.value = ''
+  if (!validate()) return
   loading.value = true
   try {
-    await authStore.register({
-      name: name.value.trim(),
-      email: email.value.trim(),
-      password: password.value,
-      bio: bio.value.trim(),
-    })
-
-    notify('success', 'Account created successfully')
-    router.push(authStore.isAdmin ? '/admin' : '/user')
+    await auth.register({ name: form.name, email: form.email, password: form.password })
+    router.push('/user')
   } catch (err) {
-    notify('error', err?.response?.data?.message || 'Registration failed')
+    serverErr.value = err?.response?.data?.message || 'Registration failed. Please try again.'
   } finally {
     loading.value = false
   }
 }
 
-const handleGoogleSignup = () => {
-  googleLoading.value = true
-  authStore.loginWithGoogle()
+const loginGoogle = () => {
+  window.location.href = `${import.meta.env.VITE_API_ROOT}/api/auth/google`
 }
 </script>
+
+<style scoped>
+*,
+*::before,
+*::after {
+  box-sizing: border-box
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #04090f;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  position: relative;
+}
+
+.auth-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(88px);
+  opacity: .22;
+}
+
+.o1 {
+  width: 500px;
+  height: 500px;
+  background: #6366f1;
+  top: -160px;
+  right: -120px;
+}
+
+.o2 {
+  width: 420px;
+  height: 420px;
+  background: #0ea5e9;
+  bottom: -120px;
+  left: -80px;
+}
+
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(56, 189, 248, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, .03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.auth-left {
+  position: relative;
+  z-index: 1;
+  padding: 40px 52px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(56, 189, 248, .07);
+  background: rgba(10, 21, 37, .3);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -.02em;
+}
+
+.al-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.al-title {
+  font-size: clamp(26px, 3.5vw, 42px);
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -.03em;
+  margin: 0 0 10px;
+}
+
+.al-sub {
+  font-size: 15px;
+  color: #64748b;
+  margin: 0 0 36px;
+  line-height: 1.65;
+}
+
+.al-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.al-list li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.al-dot {
+  width: 6px;
+  height: 6px;
+  background: #818cf8;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.al-foot {
+  font-size: 14px;
+  color: #475569;
+}
+
+.link {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.auth-right {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.fc-title {
+  font-size: 25px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -.02em;
+  margin: 0 0 5px;
+}
+
+.fc-sub {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 26px;
+}
+
+.google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.google-btn:hover {
+  background: rgba(255, 255, 255, .08);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: #334155;
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, .06);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.finput {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 13px;
+  background: rgba(15, 30, 56, .6);
+  border: 1px solid rgba(56, 189, 248, .1);
+  border-radius: 10px;
+  transition: border-color .2s;
+}
+
+.finput.focused {
+  border-color: rgba(56, 189, 248, .38);
+}
+
+.field.err .finput {
+  border-color: rgba(239, 68, 68, .45);
+}
+
+.fic {
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.finput input {
+  flex: 1;
+  height: 44px;
+  background: none;
+  border: none;
+  outline: none;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+.finput input::placeholder {
+  color: #334155;
+}
+
+.eye {
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+}
+
+/* Password strength */
+.pw-str {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.pw-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, .08);
+  border-radius: 2px;
+  transition: background .3s;
+}
+
+.pw-bar.on.s1 {
+  background: #ef4444;
+}
+
+.pw-bar.on.s2 {
+  background: #f97316;
+}
+
+.pw-bar.on.s3 {
+  background: #eab308;
+}
+
+.pw-bar.on.s4 {
+  background: #22c55e;
+}
+
+.pw-lbl {
+  font-size: 11px;
+  min-width: 52px;
+  text-align: right;
+}
+
+.pw-lbl.sl1 {
+  color: #ef4444
+}
+
+.pw-lbl.sl2 {
+  color: #f97316
+}
+
+.pw-lbl.sl3 {
+  color: #eab308
+}
+
+.pw-lbl.sl4 {
+  color: #22c55e
+}
+
+.ferr {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.server-err {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 13px;
+  background: rgba(239, 68, 68, .08);
+  border: 1px solid rgba(239, 68, 68, .2);
+  border-radius: 10px;
+  font-size: 13px;
+  color: #f87171;
+  margin-bottom: 14px;
+}
+
+.submit-btn {
+  width: 100%;
+  height: 46px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(14, 165, 233, .3);
+}
+
+.submit-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.spin {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, .3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+.terms {
+  font-size: 12px;
+  color: #334155;
+  text-align: center;
+  margin: 10px 0 0;
+}
+
+.mob-alt {
+  display: none;
+  text-align: center;
+  margin-top: 18px;
+  font-size: 14px;
+  color: #475569;
+}
+
+@media (max-width:768px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-left {
+    display: none;
+  }
+
+  .auth-right {
+    min-height: 100vh;
+    align-items: flex-start;
+    padding-top: 64px;
+  }
+
+  .mob-alt {
+    display: block;
+  }
+}
+</style>

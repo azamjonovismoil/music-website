@@ -1,511 +1,848 @@
 <template>
-  <div class="up">
-    <HeaderPage v-model:search="searchQuery" :show-search="true" />
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" :class="{ open: sidebarOpen }">
+      <div class="sb-head">
+        <router-link to="/" class="logo">
+          <span class="logo-icon">♪</span>
+          <span class="logo-text">ExclusiveMusics</span>
+        </router-link>
+        <button class="sb-close" @click="sidebarOpen = false" aria-label="Close">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
 
-    <div class="up-layout" :class="{ 'up-layout--collapsed': sidebarCollapsed }">
+      <nav class="sb-nav">
+        <button class="nav-item" :class="{ active: tab === 'home' }" @click="setTab('home')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Discover
+        </button>
+        <button class="nav-item" :class="{ active: tab === 'favorites' }" @click="setTab('favorites')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          Favorites
+        </button>
+        <button class="nav-item" :class="{ active: tab === 'library' }" @click="setTab('library')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+          Library
+        </button>
+        <button class="nav-item" :class="{ active: tab === 'playlists' }" @click="setTab('playlists')">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <line x1="3" y1="6" x2="3.01" y2="6" />
+            <line x1="3" y1="12" x2="3.01" y2="12" />
+            <line x1="3" y1="18" x2="3.01" y2="18" />
+          </svg>
+          Playlists
+        </button>
+      </nav>
 
-      <!-- left sidebar -->
-      <aside class="up-sidebar">
-        <UserSidebar :playlists="playlists" :active-view="activeView" :active-playlist-id="activePlaylist?._id"
-          :default-playlist-color="defaultPlaylistColor" @select-view="selectView" @create-playlist="openCreatePlaylist"
-          @open-playlist="openPlaylist" @rename-playlist="openRenamePlaylist" @delete-playlist="deletePlaylist"
-          @play-from-playlist="playFromPlaylist" @collapsed-change="sidebarCollapsed = $event" />
-      </aside>
+      <div class="sb-bottom">
+        <router-link to="/profile" class="user-row">
+          <div class="user-av">{{ initial }}</div>
+          <div class="user-inf">
+            <span class="un">{{ authStore.user?.name || 'User' }}</span>
+            <span class="ue">{{ authStore.user?.email || '' }}</span>
+          </div>
+        </router-link>
+        <button class="logout-btn" @click="logout" title="Logout">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </aside>
 
-      <!-- main -->
-      <main class="up-main">
+    <div class="overlay" :class="{ show: sidebarOpen }" @click="sidebarOpen = false"></div>
 
-        <!-- track detail mode -->
-        <TrackDetail v-if="selectedTrack" :track="selectedTrack" :get-cover="getCover" :fallback="fallback"
-          @back="selectedTrack = null" @play="playMusic" @toggle-like="toggleLike" @add-to-playlist="openAddToPlaylist"
-          @add-to-queue="addToQueue" @open-artist="filterByArtist" />
+    <!-- Main -->
+    <main class="main">
+      <div class="topbar">
+        <button class="menu-btn" @click="sidebarOpen = true" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input v-model="search" type="text" placeholder="Search songs, artists…" class="search-in" />
+          <button v-if="search" class="search-clear" @click="search = ''" aria-label="Clear">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
 
+      <div class="body">
+        <!-- Loading -->
+        <div v-if="loading" class="sk-grid">
+          <div class="sk-card" v-for="n in 8" :key="n"></div>
+        </div>
+
+        <!-- Error -->
+        <div v-else-if="errMsg" class="empty">
+          <div class="empty-ico">⚠️</div>
+          <p class="empty-t">Could not load music</p>
+          <p class="empty-s">{{ errMsg }}</p>
+          <button class="retry" @click="fetchTracks">Try again</button>
+        </div>
+
+        <!-- Empty -->
+        <div v-else-if="list.length === 0" class="empty">
+          <div class="empty-ico">🎵</div>
+          <p class="empty-t">No tracks found</p>
+          <p class="empty-s">Try a different search term or come back later.</p>
+        </div>
+
+        <!-- Grid -->
         <template v-else>
-
-          <!-- hero featured track -->
-          <section v-if="heroTrack" class="up-hero">
-            <div class="up-hero-bg">
-              <img :src="getCover(heroTrack)" alt="" @error="e => e.target.src = fallback" />
-            </div>
-
-            <div class="up-hero-inner">
-              <div class="up-hero-cover-wrap">
-                <img :src="getCover(heroTrack)" class="up-hero-cover" alt="cover"
-                  @error="e => e.target.src = fallback" />
-              </div>
-
-              <div class="up-hero-content">
-                <p class="up-hero-kicker">{{ heroTrack.genre?.[0] || 'Featured track' }}</p>
-                <h1 class="up-hero-title">{{ heroTrack.title }}</h1>
-                <p class="up-hero-artist">
-                  {{ heroTrack.artist }}
-                  <span v-if="heroTrack.album" class="up-hero-album">· {{ heroTrack.album }}</span>
-                </p>
-
-                <div class="up-hero-meta">
-                  <span v-if="heroTrack.language" class="up-meta-chip">{{ heroTrack.language }}</span>
-                  <span v-if="heroTrack.duration" class="up-meta-chip">{{ fmtDur(heroTrack.duration) }}</span>
-                  <span v-if="heroTrack.mood?.[0]" class="up-meta-chip">{{ heroTrack.mood[0] }}</span>
-                </div>
-
-                <div class="up-hero-actions">
-                  <button class="up-play-btn" @click="playMusic(heroTrack)">
-                    <PlayIcon class="up-play-ico" /> Play
-                  </button>
-                  <button class="up-icon-btn" @click="addToQueue(heroTrack)" title="Queue">
-                    <QueueListIcon class="up-icon-btn-ico" />
-                  </button>
-                  <button class="up-icon-btn" @click="openAddToPlaylist(heroTrack)" title="Playlist">
-                    <PlusIcon class="up-icon-btn-ico" />
-                  </button>
-                  <button class="up-icon-btn" :class="{ 'up-icon-btn--liked': heroTrack.liked }"
-                    @click="toggleLike(heroTrack)" title="Like">
-                    <HeartSolidIcon v-if="heroTrack.liked" class="up-icon-btn-ico" />
-                    <HeartIcon v-else class="up-icon-btn-ico" />
-                  </button>
-                </div>
-
-                <p v-if="heroTrack.bio" class="up-hero-desc">{{ heroTrack.bio }}</p>
-              </div>
-            </div>
-          </section>
-
-          <!-- recently played -->
-          <section v-if="activeView === 'home' && recentlyPlayed.length" class="up-section">
-            <div class="up-section-head">
-              <p class="up-section-kicker">History</p>
-              <h2 class="up-section-title">Recently played</h2>
-            </div>
-            <div class="up-recent-row">
-              <article v-for="m in recentlyPlayed.slice(0, 8)" :key="m._id" class="up-recent-card"
-                :class="{ active: currentMusic?._id === m._id }" @click="openTrackDetail(m)">
-                <div class="up-recent-cover-wrap">
-                  <img :src="getCover(m)" class="up-recent-cover" alt="" @error="e => e.target.src = fallback" />
-                  <div class="up-recent-overlay">
-                    <button class="up-recent-play" @click.stop="playMusic(m)">
-                      <PlayIcon class="up-recent-play-ico" />
-                    </button>
+          <div class="sec-head">
+            <h2 class="sec-title">{{ sectionTitle }}</h2>
+            <span class="sec-count">{{ list.length }} tracks</span>
+          </div>
+          <div class="grid">
+            <div class="card" v-for="t in list" :key="t._id"
+              :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="play(t)">
+              <div class="card-art">
+                <img :src="resolveCover(t)" :alt="t.title" @error="imgErr" loading="lazy" />
+                <div class="card-over">
+                  <div v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying" class="mini-eq">
+                    <span></span><span></span><span></span><span></span>
                   </div>
+                  <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
                 </div>
-                <p class="up-recent-title">{{ m.title }}</p>
-                <p class="up-recent-artist">{{ m.artist }}</p>
-              </article>
-            </div>
-          </section>
-
-          <!-- artist section -->
-          <section v-if="heroTrack && sameArtistTracks.length" class="up-section up-section--card">
-            <div class="up-section-head">
-              <div>
-                <p class="up-section-kicker">Artist collection</p>
-                <h2 class="up-section-title">More from {{ heroTrack.artist }}</h2>
               </div>
-              <span class="up-count-badge">{{ sameArtistTracks.length }}</span>
-            </div>
-            <TrackGrid :tracks="sameArtistTracks" :current-music="currentMusic" :get-cover="getCover"
-              :fallback="fallback" :compact-header="true" @select-track="openTrackDetail" @play-track="playMusic"
-              @add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue" />
-          </section>
-
-          <!-- main track list -->
-          <section class="up-section up-section--card">
-            <div class="up-section-head">
-              <div>
-                <p class="up-section-kicker">{{ activePlaylist ? 'Playlist' : 'Library' }}</p>
-                <h2 class="up-section-title">{{ viewLabel }}</h2>
+              <div class="card-info">
+                <p class="ct">{{ t.title }}</p>
+                <p class="ca">{{ t.artist }}</p>
+                <div class="cm">
+                  <span v-if="t.genre?.length" class="ctag">{{ t.genre[0] }}</span>
+                  <span class="cdur">{{ fmt(t.duration) }}</span>
+                </div>
               </div>
-              <span class="up-count-badge">{{ visibleMusics.length }}</span>
+              <div class="card-foot" @click.stop>
+                <button class="like-btn" :class="{ liked: t.liked }" @click="like(t)"
+                  :title="t.liked ? 'Unlike' : 'Like'">
+                  <svg width="15" height="15" viewBox="0 0 24 24" :fill="t.liked ? 'currentColor' : 'none'"
+                    stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                </button>
+              </div>
             </div>
-            <TrackGrid :tracks="visibleMusics" :playlist="activePlaylist" :current-music="currentMusic"
-              :get-cover="getCover" :fallback="fallback" :compact-header="true" @select-track="openTrackDetail"
-              @play-track="playMusic" @add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue"
-              @remove-from-playlist="track => removeTrackFromPlaylist(activePlaylist._id, track._id)" />
-          </section>
-
+          </div>
         </template>
-      </main>
-
-      <!-- right panel -->
-      <aside class="up-right">
-        <RightPanel :is-queue-open="isQueueOpen" :queue="queue" :current-music="currentMusic"
-          :recommendations="recommendations" :get-cover="getCover" :fallback="fallback"
-          @toggle-queue="isQueueOpen = $event" @play-track="playMusic"
-          @remove-from-queue="id => queue = queue.filter(i => i._id !== id)" @clear-queue="queue = []"
-          @select-track="openTrackDetail" @add-to-queue="addToQueue" />
-      </aside>
-    </div>
-
-    <!-- player -->
-    <PlayerBar :key="currentMusic?._id || 'empty'" :music="currentMusic" :queue-open="isQueueOpen"
-      :lyrics-open="player.showKaraokeMode" @prev="playPrev" @next="playNext" @shuffle-next="playShuffle"
-      @toggle-queue="isQueueOpen = !isQueueOpen" @toggle-download="toggleDownload" @add-to-playlist="openAddToPlaylist"
-      @open-detail="openTrackDetail" @auth-required="openAuthModal" @expand="player.showKaraokeMode = true"
-      @open-lyrics="player.showKaraokeMode = true" />
-
-    <KaraokeMode v-if="player.showKaraokeMode && currentMusic" :music="currentMusic" :current-time="player.currentTime"
-      :is-playing="player.isPlaying" @close="player.showKaraokeMode = false" />
-
-    <CreatePlaylists :open="showCreateModal" :loading="playlistLoading" :is-edit="Boolean(playlistEditId)"
-      :name="playlistForm.name" :description="playlistForm.description" :selected-color="playlistForm.color"
-      :colors="playlistColors" @close="closeCreateModal" @submit="submitPlaylist"
-      @update:name="playlistForm.name = $event" @update:description="playlistForm.description = $event"
-      @update:color="playlistForm.color = $event" />
-
-    <AddToPlaylistModal :open="showAddModal" :track="trackForPlaylist" :playlists="playlists"
-      :default-playlist-color="defaultPlaylistColor" @close="closeAddModal"
-      @select="pl => addTrackToPlaylist(pl._id, trackForPlaylist._id)" />
-
-    <AuthRequiredModal :open="showAuthModal" @close="showAuthModal = false" @login="router.push('/login')"
-      @signup="router.push('/signup')" />
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  PlayIcon, HeartIcon, QueueListIcon, PlusIcon,
-} from '@heroicons/vue/24/outline'
-import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
-
-import HeaderPage from '@/components/layout/HeaderPage.vue'
-import PlayerBar from '@/components/layout/PlayerBar.vue'
-import UserSidebar from '@/components/users/UserSidebar.vue'
-import TrackGrid from '@/components/users/TrackGrid.vue'
-import TrackDetail from '@/components/users/TrackDetail.vue'
-import RightPanel from '@/components/users/RightPanel.vue'
-import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
-import AddToPlaylistModal from '@/components/users/AddToPlayListModal.vue'
-import KaraokeMode from '@/components/users/KaraokeMode.vue'
-import AuthRequiredModal from '@/modals/AuthRequiredModal.vue'
-import { usePlayerStore } from '@/stores/player'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/user_page.css'
+import { usePlayerStore } from '@/stores/player'
+import { resolveCover, fallbackCover } from '@/utils/media'
+import axios from 'axios'
 
 const router = useRouter()
-const player = usePlayerStore()
 const authStore = useAuthStore()
+const playerStore = usePlayerStore()
 
-const API_ROOT = (import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com').replace(/\/+$/, '')
-const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
+const sidebarOpen = ref(false)
+const tab = ref('home')
+const search = ref('')
+const loading = ref(false)
+const errMsg = ref('')
+const tracks = ref([])
 
-/* ── state ─────────────────────────────── */
-const musics = ref([])
-const playlists = ref([])
-const queue = ref([])
-const playHistory = ref([])
-const recentlyPlayed = ref([])
-const searchQuery = ref('')
-const activeView = ref('home')
-const isQueueOpen = ref(false)
-const sidebarCollapsed = ref(false)
-const currentMusic = ref(null)
-const currentIndex = ref(-1)
-const selectedTrack = ref(null)
-const activePlaylist = ref(null)
-const showCreateModal = ref(false)
-const showAddModal = ref(false)
-const showAuthModal = ref(false)
-const playlistLoading = ref(false)
-const playlistEditId = ref(null)
-const trackForPlaylist = ref(null)
+const initial = computed(() => (authStore.user?.name || 'U')[0].toUpperCase())
 
-const defaultPlaylistColor = 'linear-gradient(135deg,#4f7cff,#7c5cff)'
-const playlistColors = [
-  'linear-gradient(135deg,#4f7cff,#7c5cff)',
-  'linear-gradient(135deg,#2563eb,#06b6d4)',
-  'linear-gradient(135deg,#3b82f6,#6366f1)',
-  'linear-gradient(135deg,#0f172a,#334155)',
-]
-const playlistForm = ref({ name: '', description: '', color: defaultPlaylistColor })
+const sectionTitle = computed(() => ({
+  home: 'Discover Music',
+  favorites: 'Your Favorites',
+  library: 'Your Library',
+  playlists: 'Your Playlists',
+}[tab.value] || 'Music'))
 
-const fallback = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="50%" fill="#334155" font-size="48" text-anchor="middle" dominant-baseline="middle">♪</text></svg>`
-)
-
-watch([showCreateModal, showAddModal, showAuthModal], ([c, a, auth]) => {
-  document.body.style.overflow = c || a || auth ? 'hidden' : ''
-})
-
-/* ── helpers ────────────────────────────── */
-const getCover = (m) => {
-  const c = m?.coverUrl || m?.cover || ''
-  if (!c) return fallback
-  if (/^(https?:|data:)/.test(c)) return c
-  return `${API_ROOT}/${c.replace(/^\/+/, '')}`
-}
-
-const norm = (p) => {
-  if (!p) return ''
-  if (/^(https?:|data:|blob:)/.test(p)) return p
-  return `${API_ROOT}/${p.replace(/^\/+/, '')}`
-}
-
-const build = (m) => ({
-  ...m,
-  audioUrl: m?.streamUrl ? `${API_ROOT}${m.streamUrl}` : norm(m.url),
-  coverUrl: norm(m.cover),
-})
-
-const fmtDur = (s) => {
-  const t = Number(s || 0)
-  if (!t) return ''
-  return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
-}
-
-const requireAuth = () => {
-  if (!authStore.user) { showAuthModal.value = true; return false }
-  return true
-}
-
-const openAuthModal = () => { showAuthModal.value = true }
-
-/* ── computed ───────────────────────────── */
-const heroTrack = computed(() =>
-  selectedTrack.value || currentMusic.value || recentlyPlayed.value[0] || visibleMusics.value[0] || null
-)
-
-const viewLabel = computed(() => {
-  if (activePlaylist.value) return activePlaylist.value.name
-  return { home: 'All tracks', liked: 'Liked songs', downloaded: 'Downloads' }[activeView.value] || 'All tracks'
-})
-
-const filteredMusics = computed(() => {
-  let r = [...musics.value]
-  if (activeView.value === 'liked') r = r.filter(m => m.liked)
-  if (activeView.value === 'downloaded') r = r.filter(m => m.downloaded)
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    r = r.filter(m =>
-      (m.title || '').toLowerCase().includes(q) ||
-      (m.artist || '').toLowerCase().includes(q) ||
-      (m.album || '').toLowerCase().includes(q)
+const list = computed(() => {
+  let arr = tracks.value
+  if (tab.value === 'favorites') arr = arr.filter(t => t.liked)
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    arr = arr.filter(t =>
+      t.title?.toLowerCase().includes(q) ||
+      t.artist?.toLowerCase().includes(q) ||
+      t.genre?.some(g => g.toLowerCase().includes(q))
     )
   }
-  return r.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+  return arr
 })
 
-const visibleMusics = computed(() => {
-  if (!activePlaylist.value) return filteredMusics.value
-  let list = [...(activePlaylist.value.tracks || [])]
-  if (searchQuery.value.trim()) {
-    const q = searchQuery.value.toLowerCase()
-    list = list.filter(m => (m.title || '').toLowerCase().includes(q) || (m.artist || '').toLowerCase().includes(q))
-  }
-  return list
-})
-
-const sameArtistTracks = computed(() => {
-  const artist = (heroTrack.value?.artist || '').trim().toLowerCase()
-  if (!artist) return []
-  return musics.value.filter(m => m._id !== heroTrack.value?._id && (m.artist || '').trim().toLowerCase() === artist).slice(0, 6)
-})
-
-const recommendations = computed(() => {
-  const cur = currentMusic.value
-  const artScore = {}
-  playHistory.value.forEach(id => {
-    const m = musics.value.find(x => x._id === id)
-    if (m?.artist) artScore[m.artist] = (artScore[m.artist] || 0) + 1
-  })
-  return musics.value
-    .filter(m => m._id !== cur?._id)
-    .map(m => ({ ...m, score: (cur?.artist && m.artist === cur.artist ? 5 : 0) + (artScore[m.artist] || 0) * 2 }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10)
-})
-
-/* ── data fetching ──────────────────────── */
-const fetchMusics = async () => {
-  const { data } = await api.get('/music')
-  musics.value = Array.isArray(data) ? data : []
-}
-
-const fetchPlaylists = async () => {
+const fetchTracks = async () => {
+  loading.value = true
+  errMsg.value = ''
   try {
-    const { data } = await api.get('/playlists')
-    playlists.value = Array.isArray(data) ? data : []
-  } catch { playlists.value = [] }
-}
-
-const fetchRecentlyPlayed = async () => {
-  if (!authStore.user) return
-  try {
-    const { data } = await api.get('/music/me/recently-played')
-    recentlyPlayed.value = Array.isArray(data) ? data : []
-  } catch { recentlyPlayed.value = [] }
-}
-
-/* ── navigation ─────────────────────────── */
-const selectView = (key) => { activeView.value = key; activePlaylist.value = null; selectedTrack.value = null }
-const filterByArtist = () => { }
-
-const openTrackDetail = (track) => {
-  if (!requireAuth()) return
-  selectedTrack.value = track
-}
-
-const openPlaylist = async (pl) => {
-  try {
-    const { data } = await api.get(`/playlists/${pl._id}`)
-    activePlaylist.value = data
-    selectedTrack.value = null
-  } catch { ElMessage.error('Failed to open playlist') }
-}
-
-/* ── playlist CRUD ──────────────────────── */
-const openCreatePlaylist = () => {
-  if (!requireAuth()) return
-  playlistEditId.value = null
-  playlistForm.value = { name: '', description: '', color: defaultPlaylistColor }
-  showCreateModal.value = true
-}
-
-const openRenamePlaylist = (pl) => {
-  if (!requireAuth()) return
-  playlistEditId.value = pl._id
-  playlistForm.value = { name: pl.name || '', description: pl.description || '', color: pl.color || defaultPlaylistColor }
-  showCreateModal.value = true
-}
-
-const closeCreateModal = () => { showCreateModal.value = false; playlistEditId.value = null }
-
-const submitPlaylist = async () => {
-  if (!requireAuth()) return
-  if (!playlistForm.value.name.trim()) return ElMessage.error('Name required')
-  playlistLoading.value = true
-  try {
-    if (playlistEditId.value) {
-      const { data } = await api.patch(`/playlists/${playlistEditId.value}`, playlistForm.value)
-      playlists.value = playlists.value.map(p => p._id === data._id ? data : p)
-      if (activePlaylist.value?._id === data._id) activePlaylist.value = data
-      ElMessage.success('Playlist updated')
-    } else {
-      const { data } = await api.post('/playlists', playlistForm.value)
-      playlists.value.unshift(data)
-      ElMessage.success('Playlist created')
-    }
-    closeCreateModal()
-  } catch (e) { ElMessage.error(e?.response?.data?.message || 'Failed') }
-  finally { playlistLoading.value = false }
-}
-
-const deletePlaylist = async (pl) => {
-  if (!requireAuth()) return
-  try {
-    await ElMessageBox.confirm(`Delete "${pl.name}"?`, 'Delete playlist', { confirmButtonText: 'Delete', cancelButtonText: 'Cancel', type: 'warning' })
-    await api.delete(`/playlists/${pl._id}`)
-    playlists.value = playlists.value.filter(p => p._id !== pl._id)
-    if (activePlaylist.value?._id === pl._id) activePlaylist.value = null
-    ElMessage.success('Deleted')
-  } catch (e) { if (e !== 'cancel') ElMessage.error(e?.response?.data?.message || 'Failed') }
-}
-
-const openAddToPlaylist = (track) => {
-  if (!requireAuth()) return
-  trackForPlaylist.value = track
-  showAddModal.value = true
-}
-
-const closeAddModal = () => { trackForPlaylist.value = null; showAddModal.value = false }
-
-const addTrackToPlaylist = async (playlistId, musicId) => {
-  if (!requireAuth()) return
-  try {
-    const { data } = await api.post(`/playlists/${playlistId}/tracks`, { musicId })
-    playlists.value = playlists.value.map(p => p._id === playlistId ? data : p)
-    if (activePlaylist.value?._id === playlistId) activePlaylist.value = data
-    closeAddModal()
-    ElMessage.success('Added to playlist')
-  } catch (e) { ElMessage.error(e?.response?.data?.message || 'Failed') }
-}
-
-const removeTrackFromPlaylist = async (playlistId, musicId) => {
-  if (!requireAuth()) return
-  try {
-    const { data } = await api.delete(`/playlists/${playlistId}/tracks/${musicId}`)
-    activePlaylist.value = data
-    playlists.value = playlists.value.map(p => p._id === playlistId ? data : p)
-    ElMessage.success('Removed')
-  } catch { ElMessage.error('Failed') }
-}
-
-/* ── playback ───────────────────────────── */
-const syncMusic = (data) => {
-  musics.value = musics.value.map(x => x._id === data._id ? data : x)
-  if (currentMusic.value?._id === data._id) { currentMusic.value = build(data); player.setTrack(currentMusic.value) }
-  if (selectedTrack.value?._id === data._id) selectedTrack.value = data
-}
-
-const registerPlay = async (track) => {
-  try { await api.post(`/music/${track._id}/play`) } catch { }
-}
-
-const playMusic = async (m) => {
-  if (!requireAuth()) return
-  const p = build(m)
-  currentMusic.value = p
-  currentIndex.value = visibleMusics.value.findIndex(x => x._id === m._id)
-  playHistory.value = [m._id, ...playHistory.value.filter(id => id !== m._id)].slice(0, 30)
-  player.setTrack(p)
-  await registerPlay(m)
-}
-
-const playFromPlaylist = async (track, playlist) => {
-  if (!requireAuth()) return
-  if (!activePlaylist.value || activePlaylist.value._id !== playlist._id) await openPlaylist(playlist)
-  playMusic(track)
-}
-
-const playPrev = () => {
-  if (!visibleMusics.value.length) return
-  currentIndex.value = currentIndex.value <= 0 ? visibleMusics.value.length - 1 : currentIndex.value - 1
-  playMusic(visibleMusics.value[currentIndex.value])
-}
-
-const playNext = () => {
-  if (queue.value.length) { playMusic(queue.value.shift()); return }
-  if (!visibleMusics.value.length) return
-  currentIndex.value = currentIndex.value >= visibleMusics.value.length - 1 ? 0 : currentIndex.value + 1
-  playMusic(visibleMusics.value[currentIndex.value])
-}
-
-const playShuffle = () => {
-  const src = visibleMusics.value.filter(m => m._id !== currentMusic.value?._id)
-  if (src.length) playMusic(src[Math.floor(Math.random() * src.length)])
-}
-
-const addToQueue = (m) => {
-  if (!requireAuth()) return
-  const p = build(m)
-  if (!queue.value.some(i => i._id === p._id)) {
-    queue.value.push(p)
-    isQueueOpen.value = true
-    ElMessage.success('Added to queue')
+    const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/music`, { withCredentials: true })
+    tracks.value = Array.isArray(data) ? data : []
+  } catch (err) {
+    errMsg.value = err?.response?.data?.message || 'Could not load music.'
+  } finally {
+    loading.value = false
   }
 }
 
-const toggleLike = async (m) => {
-  if (!requireAuth()) return
-  try {
-    const { data } = await api.patch(`/music/${m._id}/like`)
-    syncMusic(data)
-  } catch { ElMessage.error('Failed') }
+const setTab = (t) => { tab.value = t; sidebarOpen.value = false }
+
+const play = (t) => {
+  playerStore.setTrack(t, tracks.value)
 }
 
-const toggleDownload = async (m) => {
-  if (!requireAuth()) return
+const like = async (t) => {
   try {
-    const { data } = await api.patch(`/music/${m._id}/download`)
-    syncMusic(data)
-  } catch { ElMessage.error('Failed') }
+    const { data } = await axios.patch(
+      `${import.meta.env.VITE_API_URL}/music/${t._id}/like`,
+      {}, { withCredentials: true }
+    )
+    const idx = tracks.value.findIndex(x => x._id === t._id)
+    if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...data }
+  } catch { }
 }
 
-onMounted(async () => {
-  await authStore.fetchMe()
-  await fetchMusics()
-  if (authStore.user) await Promise.all([fetchPlaylists(), fetchRecentlyPlayed()])
-})
+const fmt = (s) => {
+  if (!s) return '--'
+  return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
+}
+
+const imgErr = (e) => { e.target.src = fallbackCover }
+
+const logout = async () => {
+  await authStore.logout()
+  router.push('/')
+}
+
+onMounted(fetchTracks)
 </script>
+
+<style scoped>
+*,
+*::before,
+*::after {
+  box-sizing: border-box
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: #04090f;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 234px;
+  flex-shrink: 0;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(10, 21, 37, .97);
+  border-right: 1px solid rgba(56, 189, 248, .07);
+  z-index: 50;
+  transition: transform .3s;
+}
+
+.sb-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, .04);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.logo-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -.02em;
+}
+
+.sb-close {
+  display: none;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.sb-nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: none;
+  background: none;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .18s;
+  text-align: left;
+  width: 100%;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, .04);
+  color: #cbd5e1;
+}
+
+.nav-item.active {
+  background: rgba(14, 165, 233, .12);
+  color: #38bdf8;
+}
+
+.sb-bottom {
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, .04);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: inherit;
+  transition: background .2s;
+  min-width: 0;
+}
+
+.user-row:hover {
+  background: rgba(255, 255, 255, .04);
+}
+
+.user-av {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.user-inf {
+  min-width: 0;
+}
+
+.un {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ue {
+  display: block;
+  font-size: 11px;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  padding: 7px;
+  border-radius: 7px;
+  transition: all .2s;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.logout-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, .08);
+}
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .6);
+  z-index: 40;
+  backdrop-filter: blur(2px);
+}
+
+.overlay.show {
+  display: block;
+}
+
+/* Main */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 22px;
+  background: rgba(4, 9, 15, .92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, .04);
+}
+
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all .2s;
+}
+
+.menu-btn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, .05);
+}
+
+.search-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: rgba(15, 30, 56, .65);
+  border: 1px solid rgba(56, 189, 248, .1);
+  border-radius: 10px;
+  padding: 0 13px;
+  max-width: 460px;
+  transition: border-color .2s;
+}
+
+.search-box:focus-within {
+  border-color: rgba(56, 189, 248, .35);
+}
+
+.search-box svg {
+  color: #334155;
+  flex-shrink: 0;
+}
+
+.search-in {
+  flex: 1;
+  height: 40px;
+  background: none;
+  border: none;
+  outline: none;
+  color: #f1f5f9;
+  font-size: 14px;
+}
+
+.search-in::placeholder {
+  color: #334155;
+}
+
+.search-clear {
+  background: none;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+}
+
+/* Body */
+.body {
+  padding: 24px 22px 120px;
+  flex: 1;
+}
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sec-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #f1f5f9;
+  letter-spacing: -.02em;
+  margin: 0;
+}
+
+.sec-count {
+  font-size: 13px;
+  color: #475569;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: rgba(15, 30, 56, .55);
+  border: 1px solid rgba(56, 189, 248, .08);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .22s;
+}
+
+.card:hover,
+.card.playing {
+  border-color: rgba(56, 189, 248, .25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .38);
+}
+
+.card.playing {
+  border-color: rgba(14, 165, 233, .4);
+}
+
+.card-art {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .3s;
+}
+
+.card:hover .card-art img {
+  transform: scale(1.05);
+}
+
+.card-over {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .44);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .2s;
+  color: #fff;
+}
+
+.card:hover .card-over,
+.card.playing .card-over {
+  opacity: 1;
+}
+
+.mini-eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+}
+
+.mini-eq span {
+  width: 3px;
+  background: #0ea5e9;
+  border-radius: 2px;
+  animation: eq .75s ease-in-out infinite alternate;
+}
+
+.mini-eq span:nth-child(1) {
+  height: 10px;
+  animation-delay: 0s
+}
+
+.mini-eq span:nth-child(2) {
+  height: 18px;
+  animation-delay: .15s
+}
+
+.mini-eq span:nth-child(3) {
+  height: 13px;
+  animation-delay: .3s
+}
+
+.mini-eq span:nth-child(4) {
+  height: 7px;
+  animation-delay: .45s
+}
+
+@keyframes eq {
+  from {
+    transform: scaleY(.4)
+  }
+
+  to {
+    transform: scaleY(1)
+  }
+}
+
+.card-info {
+  padding: 11px 12px 6px;
+}
+
+.ct {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ca {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ctag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 2px 6px;
+  background: rgba(14, 165, 233, .1);
+  color: #38bdf8;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.cdur {
+  font-size: 11px;
+  color: #334155;
+}
+
+.card-foot {
+  padding: 0 12px 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #334155;
+  padding: 5px;
+  border-radius: 6px;
+  transition: all .2s;
+  display: flex;
+}
+
+.like-btn:hover {
+  color: #f43f5e;
+}
+
+.like-btn.liked {
+  color: #f43f5e;
+}
+
+/* Skeleton */
+.sk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px;
+}
+
+.sk-card {
+  aspect-ratio: .88;
+  background: linear-gradient(90deg, rgba(15, 30, 56, .55) 25%, rgba(30, 50, 80, .32) 50%, rgba(15, 30, 56, .55) 75%);
+  background-size: 200% 100%;
+  border-radius: 14px;
+  animation: shim 1.5s infinite;
+}
+
+@keyframes shim {
+  to {
+    background-position: -200% 0
+  }
+}
+
+/* Empty */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.empty-ico {
+  font-size: 46px;
+  margin-bottom: 14px;
+}
+
+.empty-t {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0 0 6px;
+}
+
+.empty-s {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 18px;
+}
+
+.retry {
+  padding: 8px 20px;
+  background: rgba(14, 165, 233, .1);
+  border: 1px solid rgba(14, 165, 233, .2);
+  border-radius: 8px;
+  color: #38bdf8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.retry:hover {
+  background: rgba(14, 165, 233, .18);
+}
+
+/* Responsive */
+@media (max-width:900px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: translateX(-100%);
+    z-index: 60;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sb-close {
+    display: flex;
+  }
+
+  .menu-btn {
+    display: flex;
+  }
+}
+
+@media (max-width:600px) {
+  .body {
+    padding: 18px 14px 120px;
+  }
+
+  .topbar {
+    padding: 10px 14px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+@media (max-width:360px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
