@@ -18,10 +18,10 @@ const routes = [
     meta: { guestOnly: true, title: 'Login' },
   },
   {
-    path: '/signup',
-    name: 'Signup',
+    path: '/register',
+    name: 'Register',
     component: () => import('../pages/auth/RegistrationPage.vue'),
-    meta: { guestOnly: true, title: 'Sign up' },
+    meta: { guestOnly: true, title: 'Register' },
   },
   {
     path: '/forgot-password',
