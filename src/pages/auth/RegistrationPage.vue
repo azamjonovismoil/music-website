@@ -1,33 +1,43 @@
 <template>
   <div class="auth-page">
     <div class="auth-bg" aria-hidden="true">
-      <div class="orb o1"></div>
-      <div class="orb o2"></div>
-      <div class="grid-lines"></div>
+      <div class="auth-orb auth-orb-1" style="background:#6366f1;top:-200px;right:-140px;left:auto;"></div>
+      <div class="auth-orb auth-orb-2" style="background:#0ea5e9;bottom:-150px;left:-100px;right:auto;"></div>
+      <div class="auth-orb auth-orb-3"></div>
+      <div class="auth-grid"></div>
     </div>
 
+    <!-- Left branding -->
     <div class="auth-left">
-      <router-link to="/" class="logo">
-        <span class="logo-icon">♪</span>
-        <span class="logo-text">ExclusiveMusics</span>
+      <router-link to="/" class="auth-logo">
+        <span class="auth-logo-icon">♪</span>
+        <span class="auth-logo-name">ExclusiveMusics</span>
       </router-link>
-      <div class="al-body">
-        <h1 class="al-title">Join the music</h1>
-        <p class="al-sub">Create your free account and start streaming in seconds.</p>
-        <ul class="al-list">
-          <li v-for="f in features" :key="f"><span class="al-dot"></span>{{ f }}</li>
+
+      <div class="auth-left-body">
+        <h1 class="auth-left-title">Join the<br>music</h1>
+        <p class="auth-left-sub">Create your free account and start streaming in seconds. No credit card needed.</p>
+        <ul class="auth-features">
+          <li v-for="f in features" :key="f">
+            <span class="auth-feature-dot" style="background:#818cf8;box-shadow:0 0 8px rgba(99,102,241,.5)"></span>{{ f
+            }}
+          </li>
         </ul>
       </div>
-      <p class="al-foot">Already have an account? <router-link to="/login" class="link">Sign in</router-link></p>
+
+      <p class="auth-left-foot">
+        Already have an account? <router-link to="/login" class="auth-link">Sign in</router-link>
+      </p>
     </div>
 
+    <!-- Right form -->
     <div class="auth-right">
-      <div class="form-card">
-        <h2 class="fc-title">Create account</h2>
-        <p class="fc-sub">Free forever. No credit card needed.</p>
+      <div class="auth-card">
+        <h2 class="auth-card-title">Create account</h2>
+        <p class="auth-card-sub">Free forever. No credit card needed.</p>
 
-        <button class="google-btn" type="button" @click="loginGoogle">
-          <svg width="18" height="18" viewBox="0 0 24 24">
+        <button class="auth-google-btn" type="button" @click="loginGoogle">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
             <path fill="#34A853"
@@ -40,48 +50,46 @@
           Continue with Google
         </button>
 
-        <div class="divider"><span>or</span></div>
+        <div class="auth-divider"><span>or</span></div>
 
-        <form @submit.prevent="submit" novalidate>
-          <div class="field" :class="{ err: e.name }">
-            <label>Full name</label>
-            <div class="finput" :class="{ focused: f.name }">
-              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+        <form class="auth-form" @submit.prevent="submit" novalidate>
+          <!-- Name -->
+          <div class="auth-field" :class="{ 'auth-err': errors.name }">
+            <label class="auth-label">Full name</label>
+            <div class="auth-input-wrap">
+              <svg class="auth-input-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
-              <input v-model="form.name" type="text" placeholder="John Doe" @focus="f.name = true"
-                @blur="f.name = false" autocomplete="name" />
+              <input v-model="form.name" type="text" placeholder="John Doe" autocomplete="name" />
             </div>
-            <span class="ferr" v-if="e.name">{{ e.name }}</span>
+            <span v-if="errors.name" class="auth-field-err">{{ errors.name }}</span>
           </div>
 
-          <div class="field" :class="{ err: e.email }">
-            <label>Email</label>
-            <div class="finput" :class="{ focused: f.email }">
-              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+          <!-- Email -->
+          <div class="auth-field" :class="{ 'auth-err': errors.email }">
+            <label class="auth-label">Email</label>
+            <div class="auth-input-wrap">
+              <svg class="auth-input-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                 <polyline points="22,6 12,13 2,6" />
               </svg>
-              <input v-model="form.email" type="email" placeholder="you@example.com" @focus="f.email = true"
-                @blur="f.email = false" autocomplete="email" />
+              <input v-model="form.email" type="email" placeholder="you@example.com" autocomplete="email" />
             </div>
-            <span class="ferr" v-if="e.email">{{ e.email }}</span>
+            <span v-if="errors.email" class="auth-field-err">{{ errors.email }}</span>
           </div>
 
-          <div class="field" :class="{ err: e.password }">
-            <label>Password</label>
-            <div class="finput" :class="{ focused: f.password }">
-              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
+          <!-- Password -->
+          <div class="auth-field" :class="{ 'auth-err': errors.password }">
+            <label class="auth-label">Password</label>
+            <div class="auth-input-wrap">
+              <svg class="auth-input-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="11" width="18" height="11" rx="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
               <input v-model="form.password" :type="showPass ? 'text' : 'password'" placeholder="Min. 6 characters"
-                @focus="f.password = true" @blur="f.password = false" autocomplete="new-password" />
-              <button type="button" class="eye" @click="showPass = !showPass" tabindex="-1">
+                autocomplete="new-password" />
+              <button type="button" class="auth-eye" @click="showPass = !showPass" tabindex="-1">
                 <svg v-if="!showPass" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -95,16 +103,16 @@
                 </svg>
               </button>
             </div>
-            <!-- Password strength -->
-            <div class="pw-str" v-if="form.password">
-              <div class="pw-bar" v-for="n in 4" :key="n"
-                :class="{ on: strength >= n, [`s${strength}`]: strength >= n }"></div>
-              <span class="pw-lbl" :class="`sl${strength}`">{{ labels[strength] }}</span>
+
+            <!-- Strength bars -->
+            <div v-if="form.password" class="auth-pw-strength">
+              <div v-for="n in 4" :key="n" class="auth-pw-bar" :class="strength >= n ? `on-${strength}` : ''"></div>
+              <span class="auth-pw-lbl" :class="`s${strength}`">{{ pwLabels[strength] }}</span>
             </div>
-            <span class="ferr" v-if="e.password">{{ e.password }}</span>
+            <span v-if="errors.password" class="auth-field-err">{{ errors.password }}</span>
           </div>
 
-          <div class="server-err" v-if="serverErr">
+          <div v-if="serverErr" class="auth-server-err">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
@@ -113,15 +121,19 @@
             {{ serverErr }}
           </div>
 
-          <button class="submit-btn" type="submit" :disabled="loading">
-            <span v-if="loading" class="spin"></span>
+          <button class="auth-submit-btn" type="submit" :disabled="loading">
+            <span v-if="loading" class="auth-spin"></span>
             <span v-else>Create account</span>
           </button>
 
-          <p class="terms">By registering, you agree to our <a href="#" class="link">Terms of Service</a>.</p>
+          <p class="auth-terms">
+            By registering you agree to our <a href="#" class="auth-link">Terms of Service</a>.
+          </p>
         </form>
 
-        <p class="mob-alt">Already have an account? <router-link to="/login" class="link">Sign in</router-link></p>
+        <p class="auth-alt-text auth-mob-only">
+          Already have an account? <router-link to="/login" class="auth-link">Sign in</router-link>
+        </p>
       </div>
     </div>
   </div>
@@ -131,13 +143,13 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import '@/styles/auth_page.css'
 
 const router = useRouter()
 const auth = useAuthStore()
 
 const form = reactive({ name: '', email: '', password: '' })
-const e = reactive({ name: '', email: '', password: '' })
-const f = reactive({ name: false, email: false, password: false })
+const errors = reactive({ name: '', email: '', password: '' })
 const loading = ref(false)
 const showPass = ref(false)
 const serverErr = ref('')
@@ -148,8 +160,7 @@ const features = [
   'Real-time synced lyrics',
   'Personal playlists & favorites',
 ]
-
-const labels = ['', 'Too weak', 'Weak', 'Good', 'Strong']
+const pwLabels = ['', 'Too weak', 'Weak', 'Good', 'Strong']
 
 const strength = computed(() => {
   const p = form.password
@@ -163,11 +174,17 @@ const strength = computed(() => {
 })
 
 const validate = () => {
-  e.name = ''; e.email = ''; e.password = ''
+  errors.name = errors.email = errors.password = ''
   let ok = true
-  if (!form.name || form.name.trim().length < 2) { e.name = 'Name must be at least 2 characters'; ok = false }
-  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { e.email = 'Enter a valid email'; ok = false }
-  if (!form.password || form.password.length < 6) { e.password = 'Password must be at least 6 characters'; ok = false }
+  if (!form.name || form.name.trim().length < 2) {
+    errors.name = 'Name must be at least 2 characters'; ok = false
+  }
+  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    errors.email = 'Enter a valid email'; ok = false
+  }
+  if (!form.password || form.password.length < 6) {
+    errors.password = 'Password must be at least 6 characters'; ok = false
+  }
   return ok
 }
 
@@ -189,432 +206,3 @@ const loginGoogle = () => {
   window.location.href = `${import.meta.env.VITE_API_ROOT}/api/auth/google`
 }
 </script>
-
-<style scoped>
-*,
-*::before,
-*::after {
-  box-sizing: border-box
-}
-
-.auth-page {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  background: #04090f;
-  color: #e2e8f0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  position: relative;
-}
-
-.auth-bg {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(88px);
-  opacity: .22;
-}
-
-.o1 {
-  width: 500px;
-  height: 500px;
-  background: #6366f1;
-  top: -160px;
-  right: -120px;
-}
-
-.o2 {
-  width: 420px;
-  height: 420px;
-  background: #0ea5e9;
-  bottom: -120px;
-  left: -80px;
-}
-
-.grid-lines {
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(56, 189, 248, .03) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, .03) 1px, transparent 1px);
-  background-size: 64px 64px;
-}
-
-.auth-left {
-  position: relative;
-  z-index: 1;
-  padding: 40px 52px;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid rgba(56, 189, 248, .07);
-  background: rgba(10, 21, 37, .3);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  text-decoration: none;
-  color: inherit;
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.logo-text {
-  font-size: 15px;
-  font-weight: 700;
-  color: #f1f5f9;
-  letter-spacing: -.02em;
-}
-
-.al-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 40px 0;
-}
-
-.al-title {
-  font-size: clamp(26px, 3.5vw, 42px);
-  font-weight: 800;
-  color: #f1f5f9;
-  letter-spacing: -.03em;
-  margin: 0 0 10px;
-}
-
-.al-sub {
-  font-size: 15px;
-  color: #64748b;
-  margin: 0 0 36px;
-  line-height: 1.65;
-}
-
-.al-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-
-.al-list li {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  font-size: 14px;
-  color: #94a3b8;
-}
-
-.al-dot {
-  width: 6px;
-  height: 6px;
-  background: #818cf8;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.al-foot {
-  font-size: 14px;
-  color: #475569;
-}
-
-.link {
-  color: #38bdf8;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-.auth-right {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 24px;
-}
-
-.form-card {
-  width: 100%;
-  max-width: 420px;
-}
-
-.fc-title {
-  font-size: 25px;
-  font-weight: 800;
-  color: #f1f5f9;
-  letter-spacing: -.02em;
-  margin: 0 0 5px;
-}
-
-.fc-sub {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0 0 26px;
-}
-
-.google-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 11px;
-  background: rgba(255, 255, 255, .04);
-  border: 1px solid rgba(255, 255, 255, .09);
-  border-radius: 10px;
-  color: #e2e8f0;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .2s;
-}
-
-.google-btn:hover {
-  background: rgba(255, 255, 255, .08);
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 18px 0;
-  color: #334155;
-  font-size: 12px;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, .06);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 14px;
-}
-
-.field label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
-}
-
-.finput {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 0 13px;
-  background: rgba(15, 30, 56, .6);
-  border: 1px solid rgba(56, 189, 248, .1);
-  border-radius: 10px;
-  transition: border-color .2s;
-}
-
-.finput.focused {
-  border-color: rgba(56, 189, 248, .38);
-}
-
-.field.err .finput {
-  border-color: rgba(239, 68, 68, .45);
-}
-
-.fic {
-  color: #334155;
-  flex-shrink: 0;
-}
-
-.finput input {
-  flex: 1;
-  height: 44px;
-  background: none;
-  border: none;
-  outline: none;
-  color: #f1f5f9;
-  font-size: 14px;
-}
-
-.finput input::placeholder {
-  color: #334155;
-}
-
-.eye {
-  background: none;
-  border: none;
-  color: #475569;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-}
-
-/* Password strength */
-.pw-str {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 6px;
-}
-
-.pw-bar {
-  flex: 1;
-  height: 3px;
-  background: rgba(255, 255, 255, .08);
-  border-radius: 2px;
-  transition: background .3s;
-}
-
-.pw-bar.on.s1 {
-  background: #ef4444;
-}
-
-.pw-bar.on.s2 {
-  background: #f97316;
-}
-
-.pw-bar.on.s3 {
-  background: #eab308;
-}
-
-.pw-bar.on.s4 {
-  background: #22c55e;
-}
-
-.pw-lbl {
-  font-size: 11px;
-  min-width: 52px;
-  text-align: right;
-}
-
-.pw-lbl.sl1 {
-  color: #ef4444
-}
-
-.pw-lbl.sl2 {
-  color: #f97316
-}
-
-.pw-lbl.sl3 {
-  color: #eab308
-}
-
-.pw-lbl.sl4 {
-  color: #22c55e
-}
-
-.ferr {
-  font-size: 12px;
-  color: #ef4444;
-}
-
-.server-err {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 13px;
-  background: rgba(239, 68, 68, .08);
-  border: 1px solid rgba(239, 68, 68, .2);
-  border-radius: 10px;
-  font-size: 13px;
-  color: #f87171;
-  margin-bottom: 14px;
-}
-
-.submit-btn {
-  width: 100%;
-  height: 46px;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 4px;
-}
-
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(14, 165, 233, .3);
-}
-
-.submit-btn:disabled {
-  opacity: .6;
-  cursor: not-allowed;
-}
-
-.spin {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, .3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin .7s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg)
-  }
-}
-
-.terms {
-  font-size: 12px;
-  color: #334155;
-  text-align: center;
-  margin: 10px 0 0;
-}
-
-.mob-alt {
-  display: none;
-  text-align: center;
-  margin-top: 18px;
-  font-size: 14px;
-  color: #475569;
-}
-
-@media (max-width:768px) {
-  .auth-page {
-    grid-template-columns: 1fr;
-  }
-
-  .auth-left {
-    display: none;
-  }
-
-  .auth-right {
-    min-height: 100vh;
-    align-items: flex-start;
-    padding-top: 64px;
-  }
-
-  .mob-alt {
-    display: block;
-  }
-}
-</style>

@@ -1,13 +1,13 @@
 <template>
-  <div class="layout">
+  <div class="up-layout">
     <!-- Sidebar -->
-    <aside class="sidebar" :class="{ open: sidebarOpen }">
-      <div class="sb-head">
-        <router-link to="/" class="logo">
-          <span class="logo-icon">♪</span>
-          <span class="logo-text">ExclusiveMusics</span>
+    <aside class="up-sidebar" :class="{ 'up-sidebar--open': sidebarOpen }">
+      <div class="up-sb-head">
+        <router-link to="/" class="up-logo">
+          <span class="up-logo-icon">♪</span>
+          <span class="up-logo-text">ExclusiveMusics</span>
         </router-link>
-        <button class="sb-close" @click="sidebarOpen = false" aria-label="Close">
+        <button class="up-sb-close" @click="sidebarOpen = false" aria-label="Close menu">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
@@ -15,50 +15,24 @@
         </button>
       </div>
 
-      <nav class="sb-nav">
-        <button class="nav-item" :class="{ active: tab === 'home' }" @click="setTab('home')">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          Discover
-        </button>
-        <button class="nav-item" :class="{ active: tab === 'favorites' }" @click="setTab('favorites')">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path
-              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          Favorites
-        </button>
-        <button class="nav-item" :class="{ active: tab === 'library' }" @click="setTab('library')">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-          </svg>
-          Library
-        </button>
-        <button class="nav-item" :class="{ active: tab === 'playlists' }" @click="setTab('playlists')">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" />
-          </svg>
-          Playlists
+      <nav class="up-nav">
+        <button v-for="item in navItems" :key="item.id" class="up-nav-item"
+          :class="{ 'up-nav-item--active': tab === item.id }" @click="setTab(item.id)">
+          <component :is="item.icon" class="up-nav-ico" />
+          {{ item.label }}
+          <span v-if="item.id === 'favorites' && likedCount" class="up-nav-badge">{{ likedCount }}</span>
         </button>
       </nav>
 
-      <div class="sb-bottom">
-        <router-link to="/profile" class="user-row">
-          <div class="user-av">{{ initial }}</div>
-          <div class="user-inf">
-            <span class="un">{{ authStore.user?.name || 'User' }}</span>
-            <span class="ue">{{ authStore.user?.email || '' }}</span>
+      <div class="up-sb-bottom">
+        <router-link to="/profile" class="up-user-row">
+          <div class="up-user-av">{{ initial }}</div>
+          <div class="up-user-info">
+            <span class="up-user-name">{{ authStore.user?.name || 'User' }}</span>
+            <span class="up-user-email">{{ authStore.user?.email || '' }}</span>
           </div>
         </router-link>
-        <button class="logout-btn" @click="logout" title="Logout">
+        <button class="up-logout" @click="logout" title="Logout" aria-label="Logout">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
@@ -68,25 +42,26 @@
       </div>
     </aside>
 
-    <div class="overlay" :class="{ show: sidebarOpen }" @click="sidebarOpen = false"></div>
+    <div class="up-overlay" :class="{ 'up-overlay--show': sidebarOpen }" @click="sidebarOpen = false"></div>
 
     <!-- Main -->
-    <main class="main">
-      <div class="topbar">
-        <button class="menu-btn" @click="sidebarOpen = true" aria-label="Menu">
+    <main class="up-main">
+      <!-- Topbar -->
+      <div class="up-topbar">
+        <button class="up-menu-btn" @click="sidebarOpen = true" aria-label="Menu">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="3" y1="6" x2="21" y2="6" />
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <div class="search-box">
+        <div class="up-search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <input v-model="search" type="text" placeholder="Search songs, artists…" class="search-in" />
-          <button v-if="search" class="search-clear" @click="search = ''" aria-label="Clear">
+          <input v-model="search" type="text" placeholder="Search songs, artists…" class="up-search-input" />
+          <button v-if="search" class="up-search-clear" @click="search = ''" aria-label="Clear search">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="18" y1="6" x2="6" y2="18" />
               <line x1="6" y1="6" x2="18" y2="18" />
@@ -95,58 +70,59 @@
         </div>
       </div>
 
-      <div class="body">
-        <!-- Loading -->
-        <div v-if="loading" class="sk-grid">
-          <div class="sk-card" v-for="n in 8" :key="n"></div>
+      <!-- Content -->
+      <div class="up-body">
+        <!-- Skeleton -->
+        <div v-if="loading" class="up-grid">
+          <div class="up-sk-card" v-for="n in 8" :key="n"></div>
         </div>
 
         <!-- Error -->
-        <div v-else-if="errMsg" class="empty">
-          <div class="empty-ico">⚠️</div>
-          <p class="empty-t">Could not load music</p>
-          <p class="empty-s">{{ errMsg }}</p>
-          <button class="retry" @click="fetchTracks">Try again</button>
+        <div v-else-if="errMsg" class="up-empty">
+          <div class="up-empty-ico">⚠️</div>
+          <p class="up-empty-title">Could not load music</p>
+          <p class="up-empty-sub">{{ errMsg }}</p>
+          <button class="up-retry" @click="fetchTracks">Try again</button>
         </div>
 
         <!-- Empty -->
-        <div v-else-if="list.length === 0" class="empty">
-          <div class="empty-ico">🎵</div>
-          <p class="empty-t">No tracks found</p>
-          <p class="empty-s">Try a different search term or come back later.</p>
+        <div v-else-if="list.length === 0" class="up-empty">
+          <div class="up-empty-ico">🎵</div>
+          <p class="up-empty-title">No tracks found</p>
+          <p class="up-empty-sub">Try a different search or check back later.</p>
         </div>
 
         <!-- Grid -->
         <template v-else>
-          <div class="sec-head">
-            <h2 class="sec-title">{{ sectionTitle }}</h2>
-            <span class="sec-count">{{ list.length }} tracks</span>
+          <div class="up-sec-head">
+            <h2 class="up-sec-title">{{ sectionTitle }}</h2>
+            <span class="up-sec-count">{{ list.length }} tracks</span>
           </div>
-          <div class="grid">
-            <div class="card" v-for="t in list" :key="t._id"
-              :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="play(t)">
-              <div class="card-art">
+          <div class="up-grid">
+            <div v-for="t in list" :key="t._id" class="up-card"
+              :class="{ 'up-card--playing': playerStore.currentTrack?._id === t._id }" @click="play(t)">
+              <div class="up-card-art">
                 <img :src="resolveCover(t)" :alt="t.title" @error="imgErr" loading="lazy" />
-                <div class="card-over">
-                  <div v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying" class="mini-eq">
-                    <span></span><span></span><span></span><span></span>
+                <div class="up-card-overlay">
+                  <div v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying" class="up-eq">
+                    <span /><span /><span /><span />
                   </div>
                   <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
                     <polygon points="5 3 19 12 5 21 5 3" />
                   </svg>
                 </div>
               </div>
-              <div class="card-info">
-                <p class="ct">{{ t.title }}</p>
-                <p class="ca">{{ t.artist }}</p>
-                <div class="cm">
-                  <span v-if="t.genre?.length" class="ctag">{{ t.genre[0] }}</span>
-                  <span class="cdur">{{ fmt(t.duration) }}</span>
+              <div class="up-card-info">
+                <p class="up-card-title">{{ t.title }}</p>
+                <p class="up-card-artist">{{ t.artist }}</p>
+                <div class="up-card-meta">
+                  <span v-if="t.genre?.length" class="up-card-tag">{{ t.genre[0] }}</span>
+                  <span class="up-card-dur">{{ fmt(t.duration) }}</span>
                 </div>
               </div>
-              <div class="card-foot" @click.stop>
-                <button class="like-btn" :class="{ liked: t.liked }" @click="like(t)"
-                  :title="t.liked ? 'Unlike' : 'Like'">
+              <div class="up-card-foot" @click.stop>
+                <button class="up-like-btn" :class="{ 'up-like-btn--on': t.liked }" @click="like(t)"
+                  :disabled="likeInFlight.has(t._id)" :title="t.liked ? 'Unlike' : 'Like'">
                   <svg width="15" height="15" viewBox="0 0 24 24" :fill="t.liked ? 'currentColor' : 'none'"
                     stroke="currentColor" stroke-width="2">
                     <path
@@ -163,16 +139,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { usePlayerStore } from '@/stores/player'
-import { resolveCover, fallbackCover } from '@/utils/media'
+import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
 import axios from 'axios'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const playerStore = usePlayerStore()
+
+const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 
 const sidebarOpen = ref(false)
 const tab = ref('home')
@@ -180,8 +158,23 @@ const search = ref('')
 const loading = ref(false)
 const errMsg = ref('')
 const tracks = ref([])
+const likeInFlight = ref(new Set())
+
+// ── Icons as inline SVG components ──────────────────────────────────────────
+const HomeIcon = { render: () => h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('path', { d: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }), h('polyline', { points: '9 22 9 12 15 12 15 22' })]) }
+const HeartIcon = { render: () => h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('path', { d: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' })]) }
+const LibraryIcon = { render: () => h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('path', { d: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z' }), h('path', { d: 'M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z' })]) }
+const PlaylistIcon = { render: () => h('svg', { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2 }, [h('line', { x1: 8, y1: 6, x2: 21, y2: 6 }), h('line', { x1: 8, y1: 12, x2: 21, y2: 12 }), h('line', { x1: 8, y1: 18, x2: 21, y2: 18 }), h('line', { x1: 3, y1: 6, x2: '3.01', y2: 6 }), h('line', { x1: 3, y1: 12, x2: '3.01', y2: 12 }), h('line', { x1: 3, y1: 18, x2: '3.01', y2: 18 })]) }
+
+const navItems = [
+  { id: 'home', label: 'Discover', icon: HomeIcon },
+  { id: 'favorites', label: 'Favorites', icon: HeartIcon },
+  { id: 'library', label: 'Library', icon: LibraryIcon },
+  { id: 'playlists', label: 'Playlists', icon: PlaylistIcon },
+]
 
 const initial = computed(() => (authStore.user?.name || 'U')[0].toUpperCase())
+const likedCount = computed(() => tracks.value.filter(t => t.liked).length)
 
 const sectionTitle = computed(() => ({
   home: 'Discover Music',
@@ -191,14 +184,14 @@ const sectionTitle = computed(() => ({
 }[tab.value] || 'Music'))
 
 const list = computed(() => {
-  let arr = tracks.value
+  let arr = [...tracks.value]
   if (tab.value === 'favorites') arr = arr.filter(t => t.liked)
-  if (search.value) {
+  if (search.value.trim()) {
     const q = search.value.toLowerCase()
     arr = arr.filter(t =>
-      t.title?.toLowerCase().includes(q) ||
-      t.artist?.toLowerCase().includes(q) ||
-      t.genre?.some(g => g.toLowerCase().includes(q))
+      (t.title || '').toLowerCase().includes(q) ||
+      (t.artist || '').toLowerCase().includes(q) ||
+      (t.genre || []).some(g => g.toLowerCase().includes(q))
     )
   }
   return arr
@@ -208,7 +201,7 @@ const fetchTracks = async () => {
   loading.value = true
   errMsg.value = ''
   try {
-    const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/music`, { withCredentials: true })
+    const { data } = await api.get('/music')
     tracks.value = Array.isArray(data) ? data : []
   } catch (err) {
     errMsg.value = err?.response?.data?.message || 'Could not load music.'
@@ -224,14 +217,31 @@ const play = (t) => {
 }
 
 const like = async (t) => {
+  if (likeInFlight.value.has(t._id)) return
+  likeInFlight.value.add(t._id)
+
+  // Optimistic update
+  const idx = tracks.value.findIndex(x => x._id === t._id)
+  if (idx !== -1) {
+    tracks.value[idx] = {
+      ...tracks.value[idx],
+      liked: !tracks.value[idx].liked,
+      likeCount: tracks.value[idx].liked
+        ? Math.max(0, (tracks.value[idx].likeCount || 0) - 1)
+        : (tracks.value[idx].likeCount || 0) + 1,
+    }
+  }
+
   try {
-    const { data } = await axios.patch(
-      `${import.meta.env.VITE_API_URL}/music/${t._id}/like`,
-      {}, { withCredentials: true }
-    )
-    const idx = tracks.value.findIndex(x => x._id === t._id)
+    const { data } = await api.patch(`/music/${t._id}/like`)
     if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...data }
-  } catch { }
+  } catch (err) {
+    // Revert on error
+    if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], liked: t.liked, likeCount: t.likeCount }
+    console.error('[Like]', err?.response?.data?.message || err.message)
+  } finally {
+    likeInFlight.value.delete(t._id)
+  }
 }
 
 const fmt = (s) => {
@@ -253,33 +263,33 @@ onMounted(fetchTracks)
 *,
 *::before,
 *::after {
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
-.layout {
+.up-layout {
   display: flex;
   min-height: 100vh;
-  background: #04090f;
+  background: #03070e;
   color: #e2e8f0;
   font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Sidebar */
-.sidebar {
-  width: 234px;
+/* ── Sidebar ── */
+.up-sidebar {
+  width: 238px;
   flex-shrink: 0;
   height: 100vh;
   position: sticky;
   top: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(10, 21, 37, .97);
+  background: rgba(8, 18, 34, .97);
   border-right: 1px solid rgba(56, 189, 248, .07);
   z-index: 50;
-  transition: transform .3s;
+  transition: transform .28s cubic-bezier(.4, 0, .2, 1);
 }
 
-.sb-head {
+.up-sb-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -287,7 +297,7 @@ onMounted(fetchTracks)
   border-bottom: 1px solid rgba(255, 255, 255, .04);
 }
 
-.logo {
+.up-logo {
   display: flex;
   align-items: center;
   gap: 9px;
@@ -295,34 +305,40 @@ onMounted(fetchTracks)
   color: inherit;
 }
 
-.logo-icon {
+.up-logo-icon {
   width: 30px;
   height: 30px;
   background: linear-gradient(135deg, #0ea5e9, #38bdf8);
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   font-size: 15px;
 }
 
-.logo-text {
+.up-logo-text {
   font-size: 14px;
   font-weight: 700;
   color: #f1f5f9;
   letter-spacing: -.02em;
 }
 
-.sb-close {
+.up-sb-close {
   display: none;
   background: none;
   border: none;
   color: #64748b;
   cursor: pointer;
   padding: 4px;
+  border-radius: 7px;
+  transition: color .2s;
 }
 
-.sb-nav {
+.up-sb-close:hover {
+  color: #f1f5f9;
+}
+
+/* Nav */
+.up-nav {
   flex: 1;
   padding: 12px 10px;
   display: flex;
@@ -331,12 +347,12 @@ onMounted(fetchTracks)
   overflow-y: auto;
 }
 
-.nav-item {
+.up-nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 11px;
-  border-radius: 9px;
+  padding: 9px 12px;
+  border-radius: 10px;
   border: none;
   background: none;
   color: #64748b;
@@ -346,19 +362,37 @@ onMounted(fetchTracks)
   transition: all .18s;
   text-align: left;
   width: 100%;
+  position: relative;
 }
 
-.nav-item:hover {
+.up-nav-item:hover {
   background: rgba(255, 255, 255, .04);
   color: #cbd5e1;
 }
 
-.nav-item.active {
+.up-nav-item--active {
   background: rgba(14, 165, 233, .12);
   color: #38bdf8;
 }
 
-.sb-bottom {
+.up-nav-ico {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.up-nav-badge {
+  margin-left: auto;
+  background: rgba(14, 165, 233, .18);
+  color: #38bdf8;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+/* Bottom */
+.up-sb-bottom {
   padding: 10px;
   border-top: 1px solid rgba(255, 255, 255, .04);
   display: flex;
@@ -366,7 +400,7 @@ onMounted(fetchTracks)
   gap: 6px;
 }
 
-.user-row {
+.up-user-row {
   flex: 1;
   display: flex;
   align-items: center;
@@ -379,29 +413,24 @@ onMounted(fetchTracks)
   min-width: 0;
 }
 
-.user-row:hover {
+.up-user-row:hover {
   background: rgba(255, 255, 255, .04);
 }
 
-.user-av {
+.up-user-av {
   width: 30px;
   height: 30px;
   background: linear-gradient(135deg, #0ea5e9, #6366f1);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   font-size: 12px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
 }
 
-.user-inf {
-  min-width: 0;
-}
-
-.un {
+.up-user-name {
   display: block;
   font-size: 12px;
   font-weight: 600;
@@ -411,7 +440,7 @@ onMounted(fetchTracks)
   text-overflow: ellipsis;
 }
 
-.ue {
+.up-user-email {
   display: block;
   font-size: 11px;
   color: #475569;
@@ -420,24 +449,25 @@ onMounted(fetchTracks)
   text-overflow: ellipsis;
 }
 
-.logout-btn {
+.up-logout {
   background: none;
   border: none;
   color: #475569;
   cursor: pointer;
   padding: 7px;
   border-radius: 7px;
-  transition: all .2s;
   display: flex;
+  transition: all .2s;
   flex-shrink: 0;
 }
 
-.logout-btn:hover {
+.up-logout:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, .08);
 }
 
-.overlay {
+/* Overlay */
+.up-overlay {
   display: none;
   position: fixed;
   inset: 0;
@@ -446,12 +476,12 @@ onMounted(fetchTracks)
   backdrop-filter: blur(2px);
 }
 
-.overlay.show {
+.up-overlay--show {
   display: block;
 }
 
-/* Main */
-.main {
+/* ── Main ── */
+.up-main {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -460,7 +490,7 @@ onMounted(fetchTracks)
   overflow-y: auto;
 }
 
-.topbar {
+.up-topbar {
   position: sticky;
   top: 0;
   z-index: 10;
@@ -468,12 +498,12 @@ onMounted(fetchTracks)
   align-items: center;
   gap: 12px;
   padding: 14px 22px;
-  background: rgba(4, 9, 15, .92);
+  background: rgba(3, 7, 14, .92);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, .04);
 }
 
-.menu-btn {
+.up-menu-btn {
   display: none;
   background: none;
   border: none;
@@ -484,36 +514,36 @@ onMounted(fetchTracks)
   transition: all .2s;
 }
 
-.menu-btn:hover {
+.up-menu-btn:hover {
   color: #f1f5f9;
   background: rgba(255, 255, 255, .05);
 }
 
-.search-box {
+.up-search {
   flex: 1;
   display: flex;
   align-items: center;
   gap: 9px;
-  background: rgba(15, 30, 56, .65);
-  border: 1px solid rgba(56, 189, 248, .1);
+  background: rgba(12, 24, 48, .65);
+  border: 1px solid rgba(56, 189, 248, .10);
   border-radius: 10px;
   padding: 0 13px;
   max-width: 460px;
   transition: border-color .2s;
 }
 
-.search-box:focus-within {
+.up-search:focus-within {
   border-color: rgba(56, 189, 248, .35);
 }
 
-.search-box svg {
+.up-search svg {
   color: #334155;
   flex-shrink: 0;
 }
 
-.search-in {
+.up-search-input {
   flex: 1;
-  height: 40px;
+  height: 42px;
   background: none;
   border: none;
   outline: none;
@@ -521,11 +551,11 @@ onMounted(fetchTracks)
   font-size: 14px;
 }
 
-.search-in::placeholder {
+.up-search-input::placeholder {
   color: #334155;
 }
 
-.search-clear {
+.up-search-clear {
   background: none;
   border: none;
   color: #475569;
@@ -534,20 +564,20 @@ onMounted(fetchTracks)
   display: flex;
 }
 
-/* Body */
-.body {
+/* ── Body ── */
+.up-body {
   padding: 24px 22px 120px;
   flex: 1;
 }
 
-.sec-head {
+.up-sec-head {
   display: flex;
   align-items: baseline;
   gap: 12px;
   margin-bottom: 18px;
 }
 
-.sec-title {
+.up-sec-title {
   font-size: 21px;
   font-weight: 800;
   color: #f1f5f9;
@@ -555,20 +585,20 @@ onMounted(fetchTracks)
   margin: 0;
 }
 
-.sec-count {
+.up-sec-count {
   font-size: 13px;
   color: #475569;
 }
 
-/* Grid */
-.grid {
+/* ── Card grid ── */
+.up-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 14px;
 }
 
-.card {
-  background: rgba(15, 30, 56, .55);
+.up-card {
+  background: rgba(12, 24, 48, .55);
   border: 1px solid rgba(56, 189, 248, .08);
   border-radius: 14px;
   overflow: hidden;
@@ -576,24 +606,24 @@ onMounted(fetchTracks)
   transition: all .22s;
 }
 
-.card:hover,
-.card.playing {
+.up-card:hover,
+.up-card--playing {
   border-color: rgba(56, 189, 248, .25);
   transform: translateY(-3px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, .38);
 }
 
-.card.playing {
+.up-card--playing {
   border-color: rgba(14, 165, 233, .4);
 }
 
-.card-art {
+.up-card-art {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
 }
 
-.card-art img {
+.up-card-art img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -601,11 +631,11 @@ onMounted(fetchTracks)
   transition: transform .3s;
 }
 
-.card:hover .card-art img {
+.up-card:hover .up-card-art img {
   transform: scale(1.05);
 }
 
-.card-over {
+.up-card-overlay {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, .44);
@@ -617,46 +647,46 @@ onMounted(fetchTracks)
   color: #fff;
 }
 
-.card:hover .card-over,
-.card.playing .card-over {
+.up-card:hover .up-card-overlay,
+.up-card--playing .up-card-overlay {
   opacity: 1;
 }
 
-.mini-eq {
+.up-eq {
   display: flex;
   align-items: flex-end;
   gap: 3px;
   height: 20px;
 }
 
-.mini-eq span {
+.up-eq span {
   width: 3px;
   background: #0ea5e9;
   border-radius: 2px;
-  animation: eq .75s ease-in-out infinite alternate;
+  animation: up-eq .75s ease-in-out infinite alternate;
 }
 
-.mini-eq span:nth-child(1) {
+.up-eq span:nth-child(1) {
   height: 10px;
   animation-delay: 0s
 }
 
-.mini-eq span:nth-child(2) {
+.up-eq span:nth-child(2) {
   height: 18px;
   animation-delay: .15s
 }
 
-.mini-eq span:nth-child(3) {
+.up-eq span:nth-child(3) {
   height: 13px;
   animation-delay: .3s
 }
 
-.mini-eq span:nth-child(4) {
+.up-eq span:nth-child(4) {
   height: 7px;
   animation-delay: .45s
 }
 
-@keyframes eq {
+@keyframes up-eq {
   from {
     transform: scaleY(.4)
   }
@@ -666,11 +696,11 @@ onMounted(fetchTracks)
   }
 }
 
-.card-info {
+.up-card-info {
   padding: 11px 12px 6px;
 }
 
-.ct {
+.up-card-title {
   font-size: 13px;
   font-weight: 600;
   color: #f1f5f9;
@@ -680,7 +710,7 @@ onMounted(fetchTracks)
   text-overflow: ellipsis;
 }
 
-.ca {
+.up-card-artist {
   font-size: 12px;
   color: #64748b;
   margin: 0 0 6px;
@@ -689,35 +719,35 @@ onMounted(fetchTracks)
   text-overflow: ellipsis;
 }
 
-.cm {
+.up-card-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.ctag {
+.up-card-tag {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: .04em;
   padding: 2px 6px;
-  background: rgba(14, 165, 233, .1);
+  background: rgba(14, 165, 233, .10);
   color: #38bdf8;
   border-radius: 4px;
   text-transform: uppercase;
 }
 
-.cdur {
+.up-card-dur {
   font-size: 11px;
   color: #334155;
 }
 
-.card-foot {
+.up-card-foot {
   padding: 0 12px 10px;
   display: flex;
   justify-content: flex-end;
 }
 
-.like-btn {
+.up-like-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -728,37 +758,36 @@ onMounted(fetchTracks)
   display: flex;
 }
 
-.like-btn:hover {
+.up-like-btn:hover {
   color: #f43f5e;
 }
 
-.like-btn.liked {
+.up-like-btn--on {
   color: #f43f5e;
+}
+
+.up-like-btn:disabled {
+  opacity: .6;
+  cursor: default;
 }
 
 /* Skeleton */
-.sk-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 14px;
-}
-
-.sk-card {
+.up-sk-card {
   aspect-ratio: .88;
-  background: linear-gradient(90deg, rgba(15, 30, 56, .55) 25%, rgba(30, 50, 80, .32) 50%, rgba(15, 30, 56, .55) 75%);
+  background: linear-gradient(90deg, rgba(12, 24, 48, .55) 25%, rgba(30, 50, 80, .32) 50%, rgba(12, 24, 48, .55) 75%);
   background-size: 200% 100%;
   border-radius: 14px;
-  animation: shim 1.5s infinite;
+  animation: up-shim 1.5s infinite;
 }
 
-@keyframes shim {
+@keyframes up-shim {
   to {
     background-position: -200% 0
   }
 }
 
 /* Empty */
-.empty {
+.up-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -767,28 +796,28 @@ onMounted(fetchTracks)
   text-align: center;
 }
 
-.empty-ico {
+.up-empty-ico {
   font-size: 46px;
   margin-bottom: 14px;
 }
 
-.empty-t {
+.up-empty-title {
   font-size: 18px;
   font-weight: 700;
   color: #f1f5f9;
   margin: 0 0 6px;
 }
 
-.empty-s {
+.up-empty-sub {
   font-size: 14px;
   color: #64748b;
   margin: 0 0 18px;
 }
 
-.retry {
+.up-retry {
   padding: 8px 20px;
-  background: rgba(14, 165, 233, .1);
-  border: 1px solid rgba(14, 165, 233, .2);
+  background: rgba(14, 165, 233, .10);
+  border: 1px solid rgba(14, 165, 233, .20);
   border-radius: 8px;
   color: #38bdf8;
   font-size: 14px;
@@ -797,13 +826,13 @@ onMounted(fetchTracks)
   transition: all .2s;
 }
 
-.retry:hover {
+.up-retry:hover {
   background: rgba(14, 165, 233, .18);
 }
 
 /* Responsive */
-@media (max-width:900px) {
-  .sidebar {
+@media (max-width: 900px) {
+  .up-sidebar {
     position: fixed;
     left: 0;
     top: 0;
@@ -812,36 +841,36 @@ onMounted(fetchTracks)
     z-index: 60;
   }
 
-  .sidebar.open {
+  .up-sidebar--open {
     transform: translateX(0);
   }
 
-  .sb-close {
+  .up-sb-close {
     display: flex;
   }
 
-  .menu-btn {
+  .up-menu-btn {
     display: flex;
   }
 }
 
-@media (max-width:600px) {
-  .body {
+@media (max-width: 600px) {
+  .up-body {
     padding: 18px 14px 120px;
   }
 
-  .topbar {
+  .up-topbar {
     padding: 10px 14px;
   }
 
-  .grid {
+  .up-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
 }
 
-@media (max-width:360px) {
-  .grid {
+@media (max-width: 360px) {
+  .up-grid {
     grid-template-columns: 1fr;
   }
 }
