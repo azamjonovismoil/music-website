@@ -143,7 +143,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/auth_page.css'
+import '@/styles/auth_pages.css'
 
 const router = useRouter()
 const auth = useAuthStore()
