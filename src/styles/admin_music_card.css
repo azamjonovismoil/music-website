@@ -20,13 +20,6 @@
   box-shadow: var(--shadow-md);
 }
 
-.mcard--active {
-  border-color: var(--accent-border);
-  box-shadow:
-    0 0 0 2px var(--accent-subtle),
-    var(--shadow-sm);
-}
-
 .mcard-thumb {
   position: relative;
   aspect-ratio: 1 / 1;
@@ -39,11 +32,6 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.32s ease;
-}
-
-.mcard:hover .mcard-img {
-  transform: scale(1.04);
 }
 
 .mcard-img-fb {
@@ -54,25 +42,29 @@
   background:
     radial-gradient(circle at top, rgba(14, 165, 233, 0.14), transparent 35%),
     linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(10, 18, 34, 1));
-}
-
-.mcard-fb-ico {
-  width: 30px;
-  height: 30px;
+  font-size: 30px;
   color: var(--text-hint);
 }
 
-.mcard-status {
+.mcard-status,
+.mcard-health {
   position: absolute;
   top: 8px;
-  left: 8px;
   z-index: 2;
   padding: 4px 8px;
   border-radius: 999px;
   font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+}
+
+.mcard-status {
+  left: 8px;
+}
+
+.mcard-health {
+  right: 8px;
 }
 
 .mcard-status.draft {
@@ -93,119 +85,32 @@
   border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
-.mcard-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: linear-gradient(180deg, rgba(2, 6, 23, 0.1), rgba(2, 6, 23, 0.48));
-  opacity: 0;
-  transition: opacity 0.2s ease;
+.mcard-health.basic {
+  color: var(--rose);
+  background: var(--rose-bg);
+  border: 1px solid var(--rose-border);
 }
 
-.mcard:hover .mcard-overlay {
-  opacity: 1;
+.mcard-health.good {
+  color: var(--amber);
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
 }
 
-.mcard-play-btn,
-.mcard-queue-btn {
-  width: 38px;
-  height: 38px;
-  border: none;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition:
-    transform 0.14s ease,
-    filter 0.14s ease;
-}
-
-.mcard-play-btn {
-  background: linear-gradient(135deg, var(--accent-mid), var(--accent));
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.28);
-}
-
-.mcard-queue-btn {
-  background: rgba(10, 18, 34, 0.82);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.mcard-play-btn:hover,
-.mcard-queue-btn:hover {
-  transform: scale(1.08);
-}
-
-.mcard-play-ico,
-.mcard-queue-ico {
-  width: 16px;
-  height: 16px;
-}
-
-.mcard-bars {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 16px;
-  padding: 3px 6px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
-
-.mcard-bars span {
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #7dd3fc, #0ea5e9);
-  animation: mcardEq 0.9s ease-in-out infinite alternate;
-}
-
-.mcard-bars span:nth-child(1) {
-  height: 7px;
-  animation-delay: 0s;
-}
-.mcard-bars span:nth-child(2) {
-  height: 14px;
-  animation-delay: 0.16s;
-}
-.mcard-bars span:nth-child(3) {
-  height: 9px;
-  animation-delay: 0.32s;
-}
-.mcard-bars span:nth-child(4) {
-  height: 12px;
-  animation-delay: 0.48s;
-}
-
-@keyframes mcardEq {
-  to {
-    height: 4px;
-  }
-}
-
-.mcard-lrc {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 2;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: rgba(14, 165, 233, 0.14);
-  border: 1px solid rgba(14, 165, 233, 0.2);
+.mcard-health.rich {
   color: var(--accent);
-  font-size: 9px;
-  font-weight: 800;
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
+}
+
+.mcard-health.premium {
+  color: var(--green);
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
 }
 
 .mcard-body {
-  padding: 10px 11px 11px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -252,75 +157,40 @@
   font-weight: 700;
 }
 
-.mcard-tag--dur {
-  color: var(--accent);
-  border-color: var(--accent-border);
-  background: var(--accent-subtle);
+.mcard-tag--warn {
+  color: var(--amber);
+  border-color: var(--amber-border);
+  background: var(--amber-bg);
 }
 
-.mcard-stats {
+.mcard-meta {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  min-height: 18px;
-}
-
-.mcard-stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   color: var(--text-muted);
   font-size: 10.5px;
   font-weight: 700;
 }
 
-.mcard-stat--liked {
-  color: var(--rose);
-}
-
-.mcard-stat-ico {
-  width: 11px;
-  height: 11px;
-}
-
-.mcard-explicit {
-  margin-left: auto;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 5px;
-  display: inline-grid;
-  place-items: center;
-  font-size: 9px;
-  font-weight: 800;
-  color: #fda4af;
-  background: rgba(127, 29, 29, 0.22);
-  border: 1px solid rgba(244, 63, 94, 0.22);
-}
-
 .mcard-actions {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  flex-wrap: wrap;
   margin-top: auto;
 }
 
-.mcard-actions--user {
-  justify-content: flex-start;
-}
-
 .mcard-act {
-  width: 30px;
-  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
   border-radius: 9px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  display: grid;
-  place-items: center;
   cursor: pointer;
   transition: all 0.14s ease;
-  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 800;
 }
 
 .mcard-act:hover {
@@ -329,34 +199,10 @@
   transform: translateY(-1px);
 }
 
-.mcard-act svg {
-  width: 13px;
-  height: 13px;
-}
-
-.mcard-act--edit:hover {
-  color: var(--accent);
-  border-color: var(--accent-border);
-}
-
-.mcard-act--liked,
-.mcard-act--liked:hover {
-  color: var(--rose);
-  border-color: var(--rose-border);
-  background: var(--rose-bg);
-}
-
-.mcard-act--dl,
-.mcard-act--dl:hover {
+.mcard-act--primary {
   color: var(--accent);
   border-color: var(--accent-border);
   background: var(--accent-subtle);
-}
-
-.mcard-act--del:hover {
-  color: #fda4af;
-  border-color: rgba(244, 63, 94, 0.22);
-  background: rgba(127, 29, 29, 0.14);
 }
 
 @media (max-width: 860px) {
@@ -379,8 +225,12 @@
     font-size: 10.5px;
   }
 
-  .mcard-act {
-    width: 28px;
-    height: 28px;
+  .mcard-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mcard-act--primary {
+    grid-column: 1 / -1;
   }
 }

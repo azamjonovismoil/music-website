@@ -1,11 +1,10 @@
 <template>
-  <el-dialog v-model="openState" class="edit-dialog" append-to-body destroy-on-close :close-on-click-modal="false"
-    @closed="handleDialogClose">
+  <el-dialog v-model="openState" class="edit-dialog" append-to-body destroy-on-close :close-on-click-modal="false">
     <template #header>
       <div class="edit-head">
         <div>
           <h2>Edit track</h2>
-          <p>Update metadata, media, synced lyrics, and publishing settings.</p>
+          <p>Update metadata, media, and publishing settings.</p>
         </div>
 
         <div class="edit-status-badge" :class="form.status">
@@ -25,8 +24,8 @@
 
           <div class="edit-grid">
             <div class="field" :class="{ invalid: !!errors.title }">
-              <label class="field-label">Title</label>
-              <input v-model="form.title" class="edit-input" type="text" />
+              <label class="field-label">Title *</label>
+              <input v-model="form.title" class="edit-input" type="text" @input="syncSlug" />
               <p v-if="errors.title" class="field-error">{{ errors.title }}</p>
             </div>
 
@@ -36,14 +35,14 @@
             </div>
 
             <div class="field" :class="{ invalid: !!errors.artist }">
-              <label class="field-label">Artist</label>
+              <label class="field-label">Artist *</label>
               <input v-model="form.artist" class="edit-input" type="text" />
               <p v-if="errors.artist" class="field-error">{{ errors.artist }}</p>
             </div>
 
             <div class="field">
               <label class="field-label">Featured artists</label>
-              <input v-model="form.featuredArtists" class="edit-input" type="text" placeholder="A, B" />
+              <input v-model="featuredArtistsText" class="edit-input" type="text" />
             </div>
 
             <div class="field">
@@ -65,30 +64,16 @@
           </div>
 
           <div class="edit-grid">
-            <div class="field">
-              <label class="field-label">Author</label>
-              <input v-model="form.author" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Composer</label>
-              <input v-model="form.composer" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Producer</label>
-              <input v-model="form.producer" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Label</label>
-              <input v-model="form.labelName" class="edit-input" type="text" />
-            </div>
-
-            <div class="field full">
-              <label class="field-label">Copyright</label>
-              <input v-model="form.copyright" class="edit-input" type="text" />
-            </div>
+            <div class="field"><label class="field-label">Author</label><input v-model="form.author" class="edit-input"
+                type="text" /></div>
+            <div class="field"><label class="field-label">Composer</label><input v-model="form.composer"
+                class="edit-input" type="text" /></div>
+            <div class="field"><label class="field-label">Producer</label><input v-model="form.producer"
+                class="edit-input" type="text" /></div>
+            <div class="field"><label class="field-label">Label</label><input v-model="form.labelName"
+                class="edit-input" type="text" /></div>
+            <div class="field full"><label class="field-label">Copyright</label><input v-model="form.copyright"
+                class="edit-input" type="text" /></div>
           </div>
         </section>
 
@@ -98,67 +83,21 @@
             <p>Genre, mood, tags, language</p>
           </div>
 
-          <div class="field">
-            <div class="field-row">
-              <label class="field-label">Genres</label>
-            </div>
-
-            <div v-if="form.genre.length" class="chips-row">
-              <span v-for="g in form.genre" :key="g" class="sel-chip">
-                {{ g }}
-                <button type="button" @click="removeArr('genre', g)">×</button>
-              </span>
-            </div>
-
-            <div class="tag-grid">
-              <button v-for="g in allGenres" :key="g" type="button" class="tag-opt"
-                :class="{ active: form.genre.includes(g) }" @click="toggleArr('genre', g)">
-                {{ g }}
-              </button>
-
-              <input v-model="genreInput" class="tag-custom-input" type="text" placeholder="Add genre"
-                @keydown.enter.prevent="addCustomGenre" />
-            </div>
-          </div>
-
-          <div class="field">
-            <div class="field-row">
-              <label class="field-label">Moods</label>
-            </div>
-
-            <div v-if="form.mood.length" class="chips-row">
-              <span v-for="m in form.mood" :key="m" class="sel-chip mood-chip">
-                {{ m }}
-                <button type="button" @click="removeArr('mood', m)">×</button>
-              </span>
-            </div>
-
-            <div class="tag-grid">
-              <button v-for="m in allMoods" :key="m" type="button" class="tag-opt"
-                :class="{ active: form.mood.includes(m) }" @click="toggleArr('mood', m)">
-                {{ m }}
-              </button>
-            </div>
-          </div>
-
           <div class="edit-grid">
-            <div class="field">
-              <label class="field-label">Language</label>
-              <input v-model="form.language" class="edit-input" type="text" />
+            <div class="field" :class="{ invalid: !!errors.genre }">
+              <label class="field-label">Genres *</label>
+              <input v-model="genreText" class="edit-input" type="text" placeholder="Pop, Rap" />
+              <p v-if="errors.genre" class="field-error">{{ errors.genre }}</p>
             </div>
-
-            <div class="field">
-              <label class="field-label">Lyrics language</label>
-              <input v-model="form.lyricsLanguage" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Country</label>
-              <input v-model="form.country" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Release type</label>
+            <div class="field"><label class="field-label">Moods</label><input v-model="moodText" class="edit-input"
+                type="text" /></div>
+            <div class="field"><label class="field-label">Language</label><input v-model="form.language"
+                class="edit-input" type="text" /></div>
+            <div class="field"><label class="field-label">Lyrics language</label><input v-model="form.lyricsLanguage"
+                class="edit-input" type="text" /></div>
+            <div class="field"><label class="field-label">Country</label><input v-model="form.country"
+                class="edit-input" type="text" /></div>
+            <div class="field"><label class="field-label">Release type</label>
               <select v-model="form.releaseType" class="edit-input">
                 <option value="single">Single</option>
                 <option value="ep">EP</option>
@@ -168,11 +107,8 @@
                 <option value="instrumental">Instrumental</option>
               </select>
             </div>
-
-            <div class="field full">
-              <label class="field-label">Tags</label>
-              <input v-model="form.tags" class="edit-input" type="text" placeholder="tag1, tag2" />
-            </div>
+            <div class="field full"><label class="field-label">Tags</label><input v-model="tagsText" class="edit-input"
+                type="text" /></div>
           </div>
         </section>
 
@@ -183,43 +119,21 @@
           </div>
 
           <div class="edit-grid">
-            <div class="field">
-              <label class="field-label">Release date</label>
-              <input v-model="form.releaseDate" class="edit-input" type="date" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Publish at</label>
-              <input v-model="form.publishAt" class="edit-input" type="datetime-local" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Track number</label>
-              <input v-model="form.trackNumber" class="edit-input" type="number" min="0" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Disc number</label>
-              <input v-model="form.discNumber" class="edit-input" type="number" min="0" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">BPM</label>
-              <input v-model="form.bpm" class="edit-input" type="number" min="0" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Key signature</label>
-              <input v-model="form.keySignature" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">ISRC</label>
-              <input v-model="form.isrc" class="edit-input" type="text" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Visibility</label>
+            <div class="field"><label class="field-label">Release date</label><input v-model="form.releaseDate"
+                class="edit-input" type="date" /></div>
+            <div class="field"><label class="field-label">Publish at</label><input v-model="form.publishAt"
+                class="edit-input" type="datetime-local" /></div>
+            <div class="field"><label class="field-label">Track number</label><input v-model="form.trackNumber"
+                class="edit-input" type="number" min="0" /></div>
+            <div class="field"><label class="field-label">Disc number</label><input v-model="form.discNumber"
+                class="edit-input" type="number" min="0" /></div>
+            <div class="field"><label class="field-label">BPM</label><input v-model="form.bpm" class="edit-input"
+                type="number" min="0" /></div>
+            <div class="field"><label class="field-label">Key signature</label><input v-model="form.keySignature"
+                class="edit-input" type="text" /></div>
+            <div class="field"><label class="field-label">ISRC</label><input v-model="form.isrc" class="edit-input"
+                type="text" /></div>
+            <div class="field"><label class="field-label">Visibility</label>
               <select v-model="form.visibility" class="edit-input">
                 <option value="public">Public</option>
                 <option value="unlisted">Unlisted</option>
@@ -229,37 +143,22 @@
           </div>
 
           <div class="better-publish">
-            <div class="publish-status-block">
-              <label class="field-label">Status</label>
-              <div class="publish-status-seg">
-                <button v-for="s in statusOpts" :key="s.value" type="button" class="seg-btn"
-                  :class="[s.value, { active: form.status === s.value }]" @click="form.status = s.value">
-                  <span class="seg-dot" />
-                  {{ s.label }}
-                </button>
-              </div>
+            <div class="publish-status-seg">
+              <button v-for="s in statusOpts" :key="s.value" type="button" class="seg-btn"
+                :class="[s.value, { active: form.status === s.value }]" @click="form.status = s.value">
+                <span class="seg-dot" />{{ s.label }}
+              </button>
             </div>
 
-            <div class="publish-flags-block">
-              <label class="field-label">Flags</label>
-              <div class="flags-grid">
-                <button type="button" class="flag-btn" :class="{ on: form.isExplicit }"
-                  @click="form.isExplicit = !form.isExplicit">
-                  <span class="flag-pip" /> Explicit
-                </button>
-                <button type="button" class="flag-btn" :class="{ on: form.isFeatured }"
-                  @click="form.isFeatured = !form.isFeatured">
-                  <span class="flag-pip" /> Featured
-                </button>
-                <button type="button" class="flag-btn" :class="{ on: form.isRecommended }"
-                  @click="form.isRecommended = !form.isRecommended">
-                  <span class="flag-pip" /> Recommended
-                </button>
-                <button type="button" class="flag-btn" :class="{ on: form.isFreeDownload }"
-                  @click="form.isFreeDownload = !form.isFreeDownload">
-                  <span class="flag-pip" /> Free
-                </button>
-              </div>
+            <div class="flags-grid">
+              <button type="button" class="flag-btn" :class="{ on: form.isExplicit }"
+                @click="form.isExplicit = !form.isExplicit"><span class="flag-pip" />Explicit</button>
+              <button type="button" class="flag-btn" :class="{ on: form.isFeatured }"
+                @click="form.isFeatured = !form.isFeatured"><span class="flag-pip" />Featured</button>
+              <button type="button" class="flag-btn" :class="{ on: form.isRecommended }"
+                @click="form.isRecommended = !form.isRecommended"><span class="flag-pip" />Recommended</button>
+              <button type="button" class="flag-btn" :class="{ on: form.isFreeDownload }"
+                @click="form.isFreeDownload = !form.isFreeDownload"><span class="flag-pip" />Free</button>
             </div>
           </div>
         </section>
@@ -268,7 +167,7 @@
           <div class="edit-section-head between">
             <div>
               <h3>Lyrics</h3>
-              <p>Plain lyrics and LRC</p>
+              <p>Plain lyrics and synced lyrics</p>
             </div>
             <span class="field-hint">{{ lineCount }}</span>
           </div>
@@ -279,30 +178,9 @@
           </div>
 
           <div class="field">
-            <label class="field-label">Sync mode</label>
-            <div class="sync-mode-seg">
-              <button type="button" class="seg-sm" :class="{ active: syncMode === 'manual' }"
-                @click="syncMode = 'manual'">Manual</button>
-              <button type="button" class="seg-sm" :class="{ active: syncMode === 'auto' }"
-                @click="syncMode = 'auto'">Auto</button>
-            </div>
+            <label class="field-label">Synced lyrics</label>
+            <textarea v-model="form.syncedLyricsRaw" class="edit-input area lrc" />
           </div>
-
-          <div v-if="syncMode === 'auto'" class="auto-banner">
-            <div class="auto-banner-left">
-              Auto-generate synced lyrics from lyrics text
-            </div>
-            <button type="button" class="gen-sync-btn" :disabled="syncLoading" @click="generateSync">
-              {{ syncLoading ? 'Generating…' : 'Generate sync' }}
-            </button>
-          </div>
-
-          <div class="lrc-bar">
-            <span>LRC / synced lyrics</span>
-            <span class="sync-pill" :class="syncPillClass">{{ syncPillText }}</span>
-          </div>
-
-          <textarea v-model="form.syncedLyricsRaw" class="edit-input area lrc" />
         </section>
 
         <section class="edit-section">
@@ -312,35 +190,18 @@
           </div>
 
           <div class="edit-grid">
-            <div class="field">
-              <label class="field-label">YouTube</label>
-              <input v-model="form.youtube" class="edit-input" type="url" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Spotify</label>
-              <input v-model="form.spotify" class="edit-input" type="url" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Apple Music</label>
-              <input v-model="form.appleMusic" class="edit-input" type="url" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">SoundCloud</label>
-              <input v-model="form.soundcloud" class="edit-input" type="url" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">Instagram</label>
-              <input v-model="form.instagram" class="edit-input" type="url" />
-            </div>
-
-            <div class="field">
-              <label class="field-label">TikTok</label>
-              <input v-model="form.tiktok" class="edit-input" type="url" />
-            </div>
+            <div class="field"><label class="field-label">YouTube</label><input v-model="form.youtube"
+                class="edit-input" type="url" /></div>
+            <div class="field"><label class="field-label">Spotify</label><input v-model="form.spotify"
+                class="edit-input" type="url" /></div>
+            <div class="field"><label class="field-label">Apple Music</label><input v-model="form.appleMusic"
+                class="edit-input" type="url" /></div>
+            <div class="field"><label class="field-label">SoundCloud</label><input v-model="form.soundcloud"
+                class="edit-input" type="url" /></div>
+            <div class="field"><label class="field-label">Instagram</label><input v-model="form.instagram"
+                class="edit-input" type="url" /></div>
+            <div class="field"><label class="field-label">TikTok</label><input v-model="form.tiktok" class="edit-input"
+                type="url" /></div>
           </div>
         </section>
 
@@ -349,10 +210,7 @@
             <h3>Internal note</h3>
             <p>Private admin note</p>
           </div>
-
-          <div class="field">
-            <textarea v-model="form.adminNote" class="edit-input area" />
-          </div>
+          <textarea v-model="form.adminNote" class="edit-input area" />
         </section>
       </div>
 
@@ -377,34 +235,17 @@
               <p>{{ previewArtist }}</p>
 
               <div class="preview-meta">
-                <span v-if="form.isExplicit" class="badge rose">Explicit</span>
-                <span v-if="form.isFeatured" class="badge">Featured</span>
-                <span v-if="form.isRecommended" class="badge">Recommended</span>
-                <span v-if="form.isFreeDownload" class="badge">Free</span>
-              </div>
-
-              <div class="preview-player">
-                <div class="preview-player-btn">▶</div>
-                <div class="preview-player-wave"></div>
-                <div class="preview-player-time">{{ music?.duration ? fmtDur(music.duration) : '0:00' }}</div>
+                <span class="badge">{{ healthScore }}%</span>
+                <span class="badge">{{ healthTier }}</span>
               </div>
 
               <dl class="preview-meta-grid">
                 <dt>Genre</dt>
-                <dd>{{ form.genre.join(', ') || '—' }}</dd>
-
+                <dd>{{ genreList.join(', ') || '—' }}</dd>
                 <dt>Mood</dt>
-                <dd>{{ form.mood.join(', ') || '—' }}</dd>
-
+                <dd>{{ moodList.join(', ') || '—' }}</dd>
                 <dt>Album</dt>
                 <dd>{{ form.album || '—' }}</dd>
-
-                <dt>Language</dt>
-                <dd>{{ form.language || '—' }}</dd>
-
-                <dt>Release</dt>
-                <dd>{{ form.releaseType || 'single' }}</dd>
-
                 <dt>Visibility</dt>
                 <dd>{{ form.visibility || 'public' }}</dd>
               </dl>
@@ -426,6 +267,12 @@
             <input class="hidden-input" type="file" accept="audio/*" @change="onAudio" />
             Replace audio
           </label>
+
+          <div class="field" style="margin-top:10px">
+            <label class="field-label">Or cover URL</label>
+            <input v-model="form.coverUrl" class="edit-input" type="url" placeholder="https://example.com/cover.jpg"
+              @blur="applyCoverUrlPreview" />
+          </div>
         </section>
       </div>
     </div>
@@ -442,9 +289,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import axios from 'axios'
 import { ElNotification, ElMessageBox, ElMessage } from 'element-plus'
+import { API_ROOT } from '@/utils/media'
 import '@/styles/edit_modal.css'
 
 const props = defineProps({
@@ -454,7 +302,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'saved'])
 
-const API_ROOT = (import.meta.env.VITE_API_ROOT || '').replace(/\/+$/, '')
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
   withCredentials: true,
@@ -466,25 +313,22 @@ const openState = computed({
 })
 
 const loading = ref(false)
-const syncLoading = ref(false)
-const syncMode = ref('manual')
 const coverFile = ref(null)
 const audioFile = ref(null)
 const coverPreview = ref('')
-const genreInput = ref('')
+const featuredArtistsText = ref('')
+const genreText = ref('')
+const moodText = ref('')
+const tagsText = ref('')
 const errors = reactive({})
 const initialSnapshot = ref('')
 
 let coverObjectUrl = ''
-let audioObjectUrl = ''
-
-const allGenres = ['Pop', 'Rap', 'Lo-fi', 'Indie', 'Rock', 'Electronic', 'OST', 'Acoustic', 'R&B', 'Chill', 'Jazz', 'Classical', 'Dance', 'Soul', 'Folk', 'Reggae']
-const allMoods = ['Calm', 'Sad', 'Happy', 'Energetic', 'Romantic', 'Dreamy', 'Dark', 'Melancholic', 'Chill', 'Motivational', 'Nostalgic', 'Aggressive']
 
 const statusOpts = [
   { value: 'draft', label: 'Draft' },
   { value: 'published', label: 'Published' },
-  { value: 'archived', label: 'Archived' }
+  { value: 'archived', label: 'Archived' },
 ]
 
 const form = reactive({
@@ -494,25 +338,19 @@ const form = reactive({
   author: '',
   composer: '',
   producer: '',
-  featuredArtists: '',
-  genre: [],
   album: '',
   trackNumber: '',
   discNumber: '',
   version: '',
   language: '',
   lyricsLanguage: '',
-  mood: [],
   country: '',
   releaseType: 'single',
   visibility: 'public',
   releaseDate: '',
   publishAt: '',
-  bio: '',
-  artistBio: '',
   lyrics: '',
   syncedLyricsRaw: '',
-  tags: '',
   bpm: '',
   keySignature: '',
   isrc: '',
@@ -524,6 +362,7 @@ const form = reactive({
   isRecommended: false,
   isFreeDownload: false,
   adminNote: '',
+  coverUrl: '',
   youtube: '',
   spotify: '',
   appleMusic: '',
@@ -533,15 +372,35 @@ const form = reactive({
 })
 
 const parseList = (s = '') => String(s).split(',').map((t) => t.trim()).filter(Boolean)
-const parseTags = (s = '') => String(s).split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean)
+const slugify = (s = '') => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
-const snapshot = () => JSON.stringify({
-  ...form,
-  coverChanged: !!coverFile.value,
-  audioChanged: !!audioFile.value,
+const genreList = computed(() => parseList(genreText.value))
+const moodList = computed(() => parseList(moodText.value))
+const tagsList = computed(() => parseList(tagsText.value))
+const hasAudio = computed(() => !!audioFile.value || !!props.music?.url)
+const hasCover = computed(() => !!coverFile.value || !!coverPreview.value || !!form.coverUrl.trim())
+const hasLinks = computed(() => [form.youtube, form.spotify, form.appleMusic, form.soundcloud, form.instagram, form.tiktok].some(v => String(v || '').trim()))
+
+const healthScore = computed(() => {
+  const checks = [
+    !!form.title.trim(),
+    !!form.artist.trim(),
+    hasAudio.value,
+    hasCover.value,
+    genreList.value.length > 0,
+    !!form.lyrics.trim(),
+    !!form.syncedLyricsRaw.trim(),
+    hasLinks.value,
+  ]
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100)
 })
 
-const isDirty = computed(() => snapshot() !== initialSnapshot.value)
+const healthTier = computed(() => {
+  if (healthScore.value >= 90) return 'premium'
+  if (healthScore.value >= 70) return 'rich'
+  if (healthScore.value >= 45) return 'good'
+  return 'basic'
+})
 
 const statusLabel = computed(() => ({
   draft: 'Draft',
@@ -550,90 +409,158 @@ const statusLabel = computed(() => ({
 }[form.status] || 'Draft'))
 
 const previewArtist = computed(() => {
-  const featured = parseList(form.featuredArtists)
+  const feat = parseList(featuredArtistsText.value)
   if (!form.artist.trim()) return 'Unknown artist'
-  return featured.length ? `${form.artist.trim()} (feat. ${featured.join(', ')})` : form.artist.trim()
+  return feat.length ? `${form.artist.trim()} (feat. ${feat.join(', ')})` : form.artist.trim()
 })
 
-const lineCount = computed(() =>
-  form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : 'No lyrics yet'
-)
+const lineCount = computed(() => form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : 'No lyrics yet')
 
-const syncPillClass = computed(() =>
-  syncLoading.value ? 'loading' : form.syncedLyricsRaw.trim() ? 'ready' : 'none'
-)
-
-const syncPillText = computed(() =>
-  syncLoading.value ? 'Generating…' : form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set'
-)
-
-const clearAllErrors = () => {
-  Object.keys(errors).forEach((k) => delete errors[k])
-}
-
-const applyServerErrors = (serverErrors = {}) => {
-  clearAllErrors()
-  Object.entries(serverErrors).forEach(([key, value]) => {
-    errors[key] = Array.isArray(value) ? value.join(', ') : String(value)
+const snapshot = () =>
+  JSON.stringify({
+    ...form,
+    featuredArtistsText: featuredArtistsText.value,
+    genreText: genreText.value,
+    moodText: moodText.value,
+    tagsText: tagsText.value,
+    coverFile: !!coverFile.value,
+    audioFile: !!audioFile.value,
   })
+
+const isDirty = computed(() => snapshot() !== initialSnapshot.value)
+
+const clearErrors = () => Object.keys(errors).forEach((k) => delete errors[k])
+
+const syncSlug = () => {
+  if (!form.slug.trim()) form.slug = slugify(form.title)
 }
 
-const toggleArr = (field, val) => {
-  form[field] = form[field].includes(val)
-    ? form[field].filter((x) => x !== val)
-    : [...form[field], val]
-}
-
-const removeArr = (field, val) => {
-  form[field] = form[field].filter((x) => x !== val)
-}
-
-const addCustomGenre = () => {
-  const v = genreInput.value.trim().replace(/,$/, '')
-  if (v && !form.genre.includes(v)) form.genre = [...form.genre, v]
-  genreInput.value = ''
-}
-
-const revokeCoverPreview = () => {
+const resetCoverObjectUrl = () => {
   if (coverObjectUrl) {
     URL.revokeObjectURL(coverObjectUrl)
     coverObjectUrl = ''
   }
 }
 
-const revokeAudioPreview = () => {
-  if (audioObjectUrl) {
-    URL.revokeObjectURL(audioObjectUrl)
-    audioObjectUrl = ''
-  }
+const onCover = (e) => {
+  const f = e.target.files?.[0]
+  if (!f) return
+  if (f.size / 1024 / 1024 > 10) return ElMessage.error('Image must be under 10MB')
+  form.coverUrl = ''
+  coverFile.value = f
+  resetCoverObjectUrl()
+  coverObjectUrl = URL.createObjectURL(f)
+  coverPreview.value = coverObjectUrl
 }
+
+const onAudio = (e) => {
+  const f = e.target.files?.[0]
+  if (!f) return
+  if (f.size / 1024 / 1024 > 100) return ElMessage.error('Audio must be under 100MB')
+  audioFile.value = f
+}
+
+const applyCoverUrlPreview = () => {
+  const url = form.coverUrl.trim()
+  if (!url) return
+  if (!/^https?:\/\/.+/i.test(url)) return ElMessage.error('Cover URL must start with http or https')
+  resetCoverObjectUrl()
+  coverFile.value = null
+  coverPreview.value = url
+}
+
+const toLocalDateInput = (value) => {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toISOString().slice(0, 10)
+}
+
+const toLocalDateTimeInput = (value) => {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  const tz = d.getTimezoneOffset() * 60000
+  return new Date(d.getTime() - tz).toISOString().slice(0, 16)
+}
+
+const fillForm = (music) => {
+  form.title = music?.title || ''
+  form.slug = music?.slug || ''
+  form.artist = music?.artist || ''
+  form.author = music?.author || ''
+  form.composer = music?.composer || ''
+  form.producer = music?.producer || ''
+  form.album = music?.album || ''
+  form.trackNumber = music?.trackNumber ?? ''
+  form.discNumber = music?.discNumber ?? ''
+  form.version = music?.version || ''
+  form.language = music?.language || ''
+  form.lyricsLanguage = music?.lyricsLanguage || ''
+  form.country = music?.country || ''
+  form.releaseType = music?.releaseType || 'single'
+  form.visibility = music?.visibility || 'public'
+  form.releaseDate = toLocalDateInput(music?.releaseDate)
+  form.publishAt = toLocalDateTimeInput(music?.publishAt)
+  form.lyrics = music?.lyrics || ''
+  form.syncedLyricsRaw = music?.syncedLyricsRaw || ''
+  form.bpm = music?.bpm ?? ''
+  form.keySignature = music?.keySignature || ''
+  form.isrc = music?.isrc || ''
+  form.labelName = music?.labelName || ''
+  form.copyright = music?.copyright || ''
+  form.status = music?.status || 'draft'
+  form.isExplicit = !!music?.isExplicit
+  form.isFeatured = !!music?.isFeatured
+  form.isRecommended = !!music?.isRecommended
+  form.isFreeDownload = !!music?.isFreeDownload
+  form.adminNote = music?.adminNote || ''
+  form.coverUrl = ''
+  form.youtube = music?.externalLinks?.youtube || ''
+  form.spotify = music?.externalLinks?.spotify || ''
+  form.appleMusic = music?.externalLinks?.appleMusic || ''
+  form.soundcloud = music?.externalLinks?.soundcloud || ''
+  form.instagram = music?.externalLinks?.instagram || ''
+  form.tiktok = music?.externalLinks?.tiktok || ''
+
+  featuredArtistsText.value = Array.isArray(music?.featuredArtists) ? music.featuredArtists.join(', ') : ''
+  genreText.value = Array.isArray(music?.genre) ? music.genre.join(', ') : ''
+  moodText.value = Array.isArray(music?.mood) ? music.mood.join(', ') : ''
+  tagsText.value = Array.isArray(music?.tags) ? music.tags.join(', ') : ''
+
+  coverFile.value = null
+  audioFile.value = null
+  resetCoverObjectUrl()
+  coverPreview.value = music?.cover || ''
+  clearErrors()
+  initialSnapshot.value = snapshot()
+}
+
+watch(() => props.music, (m) => m && fillForm(m), { immediate: true })
 
 const buildFD = () => {
   const fd = new FormData()
-
   fd.append('title', form.title.trim())
   fd.append('slug', form.slug.trim())
   fd.append('artist', form.artist.trim())
   fd.append('author', form.author.trim())
   fd.append('composer', form.composer.trim())
   fd.append('producer', form.producer.trim())
-  fd.append('featuredArtists', JSON.stringify(parseList(form.featuredArtists)))
-  fd.append('genre', JSON.stringify(form.genre))
+  fd.append('featuredArtists', JSON.stringify(parseList(featuredArtistsText.value)))
+  fd.append('genre', JSON.stringify(genreList.value))
+  fd.append('mood', JSON.stringify(moodList.value))
+  fd.append('tags', JSON.stringify(tagsList.value))
   fd.append('album', form.album.trim())
   fd.append('trackNumber', form.trackNumber || '')
   fd.append('discNumber', form.discNumber || '')
   fd.append('version', form.version.trim())
   fd.append('language', form.language.trim())
   fd.append('lyricsLanguage', form.lyricsLanguage.trim())
-  fd.append('mood', JSON.stringify(form.mood))
   fd.append('country', form.country.trim())
   fd.append('releaseType', form.releaseType)
   fd.append('visibility', form.visibility)
   fd.append('releaseDate', form.releaseDate || '')
   fd.append('publishAt', form.publishAt || '')
-  fd.append('tags', JSON.stringify(parseTags(form.tags)))
-  fd.append('bio', form.bio.trim())
-  fd.append('artistBio', form.artistBio.trim())
   fd.append('lyrics', form.lyrics.trim())
   fd.append('syncedLyricsRaw', form.syncedLyricsRaw.trim())
   fd.append('bpm', form.bpm || '')
@@ -647,157 +574,39 @@ const buildFD = () => {
   fd.append('isRecommended', String(form.isRecommended))
   fd.append('isFreeDownload', String(form.isFreeDownload))
   fd.append('adminNote', form.adminNote.trim())
-
-  fd.append(
-    'externalLinks',
-    JSON.stringify({
-      youtube: form.youtube.trim(),
-      spotify: form.spotify.trim(),
-      appleMusic: form.appleMusic.trim(),
-      soundcloud: form.soundcloud.trim(),
-      instagram: form.instagram.trim(),
-      tiktok: form.tiktok.trim(),
-    })
-  )
-
+  fd.append('coverUrl', form.coverUrl.trim())
+  fd.append('externalLinks', JSON.stringify({
+    youtube: form.youtube.trim(),
+    spotify: form.spotify.trim(),
+    appleMusic: form.appleMusic.trim(),
+    soundcloud: form.soundcloud.trim(),
+    instagram: form.instagram.trim(),
+    tiktok: form.tiktok.trim(),
+  }))
   if (coverFile.value) fd.append('cover', coverFile.value)
   if (audioFile.value) fd.append('song', audioFile.value)
-
   return fd
-}
-
-const fillForm = (music) => {
-  form.title = music?.title || ''
-  form.slug = music?.slug || ''
-  form.artist = music?.artist || ''
-  form.author = music?.author || ''
-  form.composer = music?.composer || ''
-  form.producer = music?.producer || ''
-  form.featuredArtists = Array.isArray(music?.featuredArtists) ? music.featuredArtists.join(', ') : ''
-  form.genre = Array.isArray(music?.genre) ? [...music.genre] : []
-  form.album = music?.album || ''
-  form.trackNumber = music?.trackNumber ?? ''
-  form.discNumber = music?.discNumber ?? ''
-  form.version = music?.version || ''
-  form.language = music?.language || ''
-  form.lyricsLanguage = music?.lyricsLanguage || ''
-  form.mood = Array.isArray(music?.mood) ? [...music.mood] : []
-  form.country = music?.country || ''
-  form.releaseType = music?.releaseType || 'single'
-  form.visibility = music?.visibility || 'public'
-  form.releaseDate = music?.releaseDate ? String(music.releaseDate).slice(0, 10) : ''
-  form.publishAt = music?.publishAt ? String(music.publishAt).slice(0, 16) : ''
-  form.bio = music?.bio || ''
-  form.artistBio = music?.artistBio || ''
-  form.lyrics = music?.lyrics || ''
-  form.syncedLyricsRaw = music?.syncedLyricsRaw || ''
-  form.tags = Array.isArray(music?.tags) ? music.tags.join(', ') : ''
-  form.bpm = music?.bpm ?? ''
-  form.keySignature = music?.keySignature || ''
-  form.isrc = music?.isrc || ''
-  form.labelName = music?.labelName || ''
-  form.copyright = music?.copyright || ''
-  form.status = music?.status || 'draft'
-  form.isExplicit = !!music?.isExplicit
-  form.isFeatured = !!music?.isFeatured
-  form.isRecommended = !!music?.isRecommended
-  form.isFreeDownload = !!music?.isFreeDownload
-  form.adminNote = music?.adminNote || ''
-
-  form.youtube = music?.externalLinks?.youtube || ''
-  form.spotify = music?.externalLinks?.spotify || ''
-  form.appleMusic = music?.externalLinks?.appleMusic || ''
-  form.soundcloud = music?.externalLinks?.soundcloud || ''
-  form.instagram = music?.externalLinks?.instagram || ''
-  form.tiktok = music?.externalLinks?.tiktok || ''
-
-  coverFile.value = null
-  audioFile.value = null
-
-  revokeCoverPreview()
-  coverPreview.value = music?.cover || ''
-
-  clearAllErrors()
-  initialSnapshot.value = snapshot()
-}
-
-const onCover = (e) => {
-  const f = e.target.files?.[0]
-  if (!f) return
-  if (f.size / 1024 / 1024 > 10) return ElMessage.error('Image must be under 10MB')
-
-  revokeCoverPreview()
-  coverFile.value = f
-  coverObjectUrl = URL.createObjectURL(f)
-  coverPreview.value = coverObjectUrl
-}
-
-const onAudio = (e) => {
-  const f = e.target.files?.[0]
-  if (!f) return
-  if (f.size / 1024 / 1024 > 100) return ElMessage.error('Audio must be under 100MB')
-
-  revokeAudioPreview()
-  audioFile.value = f
-  audioObjectUrl = URL.createObjectURL(f)
-}
-
-const generateSync = async () => {
-  if (!props.music?._id) return
-  if (!form.lyrics.trim()) return ElMessage.error('Add lyrics first')
-
-  syncLoading.value = true
-  try {
-    const { data } = await api.post(`/music/${props.music._id}/generate-sync-from-lyrics`)
-    form.syncedLyricsRaw = data?.syncedLyricsRaw || ''
-    ElNotification({
-      title: 'Sync complete',
-      type: 'success',
-      duration: 2000
-    })
-  } catch (e) {
-    ElNotification({
-      title: 'Sync error',
-      message: e?.response?.data?.message || 'Failed to generate sync',
-      type: 'error',
-      duration: 3000
-    })
-  } finally {
-    syncLoading.value = false
-  }
 }
 
 const save = async () => {
   if (!props.music?._id) return
-
-  clearAllErrors()
   loading.value = true
+  clearErrors()
 
   try {
     const { data } = await api.put(`/music/${props.music._id}`, buildFD(), {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
-
-    fillForm(data)
     emit('saved', data)
-
-    ElNotification({
-      title: 'Saved',
-      message: 'Track updated successfully.',
-      type: 'success',
-      duration: 2200
-    })
-
     openState.value = false
+    ElNotification({ title: 'Saved', type: 'success', duration: 2200 })
   } catch (e) {
-    const serverErrors = e?.response?.data?.errors
-    if (serverErrors) applyServerErrors(serverErrors)
-
+    Object.assign(errors, e?.response?.data?.errors || {})
     ElNotification({
       title: 'Save failed',
-      message: e?.response?.data?.message || e?.response?.data?.error || 'Something went wrong',
+      message: e?.response?.data?.message || 'Something went wrong',
       type: 'error',
-      duration: 3000
+      duration: 3200,
     })
   } finally {
     loading.value = false
@@ -809,43 +618,13 @@ const handleCancel = async () => {
     openState.value = false
     return
   }
-
   try {
-    await ElMessageBox.confirm(
-      'You have unsaved changes. Close without saving?',
-      'Unsaved changes',
-      {
-        confirmButtonText: 'Discard',
-        cancelButtonText: 'Stay',
-        type: 'warning',
-      }
-    )
+    await ElMessageBox.confirm('Close without saving?', 'Unsaved changes', {
+      confirmButtonText: 'Discard',
+      cancelButtonText: 'Stay',
+      type: 'warning',
+    })
     openState.value = false
   } catch { }
 }
-
-const handleDialogClose = () => {
-  revokeCoverPreview()
-  revokeAudioPreview()
-  if (props.music) fillForm(props.music)
-}
-
-const fmtDur = (s) => {
-  const t = Number(s || 0)
-  if (!t) return '0:00'
-  return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
-}
-
-watch(
-  () => props.music,
-  (music) => {
-    if (music) fillForm(music)
-  },
-  { immediate: true }
-)
-
-onBeforeUnmount(() => {
-  revokeCoverPreview()
-  revokeAudioPreview()
-})
 </script>

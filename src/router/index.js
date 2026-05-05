@@ -65,15 +65,22 @@ const routes = [
 
   {
     path: '/admin',
-    name: 'Admin',
-    component: () => import('../pages/admin/AdminPage.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, title: 'Admin' },
-  },
-  {
-    path: '/admin/add-music',
-    name: 'AddMusic',
-    component: () => import('../pages/admin/AddMusic.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true, title: 'Add music' },
+    component: () => import('../layouts/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: '',
+        name: 'Admin',
+        component: () => import('../pages/admin/AdminPage.vue'),
+        meta: { title: 'Admin' },
+      },
+      {
+        path: 'add-music',
+        name: 'AddMusic',
+        component: () => import('../pages/admin/AddMusic.vue'),
+        meta: { title: 'Add music' },
+      },
+    ],
   },
 
   {
