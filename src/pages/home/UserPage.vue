@@ -319,7 +319,7 @@ import { useAuthStore } from '@/stores/auth'
 import { usePlayerStore } from '@/stores/player'
 import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
 import axios from 'axios'
-import RightPanel from '@/components/RightPanel.vue'
+import RightPanel from '@/components/users/RightPanel.vue'
 import {
   PlayIcon,
   HeartIcon,
