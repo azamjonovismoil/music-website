@@ -26,7 +26,7 @@
         <span /><span /><span /><span />
       </div>
 
-      <div v-if="music.syncStatus === 'ready'" class="mcard-lrc">LRC</div>
+      <div v-if="String(music.syncedLyricsRaw || '').trim()" class="mcard-lrc">LRC</div>
     </div>
 
     <div class="mcard-body">
@@ -51,6 +51,11 @@
           {{ music.likeCount || 0 }}
         </span>
 
+        <span class="mcard-stat">
+          <ArrowDownTrayIcon class="mcard-stat-ico" />
+          {{ music.downloadCount || 0 }}
+        </span>
+
         <span v-if="music.isExplicit" class="mcard-explicit">E</span>
       </div>
 
@@ -65,7 +70,7 @@
           <HeartIcon v-else />
         </button>
 
-        <button class="mcard-act" :class="{ 'mcard-act--dl': music.downloaded || music.download }"
+        <button class="mcard-act" :class="{ 'mcard-act--dl': (music.downloadCount || 0) > 0 }"
           @click.stop="$emit('toggle-download', music)" title="Download">
           <ArrowDownTrayIcon />
         </button>
