@@ -5,7 +5,7 @@
         <div class="am-topbar-copy">
           <p class="am-kicker">Admin • Music</p>
           <h1 class="am-title">Add new track</h1>
-          <p class="am-subtitle">Create a track with clean metadata and publish-ready structure.</p>
+          <p class="am-subtitle">Create a track with publish-ready metadata and live quality scoring.</p>
         </div>
 
         <div class="am-topbar-right">
@@ -98,6 +98,26 @@
                 <label class="am-label">Version</label>
                 <input v-model="form.version" class="am-input" type="text" placeholder="Original / Remix / Live" />
               </div>
+            </div>
+          </section>
+
+          <section class="am-card">
+            <div class="am-section-head">
+              <h3>Credits</h3>
+              <p>Writers and production info</p>
+            </div>
+
+            <div class="am-form-grid">
+              <div class="am-field"><label class="am-label">Author</label><input v-model="form.author" class="am-input"
+                  type="text" /></div>
+              <div class="am-field"><label class="am-label">Composer</label><input v-model="form.composer"
+                  class="am-input" type="text" /></div>
+              <div class="am-field"><label class="am-label">Producer</label><input v-model="form.producer"
+                  class="am-input" type="text" /></div>
+              <div class="am-field"><label class="am-label">Label</label><input v-model="form.labelName"
+                  class="am-input" type="text" /></div>
+              <div class="am-field am-full"><label class="am-label">Copyright</label><input v-model="form.copyright"
+                  class="am-input" type="text" /></div>
             </div>
           </section>
 
@@ -323,7 +343,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch, inject } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ElNotification, ElMessageBox, ElMessage } from 'element-plus'
@@ -336,6 +356,8 @@ const api = axios.create({
 })
 
 const router = useRouter()
+const headerSearch = inject('adminHeaderSearch', ref(''))
+
 const loading = ref(false)
 const uploadPct = ref(0)
 const audioFile = ref(null)
@@ -449,6 +471,10 @@ const targetStatusLabel = computed(() => ({
   archived: 'Archived',
 }[targetStatus.value] || 'Draft'))
 
+watch(headerSearch, (v) => {
+  if (!form.title && v) form.title = v
+}, { immediate: true })
+
 const clearErrors = () => Object.keys(errors).forEach((k) => delete errors[k])
 
 const onTitleInput = () => {
@@ -483,7 +509,6 @@ const onCover = (e) => {
   const f = e.target.files?.[0]
   if (!f) return
   if (f.size / 1024 / 1024 > 10) return ElMessage.error('Image must be under 10MB')
-
   form.coverUrl = ''
   coverFile.value = f
   resetCoverObjectUrl()
@@ -514,13 +539,12 @@ const applyPreset = (preset) => {
 }
 
 const saveDraftToLocal = () => {
-  const payload = {
+  localStorage.setItem(storageKey, JSON.stringify({
     form: { ...form },
     genreText: genreText.value,
     moodText: moodText.value,
     tagsText: tagsText.value,
-  }
-  localStorage.setItem(storageKey, JSON.stringify(payload))
+  }))
 }
 
 const restoreDraft = () => {
