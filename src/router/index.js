@@ -58,9 +58,10 @@ const routes = [
 
   {
     path: '/profile',
-    name: 'Profile',
-    component: () => import('../pages/profile/ProfilePage.vue'),
-    meta: { requiresAuth: true, title: 'Profile' },
+    redirect: (to) => {
+      const auth = useAuthStore()
+      return auth.isAdmin ? '/admin/profile' : '/user'
+    },
   },
 
   {

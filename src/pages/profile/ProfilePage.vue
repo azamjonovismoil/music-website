@@ -150,9 +150,7 @@ const api = axios.create({
 
 const saving = ref(false)
 const isDirty = ref(false)
-
 const stats = reactive({ total: 0, liked: 0, downloaded: 0, recent: 0 })
-
 const form = reactive({ name: '', email: '', bio: '' })
 const saved = reactive({ name: '', email: '', bio: '' })
 const changed = reactive({ name: false, email: false, bio: false })
