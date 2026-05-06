@@ -1,32 +1,27 @@
 <template>
   <header class="app-header">
     <div class="header-inner">
-      <!-- LEFT -->
       <div class="header-left">
-        <!-- Mobile menu toggle (only for logged in users) -->
         <button v-if="isMobile && authStore.user" class="hdr-btn icon-btn mobile-only" @click="mobileMenuOpen = true"
           aria-label="Open menu">
           <Bars3Icon class="hdr-icon" />
         </button>
 
-        <!-- Brand logo -->
         <div class="brand" @click="goHome">
           <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo" @error="logoErr = true" />
           <span class="brand-name">Music<span class="brand-dot">.</span></span>
         </div>
 
-        <!-- Home icon (desktop only) -->
         <button v-if="authStore.user && !isMobile" class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
           <HomeIcon class="hdr-icon" />
         </button>
 
-        <!-- Desktop search -->
         <div v-if="showSearch && authStore.user && !isMobile" class="search-wrap"
           :class="{ expanded: searchFocused || search }">
           <MagnifyingGlassIcon class="search-icon-el" />
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="clearSearch" type="text"
-            placeholder="Search tracks, artists..." class="search-input" />
+            placeholder="Search title, artist, album, tags..." class="search-input" />
           <transition name="fade">
             <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="clearSearch">
               <XMarkIcon class="search-clear-icon" />
@@ -36,44 +31,69 @@
         </div>
       </div>
 
-      <!-- RIGHT -->
       <div class="header-right">
-        <!-- Mobile search trigger -->
-        <button v-if="showSearch && authStore.user && isMobile" class="hdr-btn icon-btn"
-          @click="mobileSearchOpen = true" aria-label="Search">
+        <button v-if="showSearch && authStore.user && isMobile" class="hdr-btn icon-btn" @click="openMobileSearch"
+          aria-label="Search">
           <MagnifyingGlassIcon class="hdr-icon" />
         </button>
 
-        <!-- Theme toggle -->
         <button class="hdr-btn icon-btn" @click="toggleTheme" :title="isDark ? 'Light mode' : 'Dark mode'">
           <SunIcon v-if="isDark" class="hdr-icon" />
           <MoonIcon v-else class="hdr-icon" />
         </button>
 
-        <!-- Not logged in -->
         <template v-if="!authStore.user">
           <button v-if="!isMobile" class="hdr-btn ghost-btn" @click="router.push('/login')">Login</button>
-          <button class="hdr-btn accent-btn" @click="router.push('/signup')">
+          <button class="hdr-btn accent-btn" @click="router.push('/register')">
             <span v-if="!isXs">Sign up</span>
             <UserPlusIcon v-else class="hdr-icon" />
           </button>
         </template>
 
-        <!-- Logged in -->
         <template v-else>
-          <!-- Add track (admin, desktop) -->
+          <div class="notif-wrap" ref="notifRef">
+            <button class="hdr-btn icon-btn notif-btn" @click="toggleNotif" aria-label="Notifications">
+              <BellIcon class="hdr-icon" />
+              <span v-if="notificationCount > 0" class="notif-badge">{{ notificationCount > 9 ? '9+' : notificationCount
+                }}</span>
+            </button>
+
+            <transition name="dropdown">
+              <div v-if="notifOpen" class="notif-dropdown">
+                <div class="notif-head">
+                  <h4>Notifications</h4>
+                  <button v-if="notifications.length" class="notif-clear-btn" @click="markNotificationsSeen">Mark
+                    read</button>
+                </div>
+
+                <div v-if="notifications.length" class="notif-list">
+                  <button v-for="item in notifications" :key="item.key" class="notif-item"
+                    @click="handleNotification(item)">
+                    <span class="notif-dot" :class="item.tone" />
+                    <div class="notif-body">
+                      <strong>{{ item.title }}</strong>
+                      <p>{{ item.text }}</p>
+                    </div>
+                  </button>
+                </div>
+
+                <div v-else class="notif-empty">
+                  Nothing urgent right now.
+                </div>
+              </div>
+            </transition>
+          </div>
+
           <button v-if="authStore.isAdmin && !isXs" class="hdr-btn accent-btn add-btn"
             @click="router.push('/admin/add-music')">
             <PlusIcon class="hdr-icon" />
             <span v-if="!isMobile">Add track</span>
           </button>
 
-          <!-- Downloads (desktop) -->
           <button v-if="!isXs" class="hdr-btn icon-btn" @click="router.push('/library/downloaded')" title="Downloads">
             <ArrowDownTrayIcon class="hdr-icon" />
           </button>
 
-          <!-- Profile dropdown -->
           <div class="profile-wrap" ref="profileRef">
             <button class="profile-btn" :class="{ open: menuOpen }" @click="menuOpen = !menuOpen">
               <div class="avatar">{{ firstLetter }}</div>
@@ -92,7 +112,7 @@
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item" @click="nav('/profile')">
+                <button class="dropdown-item" @click="nav(authStore.isAdmin ? '/admin/profile' : '/profile')">
                   <UserIcon class="di-icon" />Profile
                 </button>
                 <button v-if="authStore.isAdmin" class="dropdown-item" @click="nav('/admin')">
@@ -118,13 +138,12 @@
       </div>
     </div>
 
-    <!-- Mobile search overlay -->
     <transition name="fade">
       <div v-if="mobileSearchOpen" class="mobile-search-overlay" @click.self="closeMobileSearch">
         <div class="mobile-search-bar">
           <MagnifyingGlassIcon class="mobile-search-icon" />
           <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
-            placeholder="Search tracks, artists..." class="mobile-search-input" />
+            placeholder="Search title, artist, album, tags..." class="mobile-search-input" />
           <button v-if="search" class="mobile-search-clear" @click="clearMobileSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
@@ -133,7 +152,6 @@
       </div>
     </transition>
 
-    <!-- Mobile sidebar drawer -->
     <transition name="drawer">
       <div v-if="mobileMenuOpen" class="mobile-menu-overlay" @click.self="mobileMenuOpen = false">
         <aside class="mobile-menu">
@@ -148,7 +166,6 @@
             </button>
           </div>
 
-          <!-- User info in drawer -->
           <div v-if="authStore.user" class="mobile-user-card">
             <div class="mobile-avatar">{{ firstLetter }}</div>
             <div>
@@ -161,22 +178,24 @@
             <button class="mobile-link" @click="navMobile(authStore.isAdmin ? '/admin' : '/user')">
               <HomeIcon class="di-icon" />Home
             </button>
-            <button class="mobile-link" @click="navMobile('/profile')">
+
+            <button v-if="authStore.isAdmin" class="mobile-link mobile-link--admin" @click="navMobile('/admin')">
+              <Squares2X2Icon class="di-icon" />Admin panel
+            </button>
+
+            <button v-if="authStore.isAdmin" class="mobile-link mobile-link--admin"
+              @click="navMobile('/admin/add-music')">
+              <PlusIcon class="di-icon" />Add track
+            </button>
+
+            <button class="mobile-link" @click="navMobile(authStore.isAdmin ? '/admin/profile' : '/profile')">
               <UserIcon class="di-icon" />Profile
             </button>
+
             <button class="mobile-link" @click="navMobile('/library/downloaded')">
               <ArrowDownTrayIcon class="di-icon" />Downloads
             </button>
-            <template v-if="authStore.isAdmin">
-              <div class="mobile-divider" />
-              <p class="mobile-section-label">Admin</p>
-              <button class="mobile-link mobile-link--admin" @click="navMobile('/admin')">
-                <Squares2X2Icon class="di-icon" />Admin panel
-              </button>
-              <button class="mobile-link mobile-link--admin" @click="navMobile('/admin/add-music')">
-                <PlusIcon class="di-icon" />Add track
-              </button>
-            </template>
+
             <div class="mobile-divider" />
             <button class="mobile-link mobile-link--danger" :disabled="loggingOut" @click="logoutMobile">
               <ArrowRightOnRectangleIcon class="di-icon" />
@@ -186,44 +205,78 @@
         </aside>
       </div>
     </transition>
+
+    <div v-if="authStore.user && isMobile" class="mobile-quickbar">
+      <button class="mq-btn" @click="goHome">
+        <HomeIcon class="hdr-icon" />
+      </button>
+      <button class="mq-btn" @click="openMobileSearch">
+        <MagnifyingGlassIcon class="hdr-icon" />
+      </button>
+      <button v-if="authStore.isAdmin" class="mq-btn mq-btn--accent" @click="router.push('/admin/add-music')">
+        <PlusIcon class="hdr-icon" />
+      </button>
+      <button class="mq-btn mq-btn--notif" @click="toggleNotif">
+        <BellIcon class="hdr-icon" />
+        <span v-if="notificationCount > 0" class="notif-badge notif-badge--mobile">{{ notificationCount > 9 ? '9+' :
+          notificationCount }}</span>
+      </button>
+      <button class="mq-btn" @click="menuOpen = !menuOpen">
+        <UserIcon class="hdr-icon" />
+      </button>
+    </div>
   </header>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 import {
   HomeIcon, MagnifyingGlassIcon, XMarkIcon, PlusIcon, ArrowDownTrayIcon,
   SunIcon, MoonIcon, ChevronDownIcon, UserIcon, Squares2X2Icon,
-  ArrowRightOnRectangleIcon, Bars3Icon, UserPlusIcon,
+  ArrowRightOnRectangleIcon, Bars3Icon, UserPlusIcon, BellIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
+import { API_ROOT } from '@/utils/media'
 import '@/styles/header_page.css'
 
 const props = defineProps({
   search: { type: String, default: '' },
   showSearch: { type: Boolean, default: true },
 })
-const emit = defineEmits(['update:search'])
+defineEmits(['update:search'])
 
 const router = useRouter()
 const authStore = useAuthStore()
 
+const api = axios.create({
+  baseURL: `${API_ROOT}/api`,
+  withCredentials: true,
+})
+
 const searchRef = ref(null)
 const mobileSearchRef = ref(null)
 const profileRef = ref(null)
+const notifRef = ref(null)
+
 const searchFocused = ref(false)
 const menuOpen = ref(false)
+const notifOpen = ref(false)
 const mobileMenuOpen = ref(false)
 const mobileSearchOpen = ref(false)
 const loggingOut = ref(false)
 const isDark = ref(true)
 const logoErr = ref(false)
 const viewport = ref(window.innerWidth)
+const notifications = ref([])
+const notifSeen = ref(false)
 
-const isMobile = computed(() => viewport.value <= 760)
+const isMobile = computed(() => viewport.value <= 860)
 const isXs = computed(() => viewport.value <= 540)
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
+
+const notificationCount = computed(() => notifSeen.value ? 0 : notifications.value.length)
 
 const goHome = () => {
   if (!authStore.user) return router.push('/')
@@ -231,29 +284,53 @@ const goHome = () => {
 }
 
 const clearSearch = () => {
-  emit('update:search', '')
+  const ev = new CustomEvent('input')
   searchRef.value?.blur()
 }
 const clearMobileSearch = async () => {
-  emit('update:search', '')
+  window.dispatchEvent(new CustomEvent('header-clear-search'))
   await nextTick()
   mobileSearchRef.value?.focus()
 }
-const closeMobileSearch = () => { mobileSearchOpen.value = false }
+const closeMobileSearch = () => {
+  mobileSearchOpen.value = false
+}
 
-const nav = (path) => { menuOpen.value = false; router.push(path) }
-const navMobile = (path) => { mobileMenuOpen.value = false; router.push(path) }
+const openMobileSearch = async () => {
+  mobileSearchOpen.value = true
+  await nextTick()
+  mobileSearchRef.value?.focus()
+}
+
+const nav = (path) => {
+  menuOpen.value = false
+  router.push(path)
+}
+const navMobile = (path) => {
+  mobileMenuOpen.value = false
+  router.push(path)
+}
 
 const logout = async () => {
   loggingOut.value = true
   menuOpen.value = false
-  try { await authStore.logout(); router.push('/') } finally { loggingOut.value = false }
+  try {
+    await authStore.logout()
+    router.push('/')
+  } finally {
+    loggingOut.value = false
+  }
 }
 
 const logoutMobile = async () => {
   loggingOut.value = true
   mobileMenuOpen.value = false
-  try { await authStore.logout(); router.push('/') } finally { loggingOut.value = false }
+  try {
+    await authStore.logout()
+    router.push('/')
+  } finally {
+    loggingOut.value = false
+  }
 }
 
 const toggleTheme = () => {
@@ -263,19 +340,94 @@ const toggleTheme = () => {
   localStorage.setItem('mw-theme', theme)
 }
 
+const toggleNotif = () => {
+  notifOpen.value = !notifOpen.value
+  menuOpen.value = false
+}
+
+const markNotificationsSeen = () => {
+  notifSeen.value = true
+  notifOpen.value = false
+}
+
+const handleNotification = (item) => {
+  notifSeen.value = true
+  notifOpen.value = false
+  router.push(item.path)
+}
+
+const buildNotifications = (summary) => {
+  const list = []
+
+  if ((summary?.attentionCount || 0) > 0) {
+    list.push({
+      key: 'attention',
+      title: 'Needs attention',
+      text: `${summary.attentionCount} tracks need fixes or metadata updates.`,
+      path: '/admin',
+      tone: 'rose',
+    })
+  }
+
+  if ((summary?.draft || 0) > 0) {
+    list.push({
+      key: 'drafts',
+      title: 'Drafts waiting',
+      text: `${summary.draft} drafts are still not published.`,
+      path: '/admin',
+      tone: 'amber',
+    })
+  }
+
+  if ((summary?.published || 0) > 0) {
+    list.push({
+      key: 'published',
+      title: 'Published library',
+      text: `${summary.published} tracks are live.`,
+      path: '/admin',
+      tone: 'green',
+    })
+  }
+
+  if ((summary?.avgHealth || 0) < 70 && (summary?.total || 0) > 0) {
+    list.push({
+      key: 'health',
+      title: 'Metadata quality',
+      text: `Average health is ${summary.avgHealth}%. There’s room to improve.`,
+      path: '/admin',
+      tone: 'blue',
+    })
+  }
+
+  return list.slice(0, 5)
+}
+
+const loadNotifications = async () => {
+  if (!authStore.user || !authStore.isAdmin) {
+    notifications.value = []
+    return
+  }
+
+  try {
+    const { data } = await api.get('/music/admin/summary')
+    notifications.value = buildNotifications(data)
+  } catch {
+    notifications.value = []
+  }
+}
+
 const handleKey = (e) => {
   if (!authStore.user) return
+
   if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
     e.preventDefault()
-    if (isMobile.value) {
-      mobileSearchOpen.value = true
-      nextTick(() => mobileSearchRef.value?.focus())
-    } else {
-      searchRef.value?.focus()
-    }
+    if (isMobile.value) openMobileSearch()
+    else searchRef.value?.focus()
   }
+
   if (e.key === 'Escape') {
     menuOpen.value = false
+    notifOpen.value = false
     mobileMenuOpen.value = false
     mobileSearchOpen.value = false
   }
@@ -283,20 +435,27 @@ const handleKey = (e) => {
 
 const handleOut = (e) => {
   if (profileRef.value && !profileRef.value.contains(e.target)) menuOpen.value = false
+  if (notifRef.value && !notifRef.value.contains(e.target)) notifOpen.value = false
 }
 
 const handleResize = () => {
   viewport.value = window.innerWidth
-  if (window.innerWidth > 760) { mobileMenuOpen.value = false; mobileSearchOpen.value = false }
+  if (window.innerWidth > 860) {
+    mobileMenuOpen.value = false
+    mobileSearchOpen.value = false
+  }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const saved = localStorage.getItem('mw-theme') || 'dark'
   isDark.value = saved === 'dark'
   document.documentElement.setAttribute('data-theme', saved)
+
   document.addEventListener('click', handleOut)
   window.addEventListener('keydown', handleKey)
   window.addEventListener('resize', handleResize)
+
+  await loadNotifications()
 })
 
 onBeforeUnmount(() => {

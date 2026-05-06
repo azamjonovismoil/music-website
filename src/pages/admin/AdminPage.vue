@@ -51,7 +51,7 @@
 
         <section class="apage-toolbar">
           <input v-model="searchQuery" class="toolbar-input" type="text"
-            placeholder="Search tracks, artists, album..." />
+            placeholder="Search title, artist, album, tags..." />
 
           <select v-model="sortBy" class="toolbar-select">
             <option value="newest">Newest</option>
@@ -194,6 +194,8 @@ const editMusic = ref(null)
 const summary = ref({
   total: 0,
   published: 0,
+  draft: 0,
+  archived: 0,
   attentionCount: 0,
   avgHealth: 0,
   attention: [],
@@ -241,16 +243,35 @@ const scheduledSoon = computed(() => {
     .sort((a, b) => new Date(a.publishAt) - new Date(b.publishAt))
 })
 
+const matchesQuery = (music, q) => {
+  const text = String(q || '').trim().toLowerCase()
+  if (!text) return true
+
+  const pool = [
+    music.title,
+    music.artist,
+    music.album,
+    music.version,
+    music.labelName,
+    music.language,
+    music.country,
+    ...(music.genre || []),
+    ...(music.mood || []),
+    ...(music.tags || []),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  return pool.includes(text)
+}
+
 const filtered = computed(() => {
   let r = [...musics.value]
   const q = searchQuery.value.trim().toLowerCase()
 
   if (q) {
-    r = r.filter((m) =>
-      [m.title, m.artist, m.album, ...(m.genre || [])].some((v) =>
-        String(v || '').toLowerCase().includes(q)
-      )
-    )
+    r = r.filter((m) => matchesQuery(m, q))
   }
 
   if (filter.value === 'draft') r = r.filter((m) => m.status === 'draft')
@@ -348,9 +369,7 @@ const quickPublish = async (music) => {
   try {
     const fd = new FormData()
     fd.append('status', 'published')
-    const { data } = await api.put(`/music/${music._id}`, fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    const { data } = await api.put(`/music/${music._id}`, fd)
     handleSaved(data)
     ElMessage.success('Track published')
   } catch (e) {

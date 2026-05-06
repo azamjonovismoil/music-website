@@ -1,33 +1,35 @@
 /* ═══════════════════════════════════════════════════
-   admin_page.css  —  Admin Music Library
+   admin_page.css — Compact Premium Admin Library
    ═══════════════════════════════════════════════════ */
 
 .apage {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
 }
 
-/* ── Hero ──────────────────────────────────────────── */
+/* ── Hero ─────────────────────────────────────────── */
 .apage-hero {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .apage-title {
-  font-size: clamp(26px, 3vw, 36px);
+  font-size: clamp(22px, 2.2vw, 30px);
   font-weight: 900;
   letter-spacing: -0.04em;
-  margin: 0 0 6px;
+  margin: 0 0 4px;
+  line-height: 1.05;
 }
 
 .apage-subtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-muted);
   margin: 0;
+  max-width: 58ch;
 }
 
 .apage-hero-actions {
@@ -36,33 +38,33 @@
   flex-wrap: wrap;
 }
 
-/* ── Stats ─────────────────────────────────────────── */
+/* ── Stats ────────────────────────────────────────── */
 .apage-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .astat {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .astat-label {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--text-hint);
 }
 
 .astat-val {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.04em;
   color: var(--text-primary);
@@ -74,39 +76,46 @@
   color: var(--text-muted);
 }
 
-/* ── Admin Shell (main + sidebar) ──────────────────── */
+/* ── Main shell ───────────────────────────────────── */
 .admin-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 14px;
   align-items: start;
 }
 
 .admin-main {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
-/* ── Smart filters ─────────────────────────────────── */
+/* ── Smart filters ────────────────────────────────── */
 .smart-filters {
   display: flex;
-  flex-wrap: wrap;
   gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.smart-filters::-webkit-scrollbar {
+  display: none;
 }
 
 .smart-filter {
-  min-height: 32px;
-  padding: 0 14px;
+  min-height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
   transition: all var(--t-fast);
+  white-space: nowrap;
 }
 
 .smart-filter:hover {
@@ -120,65 +129,71 @@
   color: var(--accent);
 }
 
-/* ── Toolbar ───────────────────────────────────────── */
+/* ── Toolbar ──────────────────────────────────────── */
 .apage-toolbar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
 
 .toolbar-input {
   flex: 1 1 220px;
-  height: 40px;
-  padding: 0 13px;
+  height: 38px;
+  padding: 0 12px;
   border-radius: 10px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   background: var(--bg-input);
   color: var(--text-primary);
-  font-size: 13.5px;
+  font-size: 13px;
   outline: none;
   font-family: var(--font-body);
   transition: all var(--t-fast);
 }
 
-.toolbar-input:focus {
+.toolbar-input:hover,
+.toolbar-select:hover {
+  border-color: var(--border-hover);
+}
+
+.toolbar-input:focus,
+.toolbar-select:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .toolbar-select {
-  height: 40px;
+  height: 38px;
   padding: 0 12px;
   border-radius: 10px;
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   background: var(--bg-input);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 12.5px;
   outline: none;
   cursor: pointer;
   font-family: var(--font-body);
 }
 
 .toolbar-count {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-hint);
   white-space: nowrap;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* ── Cockpit cards (3-col panel) ───────────────────── */
+/* ── Cockpit ──────────────────────────────────────── */
 .cockpit-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .cockpit-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
 }
 
 .cockpit-head {
@@ -186,17 +201,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .cockpit-head h3 {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 12.5px;
+  font-weight: 800;
   margin: 0;
 }
 
 .cockpit-head span {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   color: var(--accent);
   line-height: 1;
@@ -205,7 +220,7 @@
 .cockpit-list {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .cockpit-item {
@@ -226,8 +241,8 @@
 
 .cockpit-item strong {
   display: block;
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 800;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -236,7 +251,7 @@
 }
 
 .cockpit-item p {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
   margin: 0;
   white-space: nowrap;
@@ -245,20 +260,20 @@
 }
 
 .cockpit-empty {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-muted);
-  padding: 8px 0;
+  padding: 6px 0;
 }
 
-/* ── Track grid ────────────────────────────────────── */
+/* ── Track grid ───────────────────────────────────── */
 .apage-content {
   min-width: 0;
 }
 
 .apage-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
 }
 
 .apage-empty {
@@ -266,39 +281,39 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 24px;
+  padding: 48px 20px;
   text-align: center;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
 }
 
 .apage-empty h3 {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 5px;
 }
 
 .apage-empty p {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-muted);
   margin: 0;
 }
 
-/* ── Admin sidebar (right panel) ───────────────────── */
+/* ── Right side ───────────────────────────────────── */
 .admin-side {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   position: sticky;
-  top: calc(var(--header-h, 64px) + 16px);
+  top: calc(var(--header-h, 64px) + 14px);
 }
 
 .admin-side-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -311,7 +326,7 @@
 }
 
 .side-metric strong {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 900;
   color: var(--text-primary);
   letter-spacing: -0.03em;
@@ -329,26 +344,26 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .side-notes li {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
-/* ── Buttons (shared) ──────────────────────────────── */
+/* ── Buttons ──────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 40px;
-  padding: 0 18px;
-  border-radius: 11px;
-  font-size: 13.5px;
-  font-weight: 700;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 800;
   cursor: pointer;
   border: 1px solid transparent;
   transition: all var(--t-fast);
@@ -358,12 +373,12 @@
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-mid, #0ea5e9), var(--accent, #38bdf8));
   color: #fff;
-  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.22);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.2);
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  filter: brightness(1.06);
+  filter: brightness(1.05);
 }
 
 .btn-ghost {
@@ -377,10 +392,10 @@
   color: var(--text-primary);
 }
 
-/* ── Responsive ────────────────────────────────────── */
+/* ── Responsive ───────────────────────────────────── */
 @media (max-width: 1280px) {
   .admin-shell {
-    grid-template-columns: minmax(0, 1fr) 230px;
+    grid-template-columns: minmax(0, 1fr) 210px;
   }
 }
 
@@ -388,16 +403,19 @@
   .admin-shell {
     grid-template-columns: 1fr;
   }
+
   .admin-side {
     position: static;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
   .cockpit-grid {
     grid-template-columns: 1fr 1fr;
   }
+
   .apage-stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -405,30 +423,36 @@
   .cockpit-grid {
     grid-template-columns: 1fr;
   }
-  .apage-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
+
   .admin-side {
     grid-template-columns: 1fr;
   }
+
   .apage-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   }
 }
 
 @media (max-width: 560px) {
+  .apage {
+    gap: 12px;
+  }
+
   .apage-hero {
     flex-direction: column;
   }
+
   .apage-stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
-  .smart-filters {
-    display: none;
-  }
+
   .apage-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+  }
+
+  .toolbar-count {
+    width: 100%;
   }
 }

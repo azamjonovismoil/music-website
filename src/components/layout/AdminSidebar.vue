@@ -1,6 +1,6 @@
 <template>
   <aside class="admin-sidebar">
-    <div class="sidebar-brand">
+    <div class="sidebar-brand" @click="router.push('/admin')">
       <div class="sidebar-brand-icon">
         <img :src="brandIcon" alt="Logo" class="sidebar-brand-img" />
       </div>
@@ -27,7 +27,7 @@
       </div>
       <div class="sidebar-footer-body">
         <p class="sidebar-footer-title">Admin access</p>
-        <p class="sidebar-footer-desc">Manage uploads, covers, tags and keep the library organized.</p>
+        <p class="sidebar-footer-desc">Manage tracks, metadata and publishing from one place.</p>
       </div>
     </div>
   </aside>
@@ -39,10 +39,9 @@ import { useRouter, useRoute } from 'vue-router'
 import {
   Squares2X2Icon,
   PlusCircleIcon,
-  ArrowDownTrayIcon,
-  StarIcon,
-  ShieldCheckIcon,
   MusicalNoteIcon,
+  UserCircleIcon,
+  ShieldCheckIcon,
 } from '@heroicons/vue/24/outline'
 import brandIcon from '@/assets/header_icon.png'
 import '@/styles/admin_sidebar.css'
@@ -54,16 +53,14 @@ const navItems = [
   { key: 'dashboard', label: 'Dashboard', path: '/admin', icon: Squares2X2Icon },
   { key: 'add-music', label: 'Add track', path: '/admin/add-music', icon: PlusCircleIcon },
   { key: 'library', label: 'Library', path: '/admin', icon: MusicalNoteIcon },
-  { key: 'downloaded', label: 'Downloads', path: '/library/downloaded', icon: ArrowDownTrayIcon },
-  { key: 'favourites', label: 'Favourites', path: '/library/favourites', icon: StarIcon },
+  { key: 'profile', label: 'Profile', path: '/admin/profile', icon: UserCircleIcon },
 ]
 
 const active = computed(() => {
   const p = route.path
   if (p === '/admin') return 'dashboard'
   if (p.startsWith('/admin/add-music')) return 'add-music'
-  if (p.startsWith('/library/downloaded')) return 'downloaded'
-  if (p.startsWith('/library/favourites')) return 'favourites'
-  return ''
+  if (p.startsWith('/admin/profile')) return 'profile'
+  return 'dashboard'
 })
 </script>

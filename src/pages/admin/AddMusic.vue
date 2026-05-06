@@ -1,6 +1,5 @@
 <template>
   <div class="am-shell">
-    <!-- Mobile sidebar toggle -->
     <div class="am-mobile-bar">
       <button class="am-mobile-back" @click="handleCancel">
         <ArrowLeftIcon class="w-4 h-4" />
@@ -13,7 +12,6 @@
     </div>
 
     <div class="am-layout">
-      <!-- Left: form -->
       <div class="am-scroll-area">
         <div class="am-page-head">
           <button class="am-back-btn" @click="handleCancel">
@@ -22,7 +20,7 @@
           <div>
             <p class="am-kicker">Admin • Music</p>
             <h1 class="am-title">Add new track</h1>
-            <p class="am-subtitle">Create a track with portfolio-grade metadata, live preview and quality scoring.</p>
+            <p class="am-subtitle">Create a track with strong metadata, live preview and quality scoring.</p>
           </div>
           <div class="am-status-pill" :class="targetStatus">
             <span class="am-status-dot" />
@@ -30,7 +28,6 @@
           </div>
         </div>
 
-        <!-- Quick presets -->
         <div class="am-presets-strip">
           <button v-for="preset in presets" :key="preset.id" type="button" class="am-preset-btn"
             @click="applyPreset(preset)">
@@ -39,7 +36,6 @@
         </div>
 
         <div class="am-form-body">
-          <!-- MEDIA -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico accent">
@@ -52,7 +48,6 @@
             </div>
 
             <div class="am-upload-grid">
-              <!-- Audio upload -->
               <label class="am-upload-zone" :class="{ 'has-file': audioFile, invalid: !!errors.song }">
                 <input class="am-hidden" type="file" accept="audio/*" @change="onAudio" />
                 <template v-if="!audioFile">
@@ -69,14 +64,13 @@
                     </div>
                   </div>
                   <div class="am-wave-mini">
-                    <span v-for="n in 8" :key="n" :style="{ height: `${Math.random() * 24 + 8}px` }" />
+                    <span v-for="n in 8" :key="n" :style="{ height: `${Math.random() * 22 + 8}px` }" />
                   </div>
                   <span class="am-replace-label">Replace audio</span>
                 </template>
               </label>
 
-              <!-- Cover upload -->
-              <label class="am-upload-zone" :class="{ 'has-file': coverPreview }">
+              <label class="am-upload-zone" :class="{ 'has-file': coverPreview, invalid: !!errors.cover }">
                 <input class="am-hidden" type="file" accept="image/*" @change="onCover" />
                 <template v-if="!coverPreview">
                   <PhotoIcon class="am-upload-ico" />
@@ -100,9 +94,9 @@
             </div>
 
             <p v-if="errors.song" class="am-err">{{ errors.song }}</p>
+            <p v-if="errors.cover" class="am-err">{{ errors.cover }}</p>
           </div>
 
-          <!-- BASIC INFO -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -150,7 +144,6 @@
             </div>
           </div>
 
-          <!-- CREDITS -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -186,7 +179,6 @@
             </div>
           </div>
 
-          <!-- CLASSIFICATION -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -198,7 +190,7 @@
               </div>
             </div>
 
-            <div class="am-grid2" :class="{ invalid: !!errors.genre }">
+            <div class="am-grid2">
               <div class="am-field" :class="{ invalid: !!errors.genre }">
                 <label class="am-label">Genres <span class="am-req">*</span></label>
                 <input v-model="genreText" class="am-input" type="text" placeholder="Pop, Rap, Lo-fi" />
@@ -232,7 +224,6 @@
             </div>
           </div>
 
-          <!-- RELEASE -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -257,13 +248,14 @@
                 </select>
               </div>
 
-              <div class="am-field">
+              <div class="am-field" :class="{ invalid: !!errors.visibility }">
                 <label class="am-label">Visibility <span class="am-req">*</span></label>
                 <select v-model="form.visibility" class="am-input am-select">
                   <option value="public">Public</option>
                   <option value="unlisted">Unlisted</option>
                   <option value="private">Private</option>
                 </select>
+                <p v-if="errors.visibility" class="am-err">{{ errors.visibility }}</p>
               </div>
 
               <div class="am-field">
@@ -302,7 +294,6 @@
               </div>
             </div>
 
-            <!-- Status selector -->
             <div class="am-status-row">
               <label class="am-label">Status</label>
               <div class="am-seg">
@@ -314,7 +305,6 @@
               </div>
             </div>
 
-            <!-- Flags -->
             <div class="am-flags">
               <button type="button" class="am-flag" :class="{ on: form.isExplicit }"
                 @click="form.isExplicit = !form.isExplicit">
@@ -335,7 +325,6 @@
             </div>
           </div>
 
-          <!-- LYRICS -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -365,7 +354,6 @@
             </div>
           </div>
 
-          <!-- EXTERNAL LINKS -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -405,7 +393,6 @@
             </div>
           </div>
 
-          <!-- INTERNAL NOTE -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -420,7 +407,6 @@
               placeholder="Promo plan, release reminders, edit notes..." />
           </div>
 
-          <!-- FOOTER ACTIONS -->
           <div class="am-footer">
             <div class="am-checklist">
               <span v-for="s in requireSteps" :key="s.label" class="am-check" :class="{ ok: s.done }">
@@ -448,9 +434,7 @@
         </div>
       </div>
 
-      <!-- Right sidebar: live preview -->
       <aside class="am-sidebar">
-        <!-- Health score -->
         <div class="am-side-card am-side-sticky">
           <div class="am-side-head">
             <h3>Publish score</h3>
@@ -469,7 +453,6 @@
           </ul>
         </div>
 
-        <!-- Track preview -->
         <div class="am-side-card">
           <div class="am-side-head">
             <h3>Track preview</h3>
@@ -497,7 +480,6 @@
           </div>
         </div>
 
-        <!-- Release metadata -->
         <div class="am-side-card">
           <div class="am-side-head">
             <h3>Release metadata</h3>
@@ -522,17 +504,16 @@
           </dl>
         </div>
 
-        <!-- Tips -->
         <div class="am-side-card am-tips-card">
           <p class="am-tips-title">
             <SparklesIcon class="w-3.5 h-3.5" />
             Quick tips
           </p>
           <ul class="am-tips-list">
-            <li>Upload a square cover (at least 500×500px).</li>
+            <li>Upload a square cover for best results.</li>
             <li>Add genres and moods for better discovery.</li>
-            <li>Synced lyrics give a premium feel.</li>
-            <li>Use "Unlisted" before going fully public.</li>
+            <li>Synced lyrics make the track feel more complete.</li>
+            <li>Use unlisted before going fully public.</li>
           </ul>
         </div>
       </aside>
@@ -566,7 +547,6 @@ const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 const router = useRouter()
 const storageKey = 'am-draft-v3'
 
-/* ── state ── */
 const loading = ref(false)
 const uploadPct = ref(0)
 const audioFile = ref(null)
@@ -578,6 +558,7 @@ const errors = reactive({})
 const genreText = ref('')
 const moodText = ref('')
 const tagsText = ref('')
+const slugTouched = ref(false)
 let coverObjectUrl = ''
 
 const form = reactive({
@@ -601,11 +582,9 @@ const presets = [
   { id: 'single', label: '🎵 Single', releaseType: 'single' },
   { id: 'remix', label: '🎛 Remix', releaseType: 'remix', version: 'Remix' },
   { id: 'live', label: '🎤 Live', releaseType: 'live', version: 'Live' },
-  { id: 'ost', label: '🎬 OST', releaseType: 'album-track', genre: 'OST' },
   { id: 'uzpop', label: "🇺🇿 O'zbek Pop", language: 'Uzbek', country: 'Uzbekistan', genre: 'Pop' },
 ]
 
-/* ── computed ── */
 const parseList = (s = '') => String(s).split(',').map(t => t.trim()).filter(Boolean)
 const slugify = (s = '') =>
   String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -646,9 +625,15 @@ const audioMetaText = computed(() => {
 
 const healthScore = computed(() => {
   const checks = [
-    !!form.title.trim(), !!form.artist.trim(), !!audioFile.value, hasCover.value,
-    genreList.value.length > 0, !!form.lyrics.trim(), !!form.syncedLyricsRaw.trim(),
-    hasLinks.value, !!form.visibility,
+    !!form.title.trim(),
+    !!form.artist.trim(),
+    !!audioFile.value,
+    hasCover.value,
+    genreList.value.length > 0,
+    !!form.lyrics.trim(),
+    !!form.syncedLyricsRaw.trim(),
+    hasLinks.value,
+    !!form.visibility,
   ]
   return Math.round((checks.filter(Boolean).length / checks.length) * 100)
 })
@@ -661,8 +646,12 @@ const healthTier = computed(() => {
 })
 
 const canPublish = computed(() =>
-  !!form.title.trim() && !!form.artist.trim() && !!audioFile.value &&
-  hasCover.value && genreList.value.length > 0 && !!form.visibility
+  !!form.title.trim() &&
+  !!form.artist.trim() &&
+  !!audioFile.value &&
+  hasCover.value &&
+  genreList.value.length > 0 &&
+  !!form.visibility
 )
 
 const targetStatusLabel = computed(() =>
@@ -689,19 +678,28 @@ const syncPillText = computed(() =>
   form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set'
 )
 
-/* ── handlers ── */
 const clearErrors = () => Object.keys(errors).forEach(k => delete errors[k])
 
+watch(() => form.slug, () => {
+  if (form.slug.trim()) slugTouched.value = true
+})
+
 const onTitleInput = () => {
-  if (!form.slug.trim()) form.slug = slugify(form.title)
+  if (!slugTouched.value) form.slug = slugify(form.title)
 }
 
 const readAudioDuration = (file) => new Promise((resolve) => {
   const audio = document.createElement('audio')
   const url = URL.createObjectURL(file)
   audio.preload = 'metadata'
-  audio.onloadedmetadata = () => { URL.revokeObjectURL(url); resolve(audio.duration || 0) }
-  audio.onerror = () => { URL.revokeObjectURL(url); resolve(0) }
+  audio.onloadedmetadata = () => {
+    URL.revokeObjectURL(url)
+    resolve(audio.duration || 0)
+  }
+  audio.onerror = () => {
+    URL.revokeObjectURL(url)
+    resolve(0)
+  }
   audio.src = url
 })
 
@@ -709,9 +707,10 @@ const onAudio = async (e) => {
   const f = e.target.files?.[0]
   if (!f) return
   if (f.size / 1024 / 1024 > 100) return ElMessage.error('Audio must be under 100MB')
+
   audioFile.value = f
   audioDuration.value = await readAudioDuration(f)
-  // Auto-fill title/artist from filename
+
   if (!form.title.trim()) {
     const name = f.name.replace(/\.[^.]+$/, '')
     const parts = name.split(/[-_]/).map(x => x.trim()).filter(Boolean)
@@ -724,13 +723,17 @@ const onAudio = async (e) => {
 }
 
 const revokeCover = () => {
-  if (coverObjectUrl) { URL.revokeObjectURL(coverObjectUrl); coverObjectUrl = '' }
+  if (coverObjectUrl) {
+    URL.revokeObjectURL(coverObjectUrl)
+    coverObjectUrl = ''
+  }
 }
 
 const onCover = (e) => {
   const f = e.target.files?.[0]
   if (!f) return
   if (f.size / 1024 / 1024 > 10) return ElMessage.error('Image must be under 10MB')
+
   form.coverUrl = ''
   revokeCover()
   coverFile.value = f
@@ -740,13 +743,18 @@ const onCover = (e) => {
 
 const clearCoverFile = () => {
   coverFile.value = null
-  if (!form.coverUrl.trim()) { revokeCover(); coverPreview.value = '' }
+  if (!form.coverUrl.trim()) {
+    revokeCover()
+    coverPreview.value = ''
+  }
 }
 
 const applyCoverUrlPreview = () => {
   const url = form.coverUrl.trim()
   if (!url) return
-  if (!/^https?:\/\/.+/i.test(url)) return ElMessage.error('Cover URL must start with https')
+  if (!/^https?:\/\/.+/i.test(url)) {
+    return ElMessage.error('Cover URL must start with http:// or https://')
+  }
   revokeCover()
   coverFile.value = null
   coverPreview.value = url
@@ -762,7 +770,6 @@ const applyPreset = (preset) => {
   }
 }
 
-/* ── draft persistence ── */
 watch(
   () => ({ ...form, genreText: genreText.value, moodText: moodText.value, tagsText: tagsText.value }),
   (v) => localStorage.setItem(storageKey, JSON.stringify(v)),
@@ -779,13 +786,13 @@ const restoreDraft = () => {
     moodText.value = p.moodText || ''
     tagsText.value = p.tagsText || ''
     if (form.coverUrl) coverPreview.value = form.coverUrl
-  } catch { /**/ }
+  } catch { }
 }
 
-/* ── submit ── */
 const buildFD = (status) => {
   const fd = new FormData()
   const str = (v) => String(v || '').trim()
+
   fd.append('title', str(form.title))
   fd.append('slug', str(form.slug))
   fd.append('artist', str(form.artist))
@@ -830,8 +837,10 @@ const buildFD = (status) => {
     instagram: str(form.instagram),
     tiktok: str(form.tiktok),
   }))
+
   if (coverFile.value) fd.append('cover', coverFile.value)
   if (audioFile.value) fd.append('song', audioFile.value)
+
   return fd
 }
 
@@ -843,38 +852,56 @@ const submitAs = async (status) => {
 
   try {
     await api.post('/music', buildFD(status), {
-      headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress(e) {
         if (e.total) uploadPct.value = Math.round((e.loaded * 100) / e.total)
       },
     })
+
     localStorage.removeItem(storageKey)
-    ElNotification({ title: status === 'published' ? 'Published!' : 'Draft saved', type: 'success', duration: 2200 })
+    ElNotification({
+      title: status === 'published' ? 'Published!' : 'Draft saved',
+      type: 'success',
+      duration: 2200,
+    })
     router.push('/admin')
   } catch (e) {
     clearErrors()
     Object.assign(errors, e?.response?.data?.errors || {})
     ElNotification({
       title: 'Save failed',
-      message: e?.response?.data?.message || 'Something went wrong',
+      message: e?.response?.data?.message || e?.message || 'Something went wrong',
       type: 'error',
       duration: 3500,
     })
+    console.error('add music error:', e?.response?.data || e)
   } finally {
     loading.value = false
   }
 }
 
+const isFilled = (v) => {
+  if (Array.isArray(v)) return v.length > 0
+  if (typeof v === 'boolean') return v === true
+  if (v == null) return false
+  return String(v).trim().length > 0
+}
+
 const handleCancel = async () => {
-  const dirty = audioFile.value || coverFile.value ||
-    Object.values(form).some(v => Array.isArray(v) ? v.length : !!String(v).trim())
+  const dirty =
+    !!audioFile.value ||
+    !!coverFile.value ||
+    Object.values(form).some(isFilled)
+
   if (!dirty) return router.push('/admin')
+
   try {
     await ElMessageBox.confirm('Leave this page? Unsaved changes may be lost.', 'Unsaved changes', {
-      confirmButtonText: 'Leave', cancelButtonText: 'Stay', type: 'warning',
+      confirmButtonText: 'Leave',
+      cancelButtonText: 'Stay',
+      type: 'warning',
     })
     router.push('/admin')
-  } catch { /**/ }
+  } catch { }
 }
 
 onMounted(restoreDraft)
