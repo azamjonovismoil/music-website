@@ -5,6 +5,8 @@ import 'element-plus/dist/index.css'
 import App from './App.vue'
 import router from './router'
 import './styles/global.css'
+import '@/styles/forms.css'
+
 
 const app = createApp(App)
 const pinia = createPinia()

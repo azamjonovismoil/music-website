@@ -1,181 +1,99 @@
 <template>
-  <section class="artist-page">
-    <div class="artist-hero">
-      <div class="artist-cover-wrap">
-        <img :src="artistImage" alt="artist cover" class="artist-cover" @error="onImageError" />
+  <div class="artist-page">
+    <section class="artist-hero">
+      <div class="artist-hero-cover">
+        <img v-if="artist.cover" :src="artist.cover" :alt="artist.name" />
+        <div v-else class="artist-cover-fallback">{{ artistInitial }}</div>
       </div>
 
-      <div class="artist-info">
+      <div class="artist-hero-copy">
         <p class="artist-kicker">Artist</p>
-        <h1 class="artist-name">{{ artist.name }}</h1>
-        <p class="artist-meta">
-          {{ artist.country }} · {{ artist.genre }} · {{ artist.trackCount }} tracks
-        </p>
-        <p class="artist-bio">
-          {{ artist.bio }}
-        </p>
+        <h1>{{ artist.name || 'Unknown artist' }}</h1>
+        <p class="artist-bio">{{ artist.bio || 'No bio yet.' }}</p>
 
-        <div class="artist-actions">
-          <button class="artist-btn primary" @click="playTopTrack">Play top track</button>
-          <button class="artist-btn secondary" @click="goBack">Orqaga</button>
+        <div class="artist-chips">
+          <span v-for="g in artist.genres" :key="g" class="artist-chip">{{ g }}</span>
         </div>
-      </div>
-    </div>
 
-    <div class="artist-section">
-      <div class="section-head">
-        <h2>Top tracks</h2>
-        <span>{{ topTracks.length }}</span>
-      </div>
-
-      <div v-if="topTracks.length" class="tracks-list">
-        <div v-for="(track, index) in topTracks" :key="track._id || index" class="track-row">
-          <div class="track-index">{{ index + 1 }}</div>
-
-          <img :src="getCover(track)" alt="track cover" class="track-cover" @error="onTrackImageError" />
-
-          <div class="track-info">
-            <p class="track-title">{{ track.title || 'Unknown track' }}</p>
-            <p class="track-subtitle">{{ track.album || artist.name }}</p>
+        <div class="artist-stats">
+          <div class="artist-stat">
+            <strong>{{ tracks.length }}</strong>
+            <span>Tracks</span>
           </div>
+          <div class="artist-stat">
+            <strong>{{ totalPlays }}</strong>
+            <span>Plays</span>
+          </div>
+          <div class="artist-stat">
+            <strong>{{ totalLikes }}</strong>
+            <span>Likes</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-          <button class="track-play-btn" @click="playTrack(track)">
-            Play
-          </button>
+    <section class="artist-section">
+      <div class="artist-section-head">
+        <h2>Tracks</h2>
+      </div>
+
+      <div v-if="tracks.length" class="artist-track-grid">
+        <div v-for="track in tracks" :key="track._id" class="artist-track-card">
+          <img v-if="track.cover" :src="track.cover" :alt="track.title" class="artist-track-cover" />
+          <div class="artist-track-copy">
+            <h3>{{ track.title }}</h3>
+            <p>{{ track.album || track.artist }}</p>
+          </div>
         </div>
       </div>
 
-      <div v-else class="artist-empty">
-        Bu artist uchun hozircha track topilmadi.
-      </div>
-    </div>
-  </section>
+      <div v-else class="artist-empty">No tracks yet.</div>
+    </section>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
-import '../../styles/artist_page.css'
+import { useRoute } from 'vue-router'
+import { API_ROOT } from '@/utils/media'
+import '@/styles/artist_page.css'
 
-const BASE_URL = 'http://localhost:7139'
 const route = useRoute()
-const router = useRouter()
 
-const musics = ref([])
+const api = axios.create({
+  baseURL: `${API_ROOT}/api`,
+  withCredentials: true,
+})
+
 const artist = ref({
-  id: route.params.id || '',
-  name: 'Unknown artist',
-  bio: 'Artist haqida ma’lumot hozircha mavjud emas.',
-  country: 'Unknown',
-  genre: 'Music',
-  trackCount: 0,
-  image: '',
+  name: '',
+  bio: '',
+  cover: '',
+  genres: [],
 })
 
-const fallbackArtistImage =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
-      <rect width="100%" height="100%" fill="#1e293b"/>
-      <text x="50%" y="50%" fill="#94a3b8" font-size="46" text-anchor="middle" dominant-baseline="middle">Artist</text>
-    </svg>
-  `)
+const tracks = ref([])
 
-const fallbackTrackCover =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-      <rect width="100%" height="100%" fill="#0f172a"/>
-      <text x="50%" y="50%" fill="#64748b" font-size="30" text-anchor="middle" dominant-baseline="middle">♪</text>
-    </svg>
-  `)
+const artistInitial = computed(() => (artist.value.name || 'A').charAt(0).toUpperCase())
+const totalPlays = computed(() => tracks.value.reduce((s, t) => s + (t.playCount || 0), 0))
+const totalLikes = computed(() => tracks.value.reduce((s, t) => s + (t.likeCount || 0), 0))
 
-const normalizeUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http') || path.startsWith('data:')) return path
-  return `${BASE_URL}/${String(path).replace(/^\/+/, '')}`
-}
+const loadArtist = async () => {
+  const slug = route.params.slug
+  const { data } = await api.get(`/music?artist=${slug}`)
+  const list = Array.isArray(data) ? data : []
+  tracks.value = list
 
-const artistImage = computed(() => normalizeUrl(artist.value.image) || fallbackArtistImage)
-
-const topTracks = computed(() => {
-  const id = String(route.params.id || '').toLowerCase()
-
-  return musics.value
-    .filter((m) => {
-      const artistId = String(m.artistId || '').toLowerCase()
-      const artistName = String(m.artist || '').toLowerCase()
-      return artistId === id || artistName === id
-    })
-    .slice(0, 12)
-})
-
-const buildArtistFromTracks = (tracks) => {
-  if (!tracks.length) return
-
-  const first = tracks[0]
-
-  artist.value = {
-    id: route.params.id || '',
-    name: first.artist || first.artistName || 'Unknown artist',
-    bio: first.bio || first.artistBio || 'Bu artist uchun bio hozircha mavjud emas.',
-    country: first.country || first.artistCountry || 'Unknown',
-    genre: first.genre || first.artistGenre || 'Music',
-    trackCount: tracks.length,
-    image: first.artistImage || first.image || first.cover || '',
+  if (list.length) {
+    artist.value = {
+      name: list[0].artist || slug,
+      bio: '',
+      cover: list[0].cover || '',
+      genres: [...new Set(list.flatMap((t) => t.genre || []))].slice(0, 6),
+    }
   }
 }
 
-const fetchMusics = async () => {
-  try {
-    const { data } = await axios.get(`${BASE_URL}/api/music`, {
-      withCredentials: true,
-    })
-
-    musics.value = Array.isArray(data) ? data : []
-
-    const matched = musics.value.filter((m) => {
-      const id = String(route.params.id || '').toLowerCase()
-      const artistId = String(m.artistId || '').toLowerCase()
-      const artistName = String(m.artist || '').toLowerCase()
-      return artistId === id || artistName === id
-    })
-
-    buildArtistFromTracks(matched)
-  } catch (error) {
-    ElMessage.error('Artist sahifasini yuklab bo‘lmadi')
-  }
-}
-
-const getCover = (track) => {
-  return normalizeUrl(track.coverUrl || track.cover || '') || fallbackTrackCover
-}
-
-const onImageError = (e) => {
-  e.target.src = fallbackArtistImage
-}
-
-const onTrackImageError = (e) => {
-  e.target.src = fallbackTrackCover
-}
-
-const playTrack = (track) => {
-  ElMessage.success(`${track.title || 'Track'} ijro etildi`)
-}
-
-const playTopTrack = () => {
-  if (!topTracks.value.length) {
-    ElMessage.warning('Top track topilmadi')
-    return
-  }
-  playTrack(topTracks.value[0])
-}
-
-const goBack = () => {
-  router.back()
-}
-
-onMounted(fetchMusics)
+onMounted(loadArtist)
 </script>

@@ -1,12 +1,14 @@
+/* ═══════════════════════════════════════════════════
+   admin_page.css  —  Admin Music Library
+   ═══════════════════════════════════════════════════ */
+
 .apage {
-  min-height: 100vh;
-  background: var(--bg-base);
-  padding-bottom: calc(var(--player-h, 0px) + 24px);
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
+/* ── Hero ──────────────────────────────────────────── */
 .apage-hero {
   display: flex;
   align-items: flex-start;
@@ -15,174 +17,96 @@
   flex-wrap: wrap;
 }
 
-.apage-hero-left {
-  min-width: 0;
-}
-
 .apage-title {
-  font-size: clamp(22px, 2.8vw, 32px);
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0 0 4px;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  margin: 0 0 6px;
 }
 
 .apage-subtitle {
-  margin: 0;
   font-size: 13px;
   color: var(--text-muted);
+  margin: 0;
 }
 
 .apage-hero-actions {
   display: flex;
-  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  flex-shrink: 0;
 }
 
+/* ── Stats ─────────────────────────────────────────── */
 .apage-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 }
 
 .astat {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--r-lg, 18px);
-  padding: 16px 18px;
-  transition: all var(--t-fast, 0.2s ease);
-}
-
-.astat:hover {
-  border-color: var(--border-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .astat-label {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.12em;
   color: var(--text-hint);
-  display: block;
-  margin-bottom: 8px;
 }
 
 .astat-val {
-  display: block;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
   line-height: 1;
-  margin-bottom: 4px;
-  font-family: var(--font-display, inherit);
 }
 
 .astat-hint {
   font-size: 11px;
-  color: var(--text-hint);
+  color: var(--text-muted);
 }
 
-.cockpit-grid {
+/* ── Admin Shell (main + sidebar) ──────────────────── */
+.admin-shell {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 18px;
+  align-items: start;
 }
 
-.cockpit-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg, 18px);
-  padding: 14px;
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   min-width: 0;
 }
 
-.cockpit-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.cockpit-head h3 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--text-primary);
-}
-
-.cockpit-head span {
-  min-width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--text-secondary);
-}
-
-.cockpit-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.cockpit-item {
-  width: 100%;
-  text-align: left;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  border-radius: 12px;
-  padding: 10px;
-  cursor: pointer;
-  transition: all var(--t-fast, 0.2s ease);
-}
-
-.cockpit-item:hover {
-  border-color: var(--border-hover);
-  transform: translateY(-1px);
-}
-
-.cockpit-item strong {
-  display: block;
-  font-size: 12px;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-
-.cockpit-item p,
-.cockpit-empty {
-  margin: 0;
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
+/* ── Smart filters ─────────────────────────────────── */
 .smart-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 
 .smart-filter {
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 32px;
+  padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 11px;
-  font-weight: 800;
-  transition: all var(--t-fast, 0.2s ease);
+  transition: all var(--t-fast);
 }
 
 .smart-filter:hover {
@@ -196,95 +120,245 @@
   color: var(--accent);
 }
 
+/* ── Toolbar ───────────────────────────────────────── */
 .apage-toolbar {
   display: flex;
-  align-items: center;
   gap: 10px;
+  align-items: center;
   flex-wrap: wrap;
-  padding: 10px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md, 14px);
-}
-
-.toolbar-input,
-.toolbar-select {
-  min-height: 38px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-input);
-  color: var(--text-primary);
-  padding: 0 12px;
-  font-size: 12.5px;
-  outline: none;
 }
 
 .toolbar-input {
-  min-width: 260px;
-  flex: 1 1 260px;
+  flex: 1 1 220px;
+  height: 40px;
+  padding: 0 13px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13.5px;
+  outline: none;
+  font-family: var(--font-body);
+  transition: all var(--t-fast);
 }
 
-.toolbar-input:focus,
-.toolbar-select:focus {
-  border-color: var(--border-focus);
+.toolbar-input:focus {
+  border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.toolbar-select {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  font-family: var(--font-body);
 }
 
 .toolbar-count {
   font-size: 12px;
-  color: var(--text-muted);
-  font-weight: 700;
+  color: var(--text-hint);
+  white-space: nowrap;
+  font-weight: 600;
 }
 
+/* ── Cockpit cards (3-col panel) ───────────────────── */
+.cockpit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cockpit-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.cockpit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cockpit-head h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cockpit-head span {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.cockpit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cockpit-item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+
+.cockpit-item:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-subtle);
+}
+
+.cockpit-item strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.cockpit-item p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cockpit-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 0;
+}
+
+/* ── Track grid ────────────────────────────────────── */
 .apage-content {
-  flex: 1;
-  min-height: 200px;
+  min-width: 0;
 }
 
 .apage-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 14px;
 }
 
 .apage-empty {
-  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
   text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
 }
 
 .apage-empty h3 {
-  margin: 0 0 4px;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--text-primary);
+  margin: 0 0 6px;
 }
 
 .apage-empty p {
+  font-size: 13px;
+  color: var(--text-muted);
   margin: 0;
-  font-size: 12.5px;
-  color: var(--text-hint);
 }
 
+/* ── Admin sidebar (right panel) ───────────────────── */
+.admin-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: calc(var(--header-h, 64px) + 16px);
+}
+
+.admin-side-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.side-metric strong {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.side-metric span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.side-notes {
+  list-style: disc;
+  padding-left: 16px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.side-notes li {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Buttons (shared) ──────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 0 16px;
-  border-radius: var(--r-md, 12px);
-  font-size: 12.5px;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 11px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
-  transition: all var(--t-fast, 0.2s ease);
   border: 1px solid transparent;
+  transition: all var(--t-fast);
   white-space: nowrap;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+  background: linear-gradient(135deg, var(--accent-mid, #0ea5e9), var(--accent, #38bdf8));
   color: #fff;
-  box-shadow: var(--shadow-accent);
+  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.22);
 }
 
 .btn-primary:hover {
@@ -294,8 +368,8 @@
 
 .btn-ghost {
   background: var(--bg-elevated);
-  color: var(--text-secondary);
   border-color: var(--border);
+  color: var(--text-secondary);
 }
 
 .btn-ghost:hover {
@@ -303,77 +377,58 @@
   color: var(--text-primary);
 }
 
-[data-theme='light'] .apage {
-  background:
-    radial-gradient(ellipse 55% 38% at 75% 0%, rgba(59, 130, 246, 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 30% at 10% 90%, rgba(124, 58, 237, 0.04) 0%, transparent 50%),
-    var(--bg-base);
-}
-
-[data-theme='light'] .astat,
-[data-theme='light'] .apage-toolbar,
-[data-theme='light'] .cockpit-card {
-  background: rgba(252, 253, 255, 0.9);
-}
-
+/* ── Responsive ────────────────────────────────────── */
 @media (max-width: 1280px) {
-  .apage-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .admin-shell {
+    grid-template-columns: minmax(0, 1fr) 230px;
   }
+}
 
+@media (max-width: 1100px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+  .admin-side {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cockpit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .apage-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
   .cockpit-grid {
     grid-template-columns: 1fr;
   }
-}
-
-@media (max-width: 860px) {
-  .apage {
-    gap: 14px;
+  .apage-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
-
+  .admin-side {
+    grid-template-columns: 1fr;
+  }
   .apage-grid {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 10px;
-  }
-
-  .toolbar-input {
-    min-width: 100%;
   }
 }
 
 @media (max-width: 560px) {
-  .apage-title {
-    font-size: 20px;
+  .apage-hero {
+    flex-direction: column;
   }
-
   .apage-stats {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
-
-  .astat {
-    padding: 12px 13px;
+  .smart-filters {
+    display: none;
   }
-
-  .astat-val {
-    font-size: 22px;
-  }
-
   .apage-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 9px;
-  }
-
-  .apage-toolbar {
-    padding: 10px;
-  }
-
-  .smart-filters {
-    gap: 6px;
-  }
-
-  .smart-filter {
-    padding: 0 10px;
-    font-size: 10px;
+    gap: 10px;
   }
 }

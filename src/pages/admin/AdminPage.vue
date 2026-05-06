@@ -14,118 +14,158 @@
       </div>
     </section>
 
-    <section class="apage-stats">
-      <div class="astat">
-        <span class="astat-label">Tracks</span>
-        <strong class="astat-val">{{ summary.total }}</strong>
-        <span class="astat-hint">All tracks</span>
-      </div>
+    <div class="admin-shell">
+      <div class="admin-main">
+        <section class="apage-stats">
+          <div class="astat">
+            <span class="astat-label">Tracks</span>
+            <strong class="astat-val">{{ summary.total }}</strong>
+            <span class="astat-hint">All tracks</span>
+          </div>
 
-      <div class="astat">
-        <span class="astat-label">Published</span>
-        <strong class="astat-val">{{ summary.published }}</strong>
-        <span class="astat-hint">Live now</span>
-      </div>
+          <div class="astat">
+            <span class="astat-label">Published</span>
+            <strong class="astat-val">{{ summary.published }}</strong>
+            <span class="astat-hint">Live now</span>
+          </div>
 
-      <div class="astat">
-        <span class="astat-label">Attention</span>
-        <strong class="astat-val">{{ summary.attentionCount }}</strong>
-        <span class="astat-hint">Needs fixes</span>
-      </div>
+          <div class="astat">
+            <span class="astat-label">Attention</span>
+            <strong class="astat-val">{{ summary.attentionCount }}</strong>
+            <span class="astat-hint">Needs fixes</span>
+          </div>
 
-      <div class="astat">
-        <span class="astat-label">Avg health</span>
-        <strong class="astat-val">{{ summary.avgHealth }}%</strong>
-        <span class="astat-hint">Metadata quality</span>
-      </div>
-    </section>
+          <div class="astat">
+            <span class="astat-label">Avg health</span>
+            <strong class="astat-val">{{ summary.avgHealth }}%</strong>
+            <span class="astat-hint">Metadata quality</span>
+          </div>
+        </section>
 
-    <section class="cockpit-grid">
-      <article class="cockpit-card">
-        <div class="cockpit-head">
-          <h3>Needs attention</h3>
-          <span>{{ attentionList.length }}</span>
-        </div>
-
-        <div v-if="attentionList.length" class="cockpit-list">
-          <button v-for="item in attentionList" :key="item._id" class="cockpit-item" type="button"
-            @click="openEdit(item)">
-            <strong>{{ item.title || 'Untitled' }}</strong>
-            <p>{{ item.attentionReasons?.join(' • ') || 'Needs review' }}</p>
+        <section class="smart-filters">
+          <button v-for="f in smartFilters" :key="f.value" type="button" class="smart-filter"
+            :class="{ active: filter === f.value }" @click="filter = f.value">
+            {{ f.label }}
           </button>
-        </div>
+        </section>
 
-        <div v-else class="cockpit-empty">Everything looks healthy.</div>
-      </article>
+        <section class="apage-toolbar">
+          <input v-model="searchQuery" class="toolbar-input" type="text"
+            placeholder="Search tracks, artists, album..." />
 
-      <article class="cockpit-card">
-        <div class="cockpit-head">
-          <h3>Ready to publish</h3>
-          <span>{{ readyToPublish.length }}</span>
-        </div>
+          <select v-model="sortBy" class="toolbar-select">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="title-asc">Title A-Z</option>
+            <option value="artist-asc">Artist A-Z</option>
+            <option value="health-desc">Health high-low</option>
+          </select>
 
-        <div v-if="readyToPublish.length" class="cockpit-list">
-          <button v-for="item in readyToPublish.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
-            @click="quickPublish(item)">
-            <strong>{{ item.title || 'Untitled' }}</strong>
-            <p>{{ item.artist || 'Unknown artist' }} • {{ item.healthScore || 0 }}%</p>
-          </button>
-        </div>
+          <span class="toolbar-count">{{ filtered.length }} results</span>
+        </section>
 
-        <div v-else class="cockpit-empty">No publish-ready drafts.</div>
-      </article>
+        <section class="cockpit-grid">
+          <article class="cockpit-card">
+            <div class="cockpit-head">
+              <h3>Needs attention</h3>
+              <span>{{ attentionList.length }}</span>
+            </div>
 
-      <article class="cockpit-card">
-        <div class="cockpit-head">
-          <h3>Scheduled soon</h3>
-          <span>{{ scheduledSoon.length }}</span>
-        </div>
+            <div v-if="attentionList.length" class="cockpit-list">
+              <button v-for="item in attentionList.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
+                @click="openEdit(item)">
+                <strong>{{ item.title || 'Untitled' }}</strong>
+                <p>{{ item.attentionReasons?.join(' • ') || 'Needs review' }}</p>
+              </button>
+            </div>
 
-        <div v-if="scheduledSoon.length" class="cockpit-list">
-          <button v-for="item in scheduledSoon.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
-            @click="openEdit(item)">
-            <strong>{{ item.title || 'Untitled' }}</strong>
-            <p>{{ formatDateTime(item.publishAt) }}</p>
-          </button>
-        </div>
+            <div v-else class="cockpit-empty">Everything looks healthy.</div>
+          </article>
 
-        <div v-else class="cockpit-empty">Nothing scheduled soon.</div>
-      </article>
-    </section>
+          <article class="cockpit-card">
+            <div class="cockpit-head">
+              <h3>Ready to publish</h3>
+              <span>{{ readyToPublish.length }}</span>
+            </div>
 
-    <section class="smart-filters">
-      <button v-for="f in smartFilters" :key="f.value" type="button" class="smart-filter"
-        :class="{ active: filter === f.value }" @click="filter = f.value">
-        {{ f.label }}
-      </button>
-    </section>
+            <div v-if="readyToPublish.length" class="cockpit-list">
+              <button v-for="item in readyToPublish.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
+                @click="quickPublish(item)">
+                <strong>{{ item.title || 'Untitled' }}</strong>
+                <p>{{ item.artist || 'Unknown artist' }} • {{ item.healthScore || 0 }}%</p>
+              </button>
+            </div>
 
-    <section class="apage-toolbar">
-      <input v-model="searchQuery" class="toolbar-input" type="text" placeholder="Search tracks, artists, album..." />
+            <div v-else class="cockpit-empty">No publish-ready drafts.</div>
+          </article>
 
-      <select v-model="sortBy" class="toolbar-select">
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-        <option value="title-asc">Title A-Z</option>
-        <option value="artist-asc">Artist A-Z</option>
-        <option value="health-desc">Health high-low</option>
-      </select>
+          <article class="cockpit-card">
+            <div class="cockpit-head">
+              <h3>Scheduled soon</h3>
+              <span>{{ scheduledSoon.length }}</span>
+            </div>
 
-      <span class="toolbar-count">{{ filtered.length }} results</span>
-    </section>
+            <div v-if="scheduledSoon.length" class="cockpit-list">
+              <button v-for="item in scheduledSoon.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
+                @click="openEdit(item)">
+                <strong>{{ item.title || 'Untitled' }}</strong>
+                <p>{{ formatDateTime(item.publishAt) }}</p>
+              </button>
+            </div>
 
-    <section class="apage-content">
-      <div v-if="filtered.length" class="apage-grid">
-        <AdminMusicCard v-for="music in filtered" :key="music._id" :music="music" @play="playMusic" @edit="openEdit"
-          @toggle-like="toggleLike" @toggle-download="toggleDownload" @delete="archiveMusic" @clone="cloneMusic"
-          @quick-publish="quickPublish" @open-about="openEdit" />
+            <div v-else class="cockpit-empty">Nothing scheduled soon.</div>
+          </article>
+        </section>
+
+        <section class="apage-content">
+          <div v-if="filtered.length" class="apage-grid">
+            <AdminMusicCard v-for="music in filtered" :key="music._id" :music="music" @play="playMusic" @edit="openEdit"
+              @toggle-like="toggleLike" @toggle-download="toggleDownload" @delete="archiveMusic" @clone="cloneMusic"
+              @quick-publish="quickPublish" @open-about="openEdit" />
+          </div>
+
+          <div v-else class="apage-empty">
+            <h3>No tracks found</h3>
+            <p>Try another filter or add a new track.</p>
+          </div>
+        </section>
       </div>
 
-      <div v-else class="apage-empty">
-        <h3>No tracks found</h3>
-        <p>Try another filter or add a new track.</p>
-      </div>
-    </section>
+      <aside class="admin-side">
+        <section class="admin-side-card">
+          <div class="cockpit-head">
+            <h3>Library health</h3>
+          </div>
+
+          <div class="side-metric">
+            <strong>{{ summary.avgHealth }}%</strong>
+            <span>Average metadata quality</span>
+          </div>
+
+          <div class="side-metric">
+            <strong>{{ readyToPublish.length }}</strong>
+            <span>Ready drafts</span>
+          </div>
+
+          <div class="side-metric">
+            <strong>{{ scheduledSoon.length }}</strong>
+            <span>Scheduled in 7 days</span>
+          </div>
+        </section>
+
+        <section class="admin-side-card">
+          <div class="cockpit-head">
+            <h3>Quick notes</h3>
+          </div>
+
+          <ul class="side-notes">
+            <li>Low-score tracks should get cover, lyrics and links first.</li>
+            <li>Drafts above 80% are strong publish candidates.</li>
+            <li>Use unlisted before full public release.</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
 
     <EditModal v-model="showEdit" :music="editMusic" @saved="handleSaved" />
   </div>
@@ -168,9 +208,9 @@ const smartFilters = [
   { label: 'Drafts', value: 'draft' },
   { label: 'Published', value: 'published' },
   { label: 'Attention', value: 'attention' },
-  { label: 'Ready to publish', value: 'ready' },
-  { label: 'Scheduled soon', value: 'scheduled' },
-  { label: 'Premium health', value: 'premium' },
+  { label: 'Ready', value: 'ready' },
+  { label: 'Scheduled', value: 'scheduled' },
+  { label: 'Premium', value: 'premium' },
   { label: 'Archived', value: 'archived' },
 ]
 
@@ -207,8 +247,9 @@ const filtered = computed(() => {
 
   if (q) {
     r = r.filter((m) =>
-      [m.title, m.artist, m.album, ...(m.genre || [])]
-        .some((v) => String(v || '').toLowerCase().includes(q))
+      [m.title, m.artist, m.album, ...(m.genre || [])].some((v) =>
+        String(v || '').toLowerCase().includes(q)
+      )
     )
   }
 

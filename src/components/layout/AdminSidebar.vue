@@ -2,7 +2,7 @@
   <aside class="admin-sidebar">
     <div class="sidebar-brand">
       <div class="sidebar-brand-icon">
-        <img :src="brandIcon" alt="Brand" class="sidebar-brand-img" />
+        <img :src="brandIcon" alt="Logo" class="sidebar-brand-img" />
       </div>
       <div class="sidebar-brand-text">
         <span class="sidebar-brand-name">Admin Panel</span>
@@ -15,10 +15,9 @@
 
       <button v-for="item in navItems" :key="item.key" class="sidebar-nav-item" :class="{ active: active === item.key }"
         @click="router.push(item.path)">
-        <span class="sidebar-nav-dot" />
         <component :is="item.icon" class="sidebar-nav-ico" />
         <span>{{ item.label }}</span>
-        <span v-if="active === item.key" class="sidebar-nav-pill" />
+        <span v-if="active === item.key" class="sidebar-active-bar" />
       </button>
     </nav>
 
@@ -43,6 +42,7 @@ import {
   ArrowDownTrayIcon,
   StarIcon,
   ShieldCheckIcon,
+  MusicalNoteIcon,
 } from '@heroicons/vue/24/outline'
 import brandIcon from '@/assets/header_icon.png'
 import '@/styles/admin_sidebar.css'
@@ -53,6 +53,7 @@ const route = useRoute()
 const navItems = [
   { key: 'dashboard', label: 'Dashboard', path: '/admin', icon: Squares2X2Icon },
   { key: 'add-music', label: 'Add track', path: '/admin/add-music', icon: PlusCircleIcon },
+  { key: 'library', label: 'Library', path: '/admin', icon: MusicalNoteIcon },
   { key: 'downloaded', label: 'Downloads', path: '/library/downloaded', icon: ArrowDownTrayIcon },
   { key: 'favourites', label: 'Favourites', path: '/library/favourites', icon: StarIcon },
 ]
