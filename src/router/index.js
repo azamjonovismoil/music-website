@@ -80,6 +80,12 @@ const routes = [
         component: () => import('../pages/admin/AddMusic.vue'),
         meta: { title: 'Add music' },
       },
+      {
+        path: 'profile',
+        name: 'AdminProfile',
+        component: () => import('../pages/profile/ProfilePage.vue'),
+        meta: { title: 'Admin profile' },
+      },
     ],
   },
 
@@ -100,7 +106,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  if (!auth.bootstrapped && !auth.initialized) {
+  if (!auth.initialized) {
     await auth.fetchMe()
   }
 

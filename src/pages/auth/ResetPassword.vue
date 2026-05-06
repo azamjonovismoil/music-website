@@ -80,7 +80,7 @@
         <div class="success-icon">✅</div>
         <h2 class="title">Password reset!</h2>
         <p class="sub">Your password has been updated. You can now sign in with your new password.</p>
-        <router-link to="/login" class="submit-btn" style="text-decoration:none;display:flex;justify-content:center">
+        <router-link to="/login" class="submit-btn auth-link-btn">
           Sign in
         </router-link>
       </div>
@@ -92,7 +92,9 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const form = reactive({ email: '', code: '', password: '' })
 const e = reactive({ email: '', code: '', password: '' })
@@ -103,11 +105,26 @@ const serverErr = ref('')
 const done = ref(false)
 
 const validate = () => {
-  e.email = ''; e.code = ''; e.password = ''
+  e.email = ''
+  e.code = ''
+  e.password = ''
   let ok = true
-  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) { e.email = 'Enter a valid email'; ok = false }
-  if (!form.code || form.code.length !== 6) { e.code = 'Enter the 6-digit code'; ok = false }
-  if (!form.password || form.password.length < 6) { e.password = 'Password must be at least 6 characters'; ok = false }
+
+  if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    e.email = 'Enter a valid email'
+    ok = false
+  }
+
+  if (!form.code || form.code.length !== 6) {
+    e.code = 'Enter the 6-digit code'
+    ok = false
+  }
+
+  if (!form.password || form.password.length < 6) {
+    e.password = 'Password must be at least 6 characters'
+    ok = false
+  }
+
   return ok
 }
 
@@ -115,8 +132,9 @@ const submit = async () => {
   serverErr.value = ''
   if (!validate()) return
   loading.value = true
+
   try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/auth/reset-password`, {
+    await auth.resetPassword({
       email: form.email,
       code: form.code,
       newPassword: form.password,
@@ -134,7 +152,7 @@ const submit = async () => {
 *,
 *::before,
 *::after {
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 .simple-auth {
@@ -142,9 +160,9 @@ const submit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #04090f;
+  background: var(--bg-base, #04090f);
   padding: 24px;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-body, 'Segoe UI', system-ui, sans-serif);
   position: relative;
   overflow: hidden;
 }
@@ -154,7 +172,7 @@ const submit = async () => {
   width: 600px;
   height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(14, 165, 233, .12), transparent 70%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.12), transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -164,10 +182,10 @@ const submit = async () => {
 .card {
   width: 100%;
   max-width: 420px;
-  background: rgba(15, 30, 56, .7);
-  border: 1px solid rgba(56, 189, 248, .12);
-  border-radius: 20px;
-  padding: 36px;
+  background: color-mix(in srgb, var(--bg-card, rgba(15, 30, 56, 0.7)) 92%, transparent);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  border-radius: 18px;
+  padding: 32px;
   backdrop-filter: blur(16px);
   position: relative;
   z-index: 1;
@@ -179,7 +197,7 @@ const submit = async () => {
   gap: 9px;
   text-decoration: none;
   color: inherit;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .logo-icon {
@@ -195,28 +213,24 @@ const submit = async () => {
 
 .logo-text {
   font-size: 14px;
-  font-weight: 700;
-  color: #f1f5f9;
-  letter-spacing: -.02em;
+  font-weight: 800;
+  color: var(--text-primary, #f1f5f9);
+  letter-spacing: -0.02em;
 }
 
 .title {
   font-size: 22px;
-  font-weight: 800;
-  color: #f1f5f9;
-  letter-spacing: -.02em;
+  font-weight: 900;
+  color: var(--text-primary, #f1f5f9);
+  letter-spacing: -0.02em;
   margin: 0 0 6px;
 }
 
 .sub {
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-muted, #64748b);
   margin: 0 0 24px;
   line-height: 1.6;
-}
-
-.sub strong {
-  color: #94a3b8;
 }
 
 .field {
@@ -228,8 +242,8 @@ const submit = async () => {
 
 .field label {
   font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
 }
 
 .finput {
@@ -237,24 +251,24 @@ const submit = async () => {
   align-items: center;
   gap: 9px;
   padding: 0 13px;
-  background: rgba(4, 9, 15, .5);
-  border: 1px solid rgba(56, 189, 248, .1);
+  background: rgba(4, 9, 15, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.1);
   border-radius: 10px;
-  transition: border-color .2s;
+  transition: border-color 0.2s;
 }
 
 .finput.focused {
-  border-color: rgba(56, 189, 248, .38);
+  border-color: rgba(56, 189, 248, 0.38);
 }
 
 .field.err .finput {
-  border-color: rgba(239, 68, 68, .45);
+  border-color: rgba(239, 68, 68, 0.45);
 }
 
 .code-input input {
-  letter-spacing: .2em;
+  letter-spacing: 0.2em;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .fic {
@@ -268,7 +282,7 @@ const submit = async () => {
   background: none;
   border: none;
   outline: none;
-  color: #f1f5f9;
+  color: var(--text-primary, #f1f5f9);
   font-size: 14px;
 }
 
@@ -295,8 +309,8 @@ const submit = async () => {
   color: #f87171;
   margin-bottom: 12px;
   padding: 10px 12px;
-  background: rgba(239, 68, 68, .08);
-  border: 1px solid rgba(239, 68, 68, .2);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 8px;
 }
 
@@ -308,37 +322,38 @@ const submit = async () => {
   border-radius: 10px;
   color: #fff;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all .2s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 4px;
+  text-decoration: none;
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(14, 165, 233, .3);
+  box-shadow: 0 8px 22px rgba(14, 165, 233, 0.3);
 }
 
 .submit-btn:disabled {
-  opacity: .6;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .spin {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, .3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: sp .7s linear infinite;
+  animation: sp 0.7s linear infinite;
 }
 
 @keyframes sp {
   to {
-    transform: rotate(360deg)
+    transform: rotate(360deg);
   }
 }
 
@@ -360,10 +375,22 @@ const submit = async () => {
 .link {
   color: #38bdf8;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .link:hover {
   text-decoration: underline;
+}
+
+.auth-link-btn {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
 }
 </style>

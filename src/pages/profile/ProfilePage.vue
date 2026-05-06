@@ -1,138 +1,128 @@
 <template>
-  <div class="app-page profile-pg">
-    <HeaderPage :show-search="false" />
+  <div class="profile-pg">
+    <main class="profile-main">
+      <div class="pf-hero">
+        <div class="pf-hero-bg" />
+        <div class="pf-hero-inner">
+          <div class="pf-avatar">{{ firstLetter }}</div>
 
-    <div class="app-layout">
-      <aside class="app-sidebar">
-        <AdminSidebar v-if="authStore.isAdmin" />
-        <UserSidebar v-else :playlists="[]" active-view="" @select-view="router.push('/')" />
-      </aside>
+          <div class="pf-hero-info">
+            <p class="pf-kicker">Your profile</p>
+            <h1 class="pf-name">{{ authStore.userName || 'Unknown User' }}</h1>
+            <p class="pf-email">{{ authStore.user?.email }}</p>
+          </div>
 
-      <main class="app-main profile-main">
+          <span class="pf-role-badge" :class="authStore.isAdmin ? 'admin' : 'member'">
+            <ShieldCheckIcon v-if="authStore.isAdmin" class="pf-role-ico" />
+            <UserIcon v-else class="pf-role-ico" />
+            {{ authStore.isAdmin ? 'Admin' : 'Member' }}
+          </span>
+        </div>
+      </div>
 
-        <!-- hero banner -->
-        <div class="pf-hero">
-          <div class="pf-hero-bg" />
-          <div class="pf-hero-inner">
-            <div class="pf-avatar">{{ firstLetter }}</div>
-            <div class="pf-hero-info">
-              <p class="pf-kicker">Your profile</p>
-              <h1 class="pf-name">{{ authStore.userName || 'Unknown User' }}</h1>
-              <p class="pf-email">{{ authStore.user?.email }}</p>
-            </div>
-            <span class="pf-role-badge" :class="authStore.isAdmin ? 'admin' : 'member'">
-              <ShieldCheckIcon v-if="authStore.isAdmin" class="pf-role-ico" />
-              <UserIcon v-else class="pf-role-ico" />
-              {{ authStore.isAdmin ? 'Admin' : 'Member' }}
-            </span>
+      <div class="pf-stats">
+        <div class="pf-stat">
+          <div class="pf-stat-icon pf-stat-icon--blue">
+            <MusicalNoteIcon class="pf-stat-ico" />
+          </div>
+          <div class="pf-stat-body">
+            <strong>{{ stats.total }}</strong>
+            <span>Total tracks</span>
           </div>
         </div>
 
-        <!-- stats row -->
-        <div class="pf-stats">
-          <div class="pf-stat">
-            <div class="pf-stat-icon pf-stat-icon--blue">
-              <MusicalNoteIcon class="pf-stat-ico" />
-            </div>
-            <div class="pf-stat-body">
-              <strong>{{ stats.total }}</strong>
-              <span>Total tracks</span>
-            </div>
+        <div class="pf-stat">
+          <div class="pf-stat-icon pf-stat-icon--rose">
+            <HeartIcon class="pf-stat-ico" />
           </div>
-          <div class="pf-stat">
-            <div class="pf-stat-icon pf-stat-icon--rose">
-              <HeartIcon class="pf-stat-ico" />
-            </div>
-            <div class="pf-stat-body">
-              <strong>{{ stats.liked }}</strong>
-              <span>Favourites</span>
-            </div>
-          </div>
-          <div class="pf-stat">
-            <div class="pf-stat-icon pf-stat-icon--amber">
-              <ArrowDownTrayIcon class="pf-stat-ico" />
-            </div>
-            <div class="pf-stat-body">
-              <strong>{{ stats.downloaded }}</strong>
-              <span>Downloaded</span>
-            </div>
-          </div>
-          <div class="pf-stat">
-            <div class="pf-stat-icon pf-stat-icon--green">
-              <ClockIcon class="pf-stat-ico" />
-            </div>
-            <div class="pf-stat-body">
-              <strong>{{ stats.recent }}</strong>
-              <span>Recently played</span>
-            </div>
+          <div class="pf-stat-body">
+            <strong>{{ stats.liked }}</strong>
+            <span>Favourites</span>
           </div>
         </div>
 
-        <!-- edit form card -->
-        <div class="pf-card">
-          <div class="pf-card-head">
-            <div>
-              <p class="pf-kicker">Settings</p>
-              <h2 class="pf-card-title">Edit profile</h2>
-            </div>
-            <p class="pf-card-desc">Update your personal information.</p>
+        <div class="pf-stat">
+          <div class="pf-stat-icon pf-stat-icon--amber">
+            <ArrowDownTrayIcon class="pf-stat-ico" />
           </div>
-
-          <div class="pf-form">
-            <div class="pf-field" :class="{ 'pf-field--changed': changed.name }">
-              <label class="pf-label">
-                <UserIcon class="pf-label-ico" /> Name
-              </label>
-              <input v-model="form.name" class="pf-input" type="text" placeholder="Your full name"
-                @input="trackChange" />
-            </div>
-
-            <div class="pf-field" :class="{ 'pf-field--changed': changed.email }">
-              <label class="pf-label">
-                <EnvelopeIcon class="pf-label-ico" /> Email
-              </label>
-              <input v-model="form.email" class="pf-input" type="email" placeholder="Your email" @input="trackChange" />
-            </div>
-
-            <div class="pf-field pf-field--full" :class="{ 'pf-field--changed': changed.bio }">
-              <label class="pf-label">
-                <PencilSquareIcon class="pf-label-ico" /> Bio
-              </label>
-              <textarea v-model="form.bio" class="pf-textarea" rows="4" placeholder="Write something about yourself"
-                @input="trackChange" />
-            </div>
+          <div class="pf-stat-body">
+            <strong>{{ stats.downloaded }}</strong>
+            <span>Downloaded</span>
           </div>
-
-          <transition name="pf-actions-slide">
-            <div v-if="isDirty" class="pf-actions">
-              <button class="pf-cancel-btn" @click="resetForm" :disabled="saving">
-                Discard
-              </button>
-              <button class="pf-save-btn" :disabled="saving" @click="saveProfile">
-                <CheckIcon class="pf-save-ico" />
-                {{ saving ? 'Saving…' : 'Save changes' }}
-              </button>
-            </div>
-          </transition>
         </div>
 
-        <!-- danger zone -->
-        <div class="pf-danger-card">
-          <div class="pf-danger-head">
-            <ExclamationTriangleIcon class="pf-danger-ico" />
-            <div>
-              <h3>Danger zone</h3>
-              <p>These actions are irreversible. Please be certain.</p>
-            </div>
+        <div class="pf-stat">
+          <div class="pf-stat-icon pf-stat-icon--green">
+            <ClockIcon class="pf-stat-ico" />
           </div>
-          <button class="pf-logout-btn" @click="handleLogout">
-            <ArrowRightOnRectangleIcon class="pf-logout-ico" />
-            Log out
-          </button>
+          <div class="pf-stat-body">
+            <strong>{{ stats.recent }}</strong>
+            <span>Recently played</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pf-card">
+        <div class="pf-card-head">
+          <div>
+            <p class="pf-kicker">Settings</p>
+            <h2 class="pf-card-title">Edit profile</h2>
+          </div>
+          <p class="pf-card-desc">Update your personal information.</p>
         </div>
 
-      </main>
-    </div>
+        <div class="pf-form">
+          <div class="pf-field" :class="{ 'pf-field--changed': changed.name }">
+            <label class="pf-label">
+              <UserIcon class="pf-label-ico" /> Name
+            </label>
+            <input v-model="form.name" class="pf-input" type="text" placeholder="Your full name" @input="trackChange" />
+          </div>
+
+          <div class="pf-field" :class="{ 'pf-field--changed': changed.email }">
+            <label class="pf-label">
+              <EnvelopeIcon class="pf-label-ico" /> Email
+            </label>
+            <input v-model="form.email" class="pf-input" type="email" placeholder="Your email" @input="trackChange" />
+          </div>
+
+          <div class="pf-field pf-field--full" :class="{ 'pf-field--changed': changed.bio }">
+            <label class="pf-label">
+              <PencilSquareIcon class="pf-label-ico" /> Bio
+            </label>
+            <textarea v-model="form.bio" class="pf-textarea" rows="4" placeholder="Write something about yourself"
+              @input="trackChange" />
+          </div>
+        </div>
+
+        <transition name="pf-actions-slide">
+          <div v-if="isDirty" class="pf-actions">
+            <button class="pf-cancel-btn" @click="resetForm" :disabled="saving">
+              Discard
+            </button>
+            <button class="pf-save-btn" :disabled="saving" @click="saveProfile">
+              <CheckIcon class="pf-save-ico" />
+              {{ saving ? 'Saving…' : 'Save changes' }}
+            </button>
+          </div>
+        </transition>
+      </div>
+
+      <div class="pf-danger-card">
+        <div class="pf-danger-head">
+          <ExclamationTriangleIcon class="pf-danger-ico" />
+          <div>
+            <h3>Danger zone</h3>
+            <p>These actions are irreversible. Please be certain.</p>
+          </div>
+        </div>
+
+        <button class="pf-logout-btn" @click="handleLogout">
+          <ArrowRightOnRectangleIcon class="pf-logout-ico" />
+          Log out
+        </button>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -146,13 +136,8 @@ import {
   HeartIcon, ArrowDownTrayIcon, MusicalNoteIcon, ClockIcon,
   ShieldCheckIcon, ExclamationTriangleIcon, ArrowRightOnRectangleIcon,
 } from '@heroicons/vue/24/outline'
-
-import HeaderPage from '@/components/layout/HeaderPage.vue'
-import AdminSidebar from '@/components/layout/AdminSidebar.vue'
-import UserSidebar from '@/components/users/UserSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { API_ROOT } from '@/utils/media'
-import '@/styles/app_layout.css'
 import '@/styles/profile_page.css'
 
 const router = useRouter()
@@ -168,11 +153,8 @@ const isDirty = ref(false)
 
 const stats = reactive({ total: 0, liked: 0, downloaded: 0, recent: 0 })
 
-// form state - mirrors current saved values
 const form = reactive({ name: '', email: '', bio: '' })
-// saved snapshot to compare against
 const saved = reactive({ name: '', email: '', bio: '' })
-// which fields changed
 const changed = reactive({ name: false, email: false, bio: false })
 
 const firstLetter = computed(() => form.name?.charAt(0)?.toUpperCase() || 'U')
@@ -201,7 +183,6 @@ const loadProfile = async () => {
     form.name = u.name || ''
     form.email = u.email || ''
     form.bio = u.bio || ''
-    // save snapshot
     saved.name = form.name
     saved.email = form.email
     saved.bio = form.bio
@@ -218,12 +199,11 @@ const loadProfile = async () => {
 const loadStats = async () => {
   try {
     const [liked, downloaded, recent] = await Promise.allSettled([
-      api.get('/music/me/liked/list'),
+      api.get('/music/me/liked'),
       api.get('/music/me/downloaded/list'),
       api.get('/music/me/recently-played'),
     ])
 
-    // Try public music count
     try {
       const { data } = await api.get('/music')
       stats.total = Array.isArray(data) ? data.length : 0
@@ -248,7 +228,6 @@ const saveProfile = async () => {
 
   saving.value = true
   try {
-    // Use /auth/profile (no ID) — the backend uses req.user from the cookie session
     const { data } = await api.put('/auth/profile', {
       name: form.name.trim(),
       email: form.email.trim(),
@@ -260,7 +239,6 @@ const saveProfile = async () => {
     form.email = u.email || form.email
     form.bio = u.bio !== undefined ? u.bio : form.bio
 
-    // Update snapshot
     saved.name = form.name
     saved.email = form.email
     saved.bio = form.bio
@@ -269,9 +247,8 @@ const saveProfile = async () => {
     changed.bio = false
     isDirty.value = false
 
-    // Update auth store
     if (authStore.user) {
-      authStore.user = { ...authStore.user, name: form.name, email: form.email }
+      authStore.user = { ...authStore.user, name: form.name, email: form.email, bio: form.bio }
     }
 
     ElNotification({

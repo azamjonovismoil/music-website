@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+import { API_ROOT } from '@/utils/media'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: `${API_ROOT}/api`,
   withCredentials: true,
 })
 
@@ -64,7 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const loginWithGoogle = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/google`
+    window.location.href = `${API_ROOT}/api/auth/google`
   }
 
   const logout = async () => {

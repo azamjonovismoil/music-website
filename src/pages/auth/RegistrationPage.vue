@@ -7,7 +7,6 @@
       <div class="auth-grid"></div>
     </div>
 
-    <!-- Left branding -->
     <div class="auth-left">
       <router-link to="/" class="auth-logo">
         <span class="auth-logo-icon">♪</span>
@@ -15,8 +14,8 @@
       </router-link>
 
       <div class="auth-left-body">
-        <h1 class="auth-left-title">Join the<br>music</h1>
-        <p class="auth-left-sub">Create your free account and start streaming in seconds. No credit card needed.</p>
+        <h1 class="auth-left-title">Join the<br />music</h1>
+        <p class="auth-left-sub">Create your free account and start streaming in seconds.</p>
         <ul class="auth-features">
           <li v-for="f in features" :key="f">
             <span class="auth-feature-dot" style="background:#818cf8;box-shadow:0 0 8px rgba(99,102,241,.5)"></span>{{ f
@@ -30,7 +29,6 @@
       </p>
     </div>
 
-    <!-- Right form -->
     <div class="auth-right">
       <div class="auth-card">
         <h2 class="auth-card-title">Create account</h2>
@@ -53,7 +51,6 @@
         <div class="auth-divider"><span>or</span></div>
 
         <form class="auth-form" @submit.prevent="submit" novalidate>
-          <!-- Name -->
           <div class="auth-field" :class="{ 'auth-err': errors.name }">
             <label class="auth-label">Full name</label>
             <div class="auth-input-wrap">
@@ -66,7 +63,6 @@
             <span v-if="errors.name" class="auth-field-err">{{ errors.name }}</span>
           </div>
 
-          <!-- Email -->
           <div class="auth-field" :class="{ 'auth-err': errors.email }">
             <label class="auth-label">Email</label>
             <div class="auth-input-wrap">
@@ -79,7 +75,6 @@
             <span v-if="errors.email" class="auth-field-err">{{ errors.email }}</span>
           </div>
 
-          <!-- Password -->
           <div class="auth-field" :class="{ 'auth-err': errors.password }">
             <label class="auth-label">Password</label>
             <div class="auth-input-wrap">
@@ -104,11 +99,11 @@
               </button>
             </div>
 
-            <!-- Strength bars -->
             <div v-if="form.password" class="auth-pw-strength">
               <div v-for="n in 4" :key="n" class="auth-pw-bar" :class="strength >= n ? `on-${strength}` : ''"></div>
               <span class="auth-pw-lbl" :class="`s${strength}`">{{ pwLabels[strength] }}</span>
             </div>
+
             <span v-if="errors.password" class="auth-field-err">{{ errors.password }}</span>
           </div>
 
@@ -143,6 +138,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { API_ROOT } from '@/utils/media'
 import '@/styles/auth_pages.css'
 
 const router = useRouter()
@@ -160,6 +156,7 @@ const features = [
   'Real-time synced lyrics',
   'Personal playlists & favorites',
 ]
+
 const pwLabels = ['', 'Too weak', 'Weak', 'Good', 'Strong']
 
 const strength = computed(() => {
@@ -174,17 +171,26 @@ const strength = computed(() => {
 })
 
 const validate = () => {
-  errors.name = errors.email = errors.password = ''
+  errors.name = ''
+  errors.email = ''
+  errors.password = ''
   let ok = true
+
   if (!form.name || form.name.trim().length < 2) {
-    errors.name = 'Name must be at least 2 characters'; ok = false
+    errors.name = 'Name must be at least 2 characters'
+    ok = false
   }
+
   if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-    errors.email = 'Enter a valid email'; ok = false
+    errors.email = 'Enter a valid email'
+    ok = false
   }
+
   if (!form.password || form.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters'; ok = false
+    errors.password = 'Password must be at least 6 characters'
+    ok = false
   }
+
   return ok
 }
 
@@ -192,9 +198,14 @@ const submit = async () => {
   serverErr.value = ''
   if (!validate()) return
   loading.value = true
+
   try {
-    await auth.register({ name: form.name, email: form.email, password: form.password })
-    router.push('/user')
+    await auth.register({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+    })
+    router.push(auth.isAdmin ? '/admin' : '/user')
   } catch (err) {
     serverErr.value = err?.response?.data?.message || 'Registration failed. Please try again.'
   } finally {
@@ -203,6 +214,6 @@ const submit = async () => {
 }
 
 const loginGoogle = () => {
-  window.location.href = `${import.meta.env.VITE_API_ROOT}/api/auth/google`
+  window.location.href = `${API_ROOT}/api/auth/google`
 }
 </script>

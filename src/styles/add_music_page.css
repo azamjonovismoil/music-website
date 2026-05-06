@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   add_music_page.css — Compact / Premium Add Track
+   add_music_page.css — Ideal Compact Premium Add Track
    ═══════════════════════════════════════════════════ */
 
 .am-shell {
@@ -10,7 +10,7 @@
 
 .am-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 292px;
+  grid-template-columns: minmax(0, 1fr) 288px;
   gap: 14px;
   align-items: start;
 }
@@ -22,7 +22,7 @@
   gap: 12px;
 }
 
-/* ── Header ───────────────────────────────────────── */
+/* header */
 .am-page-head {
   display: flex;
   align-items: flex-start;
@@ -79,7 +79,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 6px 12px;
+  padding: 6px 11px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 800;
@@ -111,7 +111,7 @@
   background: currentColor;
 }
 
-/* ── Presets ──────────────────────────────────────── */
+/* presets */
 .am-presets-strip {
   display: flex;
   flex-wrap: wrap;
@@ -119,8 +119,8 @@
 }
 
 .am-preset-btn {
-  min-height: 29px;
-  padding: 0 11px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -137,14 +137,13 @@
   color: var(--accent);
 }
 
-/* ── Form body ────────────────────────────────────── */
+/* form */
 .am-form-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* ── Cards ────────────────────────────────────────── */
 .am-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -196,7 +195,7 @@
   color: var(--text-muted);
 }
 
-/* ── Upload ───────────────────────────────────────── */
+/* upload */
 .am-upload-grid {
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;
@@ -334,7 +333,7 @@
   opacity: 1;
 }
 
-/* ── Fields ───────────────────────────────────────── */
+/* fields */
 .am-grid2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -447,7 +446,7 @@
   margin-top: 12px;
 }
 
-/* ── Status row ───────────────────────────────────── */
+/* status row */
 .am-status-row {
   display: flex;
   flex-direction: column;
@@ -501,7 +500,7 @@
   background: currentColor;
 }
 
-/* ── Flags ────────────────────────────────────────── */
+/* flags */
 .am-flags {
   display: flex;
   flex-wrap: wrap;
@@ -542,7 +541,7 @@
   background: currentColor;
 }
 
-/* ── Lyrics bar ───────────────────────────────────── */
+/* lyrics bar */
 .am-lrc-bar {
   display: flex;
   align-items: center;
@@ -569,19 +568,19 @@
   color: var(--green);
 }
 
-/* ── Footer ───────────────────────────────────────── */
+/* footer */
 .am-footer {
   position: sticky;
   bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -594,19 +593,20 @@
 .am-check {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
+  gap: 6px;
+  padding: 4px 9px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   color: var(--text-muted);
   font-size: 10.5px;
   font-weight: 700;
+  line-height: 1;
 }
 
 .am-check.ok {
-  background: var(--green-bg);
-  border-color: var(--green-border);
+  background: color-mix(in srgb, var(--green-bg) 72%, transparent);
+  border-color: color-mix(in srgb, var(--green-border) 80%, transparent);
   color: var(--green);
 }
 
@@ -684,7 +684,7 @@
   }
 }
 
-/* ── Mobile topbar ────────────────────────────────── */
+/* mobile topbar */
 .am-mobile-bar {
   display: none;
   align-items: center;
@@ -732,7 +732,7 @@
   color: var(--accent);
 }
 
-/* ── Right preview sidebar ────────────────────────── */
+/* sidebar */
 .am-sidebar {
   position: sticky;
   top: 12px;
@@ -997,7 +997,7 @@
   color: var(--text-secondary);
 }
 
-/* ── Responsive ───────────────────────────────────── */
+/* responsive */
 @media (max-width: 1280px) {
   .am-layout {
     grid-template-columns: minmax(0, 1fr) 272px;
@@ -1069,7 +1069,6 @@
 
   .am-card {
     padding: 12px;
-    border-radius: 12px;
   }
 
   .am-footer {

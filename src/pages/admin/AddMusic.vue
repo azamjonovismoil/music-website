@@ -53,7 +53,7 @@
                 <template v-if="!audioFile">
                   <MusicalNoteIcon class="am-upload-ico" />
                   <strong>Upload audio <span class="am-req">*</span></strong>
-                  <small>MP3, WAV, FLAC, M4A — up to 100MB</small>
+                  <small>MP3, WAV, FLAC, M4A — up to 50MB</small>
                 </template>
                 <template v-else>
                   <div class="am-audio-pill">
@@ -417,9 +417,7 @@
             </div>
 
             <div class="am-footer-btns">
-              <button class="am-btn am-btn--ghost" type="button" @click="handleCancel">
-                Cancel
-              </button>
+              <button class="am-btn am-btn--ghost" type="button" @click="handleCancel">Cancel</button>
               <button class="am-btn am-btn--draft" type="button" :disabled="loading" @click="submitAs('draft')">
                 Save draft
               </button>
@@ -706,7 +704,7 @@ const readAudioDuration = (file) => new Promise((resolve) => {
 const onAudio = async (e) => {
   const f = e.target.files?.[0]
   if (!f) return
-  if (f.size / 1024 / 1024 > 100) return ElMessage.error('Audio must be under 100MB')
+  if (f.size / 1024 / 1024 > 50) return ElMessage.error('Audio must be under 50MB')
 
   audioFile.value = f
   audioDuration.value = await readAudioDuration(f)

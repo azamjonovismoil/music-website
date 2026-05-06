@@ -1,6 +1,5 @@
 <template>
   <div class="auth-page">
-    <!-- Ambient background -->
     <div class="auth-bg" aria-hidden="true">
       <div class="auth-orb auth-orb-1"></div>
       <div class="auth-orb auth-orb-2"></div>
@@ -8,7 +7,6 @@
       <div class="auth-grid"></div>
     </div>
 
-    <!-- Left branding -->
     <div class="auth-left">
       <router-link to="/" class="auth-logo">
         <span class="auth-logo-icon">♪</span>
@@ -16,7 +14,7 @@
       </router-link>
 
       <div class="auth-left-body">
-        <h1 class="auth-left-title">Welcome<br>back</h1>
+        <h1 class="auth-left-title">Welcome<br />back</h1>
         <p class="auth-left-sub">Sign in and continue your musical journey where you left off.</p>
         <ul class="auth-features">
           <li v-for="f in features" :key="f">
@@ -30,13 +28,11 @@
       </p>
     </div>
 
-    <!-- Right form -->
     <div class="auth-right">
       <div class="auth-card">
         <h2 class="auth-card-title">Sign in</h2>
         <p class="auth-card-sub">Enter your credentials to continue</p>
 
-        <!-- Google -->
         <button class="auth-google-btn" type="button" @click="loginGoogle">
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="#4285F4"
@@ -54,7 +50,6 @@
         <div class="auth-divider"><span>or</span></div>
 
         <form class="auth-form" @submit.prevent="submit" novalidate>
-          <!-- Email -->
           <div class="auth-field" :class="{ 'auth-err': errors.email }">
             <label class="auth-label">Email</label>
             <div class="auth-input-wrap">
@@ -67,7 +62,6 @@
             <span v-if="errors.email" class="auth-field-err">{{ errors.email }}</span>
           </div>
 
-          <!-- Password -->
           <div class="auth-field" :class="{ 'auth-err': errors.password }">
             <label class="auth-label">
               Password
@@ -98,7 +92,6 @@
             <span v-if="errors.password" class="auth-field-err">{{ errors.password }}</span>
           </div>
 
-          <!-- Server error -->
           <div v-if="serverErr" class="auth-server-err">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10" />
@@ -124,11 +117,13 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { API_ROOT } from '@/utils/media'
 import '@/styles/auth_pages.css'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 const form = reactive({ email: '', password: '' })
@@ -145,16 +140,20 @@ const features = [
 ]
 
 const validate = () => {
-  errors.email = errors.password = ''
+  errors.email = ''
+  errors.password = ''
   let ok = true
+
   if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
     errors.email = 'Enter a valid email address'
     ok = false
   }
+
   if (!form.password || form.password.length < 6) {
     errors.password = 'Password must be at least 6 characters'
     ok = false
   }
+
   return ok
 }
 
@@ -162,9 +161,15 @@ const submit = async () => {
   serverErr.value = ''
   if (!validate()) return
   loading.value = true
+
   try {
     await auth.login({ email: form.email, password: form.password })
-    router.push(auth.isAdmin ? '/admin' : '/user')
+    const redirect = route.query.redirect
+    if (typeof redirect === 'string' && redirect.startsWith('/')) {
+      router.push(redirect)
+    } else {
+      router.push(auth.isAdmin ? '/admin' : '/user')
+    }
   } catch (err) {
     serverErr.value = err?.response?.data?.message || 'Login failed. Please try again.'
   } finally {
@@ -173,6 +178,6 @@ const submit = async () => {
 }
 
 const loginGoogle = () => {
-  window.location.href = `${import.meta.env.VITE_API_ROOT}/api/auth/google`
+  window.location.href = `${API_ROOT}/api/auth/google`
 }
 </script>

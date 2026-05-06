@@ -14,7 +14,7 @@
         <form @submit.prevent="submit" novalidate>
           <div class="field" :class="{ err: error }">
             <label>Email</label>
-            <div class="finput" :class="{ focused: focused }">
+            <div class="finput" :class="{ focused }">
               <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -25,7 +25,9 @@
             </div>
             <span class="ferr" v-if="error">{{ error }}</span>
           </div>
+
           <div class="server-err" v-if="serverErr">{{ serverErr }}</div>
+
           <button class="submit-btn" type="submit" :disabled="loading">
             <span v-if="loading" class="spin"></span>
             <span v-else>Send reset code</span>
@@ -37,8 +39,7 @@
         <div class="success-icon">✉️</div>
         <h2 class="title">Check your email</h2>
         <p class="sub">We sent a 6-digit reset code to <strong>{{ email }}</strong>. It expires in 10 minutes.</p>
-        <router-link to="/reset-password" class="submit-btn"
-          style="text-decoration:none;display:flex;justify-content:center">
+        <router-link to="/reset-password" class="submit-btn auth-link-btn">
           Enter the code
         </router-link>
       </div>
@@ -50,7 +51,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
 
 const email = ref('')
 const error = ref('')
@@ -62,13 +65,15 @@ const sent = ref(false)
 const submit = async () => {
   error.value = ''
   serverErr.value = ''
+
   if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
     error.value = 'Enter a valid email address'
     return
   }
+
   loading.value = true
   try {
-    await axios.post(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, { email: email.value })
+    await auth.forgotPassword(email.value)
     sent.value = true
   } catch (e) {
     serverErr.value = e?.response?.data?.message || 'Failed to send. Please try again.'
@@ -82,7 +87,7 @@ const submit = async () => {
 *,
 *::before,
 *::after {
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 .simple-auth {
@@ -90,9 +95,9 @@ const submit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #04090f;
+  background: var(--bg-base, #04090f);
   padding: 24px;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-body, 'Segoe UI', system-ui, sans-serif);
   position: relative;
   overflow: hidden;
 }
@@ -102,7 +107,7 @@ const submit = async () => {
   width: 600px;
   height: 600px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(14, 165, 233, .12), transparent 70%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.12), transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -112,10 +117,10 @@ const submit = async () => {
 .card {
   width: 100%;
   max-width: 420px;
-  background: rgba(15, 30, 56, .7);
-  border: 1px solid rgba(56, 189, 248, .12);
-  border-radius: 20px;
-  padding: 36px;
+  background: color-mix(in srgb, var(--bg-card, rgba(15, 30, 56, 0.7)) 92%, transparent);
+  border: 1px solid rgba(56, 189, 248, 0.12);
+  border-radius: 18px;
+  padding: 32px;
   backdrop-filter: blur(16px);
   position: relative;
   z-index: 1;
@@ -127,7 +132,7 @@ const submit = async () => {
   gap: 9px;
   text-decoration: none;
   color: inherit;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .logo-icon {
@@ -143,28 +148,28 @@ const submit = async () => {
 
 .logo-text {
   font-size: 14px;
-  font-weight: 700;
-  color: #f1f5f9;
-  letter-spacing: -.02em;
+  font-weight: 800;
+  color: var(--text-primary, #f1f5f9);
+  letter-spacing: -0.02em;
 }
 
 .title {
   font-size: 22px;
-  font-weight: 800;
-  color: #f1f5f9;
-  letter-spacing: -.02em;
+  font-weight: 900;
+  color: var(--text-primary, #f1f5f9);
+  letter-spacing: -0.02em;
   margin: 0 0 6px;
 }
 
 .sub {
   font-size: 14px;
-  color: #64748b;
+  color: var(--text-muted, #64748b);
   margin: 0 0 24px;
   line-height: 1.6;
 }
 
 .sub strong {
-  color: #94a3b8;
+  color: var(--text-secondary, #94a3b8);
 }
 
 .field {
@@ -176,8 +181,8 @@ const submit = async () => {
 
 .field label {
   font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
 }
 
 .finput {
@@ -185,18 +190,18 @@ const submit = async () => {
   align-items: center;
   gap: 9px;
   padding: 0 13px;
-  background: rgba(4, 9, 15, .5);
-  border: 1px solid rgba(56, 189, 248, .1);
+  background: rgba(4, 9, 15, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.1);
   border-radius: 10px;
-  transition: border-color .2s;
+  transition: border-color 0.2s;
 }
 
 .finput.focused {
-  border-color: rgba(56, 189, 248, .38);
+  border-color: rgba(56, 189, 248, 0.38);
 }
 
 .field.err .finput {
-  border-color: rgba(239, 68, 68, .45);
+  border-color: rgba(239, 68, 68, 0.45);
 }
 
 .fic {
@@ -210,7 +215,7 @@ const submit = async () => {
   background: none;
   border: none;
   outline: none;
-  color: #f1f5f9;
+  color: var(--text-primary, #f1f5f9);
   font-size: 14px;
 }
 
@@ -228,8 +233,8 @@ const submit = async () => {
   color: #f87171;
   margin-bottom: 12px;
   padding: 10px 12px;
-  background: rgba(239, 68, 68, .08);
-  border: 1px solid rgba(239, 68, 68, .2);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 8px;
 }
 
@@ -241,37 +246,38 @@ const submit = async () => {
   border-radius: 10px;
   color: #fff;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all .2s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 4px;
+  text-decoration: none;
 }
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(14, 165, 233, .3);
+  box-shadow: 0 8px 22px rgba(14, 165, 233, 0.3);
 }
 
 .submit-btn:disabled {
-  opacity: .6;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .spin {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, .3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: sp .7s linear infinite;
+  animation: sp 0.7s linear infinite;
 }
 
 @keyframes sp {
   to {
-    transform: rotate(360deg)
+    transform: rotate(360deg);
   }
 }
 
@@ -293,10 +299,22 @@ const submit = async () => {
 .link {
   color: #38bdf8;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .link:hover {
   text-decoration: underline;
+}
+
+.auth-link-btn {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
 }
 </style>
