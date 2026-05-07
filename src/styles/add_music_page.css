@@ -1,6 +1,5 @@
 :root {
   --am-mobile-safe-bottom: 84px;
-  --am-preview-size: 220px;
 }
 
 .am-shell {
@@ -1007,6 +1006,7 @@
   border: 1px solid color-mix(in srgb, var(--accent-border) 88%, transparent);
 }
 
+/* corrected sidebar / preview */
 .am-sidebar {
   position: sticky;
   top: calc(var(--header-h, 62px) + 12px);
@@ -1017,6 +1017,7 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  align-self: start;
 }
 
 .am-sidebar::-webkit-scrollbar {
@@ -1024,30 +1025,24 @@
 }
 
 .am-side-card {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 0;
+  gap: 12px;
   min-width: 0;
-  padding: 12px;
+  min-height: 0;
+  padding: 14px;
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--bg-card) 82%, transparent),
-    color-mix(in srgb, var(--bg-card) 96%, black 1%)
+    color-mix(in srgb, var(--bg-card) 88%, transparent),
+    color-mix(in srgb, var(--bg-card) 98%, black 1%)
   );
   backdrop-filter: blur(14px) saturate(145%);
   -webkit-backdrop-filter: blur(14px) saturate(145%);
   box-shadow: var(--shadow-xs);
-  transition:
-    border-color var(--t-fast),
-    box-shadow var(--t-fast);
-}
-
-.am-side-card:hover {
-  border-color: color-mix(in srgb, var(--border-hover) 88%, transparent);
-  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .am-side-sticky {
@@ -1060,12 +1055,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  margin: 0;
+  min-width: 0;
 }
 
 .am-side-head h3 {
   margin: 0;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 11.5px;
+  font-weight: 850;
+  line-height: 1.2;
 }
 
 .am-side-score {
@@ -1144,15 +1142,15 @@
 }
 
 .am-preview-cover-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  min-height: auto;
-  max-height: none;
+  display: block;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
-  flex-shrink: 0;
+  flex: 0 0 auto;
 }
 
 .am-preview-cover {
@@ -1160,7 +1158,6 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  animation: am-fade-in 0.24s ease;
 }
 
 .am-preview-cover-empty {
@@ -1172,42 +1169,47 @@
 }
 
 .am-preview-cover-empty > * {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .am-preview-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 
 .am-preview-info h4 {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 900;
-  word-break: break-word;
   line-height: 1.3;
+  word-break: break-word;
 }
 
 .am-preview-info p {
   margin: 0;
-  font-size: 10px;
+  font-size: 10.5px;
   color: var(--text-muted);
+  line-height: 1.35;
   word-break: break-word;
 }
 
 .am-preview-info small {
-  font-size: 9px;
+  display: block;
+  margin: 0;
+  font-size: 9.5px;
   color: var(--text-hint);
   line-height: 1.45;
+  word-break: break-word;
 }
 
 .am-preview-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  margin-top: 2px;
 }
 
 .am-chip {
@@ -1268,21 +1270,25 @@
 
 .am-meta-dl {
   display: grid;
-  grid-template-columns: 58px 1fr;
-  gap: 6px 8px;
+  grid-template-columns: 64px 1fr;
+  gap: 7px 8px;
   margin: 0;
-  font-size: 10px;
+  align-items: start;
 }
 
 .am-meta-dl dt {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
   color: var(--text-hint);
-  font-weight: 700;
 }
 
 .am-meta-dl dd {
   margin: 0;
+  font-size: 10.5px;
   color: var(--text-primary);
   word-break: break-word;
+  line-height: 1.35;
 }
 
 .am-tips-card {
@@ -1341,6 +1347,7 @@
     overflow: visible;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    align-items: start;
   }
 
   .am-side-sticky {
@@ -1407,13 +1414,13 @@
     border-radius: 14px;
   }
 
-  .am-side-card {
-    border-radius: 14px;
-    padding: 11px;
-  }
-
   .am-sidebar {
     grid-template-columns: 1fr;
+  }
+
+  .am-side-card {
+    padding: 12px;
+    border-radius: 16px;
   }
 
   .am-footer {

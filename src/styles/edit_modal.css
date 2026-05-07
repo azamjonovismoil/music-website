@@ -2,13 +2,17 @@
   --el-dialog-header-padding: 0 !important;
   --el-dialog-body-padding: 0 !important;
   --el-dialog-footer-padding: 0 !important;
-  background: transparent !important;
+  background: var(--bg-card) !important;
+}
+
+.edit-dialog .el-overlay-dialog {
+  padding: 50px 0 !important;
 }
 
 .edit-dialog .el-dialog {
-  width: min(1040px, calc(100vw - 28px)) !important;
-  max-width: 1040px !important;
-  margin-top: 5vh !important;
+  width: min(1140px, calc(100vw - 32px)) !important;
+  max-width: 1140px !important;
+  margin-top: 0 !important;
   border-radius: 22px !important;
   overflow: hidden !important;
   background: color-mix(in srgb, var(--bg-base) 96%, transparent) !important;
@@ -20,7 +24,7 @@
 
 .edit-dialog .el-dialog__header {
   margin: 0 !important;
-  padding: 14px 18px !important;
+  padding: 16px 20px !important;
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg-card) 84%, transparent);
   backdrop-filter: blur(14px) saturate(145%);
@@ -28,13 +32,13 @@
 }
 
 .edit-dialog .el-dialog__body {
-  padding: 14px !important;
-  max-height: 78vh;
+  padding: 16px !important;
+  max-height: calc(100vh - 180px);
   overflow: hidden;
 }
 
 .edit-dialog .el-dialog__footer {
-  padding: 12px 14px 14px !important;
+  padding: 14px 16px 16px !important;
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg-card) 84%, transparent);
 }
@@ -42,13 +46,13 @@
 .edit-head {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   align-items: flex-start;
 }
 
 .edit-head h2 {
   margin: 0 0 4px;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.1;
 }
@@ -137,19 +141,29 @@
 
 .edit-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 290px;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 16px;
   min-height: 0;
+  align-items: start;
 }
 
 .edit-main {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-height: calc(78vh - 20px);
+  max-height: calc(100vh - 250px);
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
+  min-width: 0;
+}
+
+.edit-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
   min-width: 0;
 }
 
@@ -164,15 +178,6 @@
 .sync-lines::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--border) 80%, transparent);
   border-radius: 999px;
-}
-
-.edit-side {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: calc(78vh - 20px);
-  overflow-y: auto;
-  min-width: 0;
 }
 
 .edit-section,
@@ -633,15 +638,18 @@
 }
 
 @media (max-width: 760px) {
+  .edit-dialog .el-overlay-dialog {
+    padding: 20px 0 !important;
+  }
+
   .edit-dialog .el-dialog {
     width: calc(100vw - 12px) !important;
     max-width: calc(100vw - 12px) !important;
-    margin-top: 2vh !important;
     border-radius: 16px !important;
   }
 
   .edit-dialog .el-dialog__body {
-    max-height: 84vh;
+    max-height: calc(100vh - 120px);
   }
 
   .edit-grid,
