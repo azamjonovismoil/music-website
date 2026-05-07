@@ -4,7 +4,7 @@
       <div class="edit-head">
         <div>
           <h2>Edit track</h2>
-          <p>Update metadata, media, and publishing settings.</p>
+          <p>Update metadata, media, publishing settings, and synced lyrics.</p>
         </div>
 
         <div class="edit-status-badge" :class="form.status">
@@ -97,7 +97,8 @@
                 class="edit-input" type="text" /></div>
             <div class="field"><label class="field-label">Country</label><input v-model="form.country"
                 class="edit-input" type="text" /></div>
-            <div class="field"><label class="field-label">Release type</label>
+            <div class="field">
+              <label class="field-label">Release type</label>
               <select v-model="form.releaseType" class="edit-input">
                 <option value="single">Single</option>
                 <option value="ep">EP</option>
@@ -133,7 +134,8 @@
                 class="edit-input" type="text" /></div>
             <div class="field"><label class="field-label">ISRC</label><input v-model="form.isrc" class="edit-input"
                 type="text" /></div>
-            <div class="field"><label class="field-label">Visibility</label>
+            <div class="field">
+              <label class="field-label">Visibility</label>
               <select v-model="form.visibility" class="edit-input">
                 <option value="public">Public</option>
                 <option value="unlisted">Unlisted</option>
@@ -180,6 +182,36 @@
           <div class="field">
             <label class="field-label">Synced lyrics</label>
             <textarea v-model="form.syncedLyricsRaw" class="edit-input area lrc" />
+          </div>
+
+          <div class="better-publish">
+            <div class="publish-status-seg">
+              <button class="seg-btn" type="button" :disabled="aiLoading || !audioFile" @click="transcribeLyrics">
+                {{ aiLoading ? 'Transcribing…' : 'Transcribe' }}
+              </button>
+              <button class="seg-btn" type="button" :disabled="aiSyncLoading || !audioFile || !form.lyrics.trim()"
+                @click="syncLyrics">
+                {{ aiSyncLoading ? 'Syncing…' : 'Auto sync' }}
+              </button>
+              <button class="seg-btn" type="button" :disabled="!form.syncedLyricsRaw.trim()" @click="normalizeLrc">
+                Clean LRC
+              </button>
+              <button class="seg-btn" type="button" :disabled="!parsedSyncedLyrics.length" @click="togglePreview">
+                {{ previewPlaying ? 'Pause' : 'Preview' }}
+              </button>
+            </div>
+          </div>
+
+          <div v-if="parsedSyncedLyrics.length" class="sync-preview-card">
+            <input v-model="previewTime" type="range" min="0" :max="previewDuration" step="0.1" class="sync-range" />
+
+            <div ref="syncPreviewRef" class="sync-lines">
+              <div v-for="(line, idx) in parsedSyncedLyrics" :key="`${idx}-${line.time}`" class="sync-line"
+                :class="{ active: idx === activeSyncedIndex, passed: idx < activeSyncedIndex }">
+                <span>{{ formatLrcTime(line.time) }}</span>
+                <p>{{ line.text || '...' }}</p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -289,7 +321,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import axios from 'axios'
 import { ElNotification, ElMessageBox, ElMessage } from 'element-plus'
 import { API_ROOT } from '@/utils/media'
@@ -313,6 +345,8 @@ const openState = computed({
 })
 
 const loading = ref(false)
+const aiLoading = ref(false)
+const aiSyncLoading = ref(false)
 const coverFile = ref(null)
 const audioFile = ref(null)
 const coverPreview = ref('')
@@ -322,6 +356,11 @@ const moodText = ref('')
 const tagsText = ref('')
 const errors = reactive({})
 const initialSnapshot = ref('')
+
+const previewPlaying = ref(false)
+const previewTime = ref(0)
+const previewTimer = ref(null)
+const syncPreviewRef = ref(null)
 
 let coverObjectUrl = ''
 
@@ -374,9 +413,36 @@ const form = reactive({
 const parseList = (s = '') => String(s).split(',').map((t) => t.trim()).filter(Boolean)
 const slugify = (s = '') => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
+const parseLrc = (raw = '') => {
+  return String(raw)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .flatMap((line) => {
+      const matches = [...line.matchAll(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g)]
+      const text = line.replace(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g, '').trim()
+      if (!matches.length) return []
+
+      return matches.map((m) => {
+        const mm = Number(m[1] || 0)
+        const ss = Number(m[2] || 0)
+        const fracRaw = String(m[3] || '0')
+        const frac =
+          fracRaw.length === 3 ? Number(fracRaw) / 1000 :
+            fracRaw.length === 2 ? Number(fracRaw) / 100 :
+              fracRaw.length === 1 ? Number(fracRaw) / 10 : 0
+
+        return { time: mm * 60 + ss + frac, text }
+      })
+    })
+    .sort((a, b) => a.time - b.time)
+}
+
 const genreList = computed(() => parseList(genreText.value))
 const moodList = computed(() => parseList(moodText.value))
 const tagsList = computed(() => parseList(tagsText.value))
+const parsedSyncedLyrics = computed(() => parseLrc(form.syncedLyricsRaw))
+
 const hasAudio = computed(() => !!audioFile.value || !!props.music?.url)
 const hasCover = computed(() => !!coverFile.value || !!coverPreview.value || !!form.coverUrl.trim())
 const hasLinks = computed(() => [form.youtube, form.spotify, form.appleMusic, form.soundcloud, form.instagram, form.tiktok].some(v => String(v || '').trim()))
@@ -411,10 +477,31 @@ const statusLabel = computed(() => ({
 const previewArtist = computed(() => {
   const feat = parseList(featuredArtistsText.value)
   if (!form.artist.trim()) return 'Unknown artist'
-  return feat.length ? `${form.artist.trim()} (feat. ${feat.join(', ')})` : form.artist.trim()
+  return feat.length ? `${form.artist.trim()} feat. ${feat.join(', ')}` : form.artist.trim()
 })
 
 const lineCount = computed(() => form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : 'No lyrics yet')
+
+const previewDuration = computed(() => {
+  if (!parsedSyncedLyrics.value.length) return 0
+  return Math.ceil(parsedSyncedLyrics.value[parsedSyncedLyrics.value.length - 1].time + 4)
+})
+
+const activeSyncedIndex = computed(() => {
+  const lines = parsedSyncedLyrics.value
+  if (!lines.length) return -1
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (previewTime.value >= lines[i].time) return i
+  }
+  return 0
+})
+
+const formatLrcTime = (sec = 0) => {
+  const m = Math.floor(sec / 60)
+  const s = Math.floor(sec % 60)
+  const cs = Math.floor((sec % 1) * 100)
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`
+}
 
 const snapshot = () =>
   JSON.stringify({
@@ -467,6 +554,35 @@ const applyCoverUrlPreview = () => {
   resetCoverObjectUrl()
   coverFile.value = null
   coverPreview.value = url
+}
+
+const stopPreview = () => {
+  previewPlaying.value = false
+  if (previewTimer.value) {
+    clearInterval(previewTimer.value)
+    previewTimer.value = null
+  }
+}
+
+const togglePreview = () => {
+  if (!parsedSyncedLyrics.value.length) return
+  if (previewPlaying.value) return stopPreview()
+
+  previewPlaying.value = true
+  previewTimer.value = setInterval(() => {
+    previewTime.value += 0.1
+    if (previewTime.value >= previewDuration.value) {
+      previewTime.value = previewDuration.value
+      stopPreview()
+    }
+  }, 100)
+}
+
+const normalizeLrc = () => {
+  if (!parsedSyncedLyrics.value.length) return
+  form.syncedLyricsRaw = parsedSyncedLyrics.value
+    .map(line => `[${formatLrcTime(line.time)}] ${line.text}`.trim())
+    .join('\n')
 }
 
 const toLocalDateInput = (value) => {
@@ -533,10 +649,70 @@ const fillForm = (music) => {
   resetCoverObjectUrl()
   coverPreview.value = music?.cover || ''
   clearErrors()
+  stopPreview()
+  previewTime.value = 0
   initialSnapshot.value = snapshot()
 }
 
 watch(() => props.music, (m) => m && fillForm(m), { immediate: true })
+
+watch(() => form.syncedLyricsRaw, () => {
+  stopPreview()
+  previewTime.value = 0
+})
+
+watch(activeSyncedIndex, async (idx) => {
+  if (idx < 0) return
+  await nextTick()
+  const el = syncPreviewRef.value?.children?.[idx]
+  el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+})
+
+const transcribeLyrics = async () => {
+  if (!audioFile.value) return ElMessage.error('Replace audio first to transcribe')
+
+  aiLoading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('song', audioFile.value)
+    const { data } = await api.post('/tools/transcribe-lyrics', fd)
+    form.lyrics = data?.lyrics || ''
+    ElNotification({ title: 'Lyrics ready', type: 'success', duration: 2200 })
+  } catch (e) {
+    ElNotification({
+      title: 'Transcription failed',
+      message: e?.response?.data?.message || 'Could not transcribe lyrics',
+      type: 'error',
+      duration: 3200,
+    })
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+const syncLyrics = async () => {
+  if (!audioFile.value) return ElMessage.error('Replace audio first to sync')
+  if (!form.lyrics.trim()) return ElMessage.error('Add lyrics first')
+
+  aiSyncLoading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('song', audioFile.value)
+    fd.append('lyrics', form.lyrics)
+    const { data } = await api.post('/tools/sync-lyrics', fd)
+    form.syncedLyricsRaw = data?.syncedLyricsRaw || ''
+    ElNotification({ title: 'Lyrics synced', type: 'success', duration: 2200 })
+  } catch (e) {
+    ElNotification({
+      title: 'Sync failed',
+      message: e?.response?.data?.message || 'Could not sync lyrics',
+      type: 'error',
+      duration: 3200,
+    })
+  } finally {
+    aiSyncLoading.value = false
+  }
+}
 
 const buildFD = () => {
   const fd = new FormData()
@@ -627,4 +803,9 @@ const handleCancel = async () => {
     openState.value = false
   } catch { }
 }
+
+onBeforeUnmount(() => {
+  stopPreview()
+  resetCoverObjectUrl()
+})
 </script>

@@ -36,7 +36,6 @@
         </div>
 
         <div class="am-form-body">
-          <!-- Media -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico accent">
@@ -98,7 +97,6 @@
             <p v-if="errors.cover" class="am-err">{{ errors.cover }}</p>
           </div>
 
-          <!-- Basic -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -146,7 +144,6 @@
             </div>
           </div>
 
-          <!-- Credits -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -182,7 +179,6 @@
             </div>
           </div>
 
-          <!-- Classification -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -228,7 +224,6 @@
             </div>
           </div>
 
-          <!-- Release -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -330,7 +325,6 @@
             </div>
           </div>
 
-          <!-- Lyrics -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -369,13 +363,46 @@
                 {{ aiSyncLoading ? 'Syncing…' : 'Auto sync lyrics' }}
               </button>
 
-              <button class="am-ai-btn" type="button" disabled>
-                Generate lyrics
+              <button class="am-ai-btn" type="button" @click="normalizeLrc" :disabled="!form.syncedLyricsRaw.trim()">
+                Clean LRC
               </button>
+            </div>
+
+            <div v-if="parsedSyncedLyrics.length" class="am-sync-preview">
+              <div class="am-sync-preview-head">
+                <div>
+                  <h4>Live synced preview</h4>
+                  <p>Premium synced line preview</p>
+                </div>
+
+                <div class="am-sync-preview-actions">
+                  <button type="button" class="am-mini-btn" @click="seekPreview(-5)">-5s</button>
+                  <button type="button" class="am-mini-btn am-mini-btn--primary" @click="togglePreview">
+                    {{ previewPlaying ? 'Pause' : 'Play' }}
+                  </button>
+                  <button type="button" class="am-mini-btn" @click="seekPreview(5)">+5s</button>
+                </div>
+              </div>
+
+              <div class="am-sync-timeline">
+                <input v-model="previewTime" class="am-sync-range" type="range" min="0" :max="previewDuration"
+                  step="0.1" />
+                <div class="am-sync-time-row">
+                  <span>{{ formatDur(previewTime) }}</span>
+                  <span>{{ formatDur(previewDuration) }}</span>
+                </div>
+              </div>
+
+              <div ref="syncPreviewRef" class="am-sync-lines">
+                <div v-for="(line, idx) in parsedSyncedLyrics" :key="`${idx}-${line.time}`" class="am-sync-line"
+                  :class="{ active: idx === activeSyncedIndex, passed: idx < activeSyncedIndex }">
+                  <span class="am-sync-line-time">{{ formatLrcTime(line.time) }}</span>
+                  <p>{{ line.text || '...' }}</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Links -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -415,7 +442,6 @@
             </div>
           </div>
 
-          <!-- Note -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -430,7 +456,6 @@
               placeholder="Promo plan, release reminders, edit notes..." />
           </div>
 
-          <!-- Footer -->
           <div class="am-footer">
             <div class="am-checklist">
               <span v-for="s in requireSteps" :key="s.label" class="am-check" :class="{ ok: s.done }">
@@ -544,7 +569,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ElNotification, ElMessageBox, ElMessage } from 'element-plus'
@@ -567,7 +592,7 @@ import '@/styles/add_music_page.css'
 
 const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 const router = useRouter()
-const storageKey = 'am-draft-v3'
+const storageKey = 'am-draft-v4'
 
 const loading = ref(false)
 const uploadPct = ref(0)
@@ -585,6 +610,11 @@ const moodText = ref('')
 const tagsText = ref('')
 const slugTouched = ref(false)
 let coverObjectUrl = ''
+
+const previewPlaying = ref(false)
+const previewTime = ref(0)
+const previewTimer = ref(null)
+const syncPreviewRef = ref(null)
 
 const form = reactive({
   title: '', slug: '', artist: '', author: '', composer: '', producer: '',
@@ -611,12 +641,35 @@ const presets = [
 ]
 
 const parseList = (s = '') => String(s).split(',').map(t => t.trim()).filter(Boolean)
-const slugify = (s = '') =>
-  String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+const slugify = (s = '') => String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+
+const parseLrc = (raw = '') => {
+  return String(raw)
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .flatMap(line => {
+      const matches = [...line.matchAll(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g)]
+      const text = line.replace(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g, '').trim()
+      if (!matches.length) return []
+      return matches.map(m => {
+        const mm = Number(m[1] || 0)
+        const ss = Number(m[2] || 0)
+        const fracRaw = String(m[3] || '0')
+        const frac =
+          fracRaw.length === 3 ? Number(fracRaw) / 1000 :
+            fracRaw.length === 2 ? Number(fracRaw) / 100 :
+              fracRaw.length === 1 ? Number(fracRaw) / 10 : 0
+        return { time: mm * 60 + ss + frac, text }
+      })
+    })
+    .sort((a, b) => a.time - b.time)
+}
 
 const genreList = computed(() => parseList(genreText.value))
 const moodList = computed(() => parseList(moodText.value))
 const tagsList = computed(() => parseList(tagsText.value))
+const parsedSyncedLyrics = computed(() => parseLrc(form.syncedLyricsRaw))
 
 const hasCover = computed(() => !!coverFile.value || !!coverPreview.value)
 const hasLinks = computed(() =>
@@ -631,8 +684,15 @@ const previewArtist = computed(() => {
 })
 
 const formatDur = (s = 0) => {
-  const t = Math.round(s)
+  const t = Math.max(0, Math.round(Number(s || 0)))
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`
+}
+
+const formatLrcTime = (sec = 0) => {
+  const m = Math.floor(sec / 60)
+  const s = Math.floor(sec % 60)
+  const cs = Math.floor((sec % 1) * 100)
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs).padStart(2, '0')}`
 }
 
 const previewMetaLine = computed(() => {
@@ -696,12 +756,23 @@ const lineCount = computed(() =>
   form.lyrics.trim() ? `${form.lyrics.split('\n').length} lines` : ''
 )
 
-const syncPillClass = computed(() =>
-  form.syncedLyricsRaw.trim() ? 'ready' : 'none'
-)
-const syncPillText = computed(() =>
-  form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set'
-)
+const syncPillClass = computed(() => form.syncedLyricsRaw.trim() ? 'ready' : 'none')
+const syncPillText = computed(() => form.syncedLyricsRaw.trim() ? 'Ready' : 'Not set')
+
+const previewDuration = computed(() => {
+  if (audioDuration.value > 0) return Math.ceil(audioDuration.value)
+  if (!parsedSyncedLyrics.value.length) return 0
+  return Math.ceil(parsedSyncedLyrics.value[parsedSyncedLyrics.value.length - 1].time + 4)
+})
+
+const activeSyncedIndex = computed(() => {
+  const lines = parsedSyncedLyrics.value
+  if (!lines.length) return -1
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (previewTime.value >= lines[i].time) return i
+  }
+  return 0
+})
 
 const clearErrors = () => Object.keys(errors).forEach(k => delete errors[k])
 
@@ -777,9 +848,7 @@ const clearCoverFile = () => {
 const applyCoverUrlPreview = () => {
   const url = form.coverUrl.trim()
   if (!url) return
-  if (!/^https?:\/\/.+/i.test(url)) {
-    return ElMessage.error('Cover URL must start with http:// or https://')
-  }
+  if (!/^https?:\/\/.+/i.test(url)) return ElMessage.error('Cover URL must start with http:// or https://')
   revokeCover()
   coverFile.value = null
   coverPreview.value = url
@@ -794,6 +863,52 @@ const applyPreset = (preset) => {
     genreText.value = [...genreList.value, preset.genre].join(', ')
   }
 }
+
+const stopPreview = () => {
+  previewPlaying.value = false
+  if (previewTimer.value) {
+    clearInterval(previewTimer.value)
+    previewTimer.value = null
+  }
+}
+
+const togglePreview = () => {
+  if (!parsedSyncedLyrics.value.length) return
+  if (previewPlaying.value) return stopPreview()
+
+  previewPlaying.value = true
+  previewTimer.value = setInterval(() => {
+    previewTime.value += 0.1
+    if (previewTime.value >= previewDuration.value) {
+      previewTime.value = previewDuration.value
+      stopPreview()
+    }
+  }, 100)
+}
+
+const seekPreview = (delta) => {
+  previewTime.value = Math.max(0, Math.min(previewDuration.value, previewTime.value + delta))
+}
+
+const normalizeLrc = () => {
+  if (!parsedSyncedLyrics.value.length) return
+  form.syncedLyricsRaw = parsedSyncedLyrics.value
+    .map(line => `[${formatLrcTime(line.time)}] ${line.text}`.trim())
+    .join('\n')
+}
+
+watch(() => form.syncedLyricsRaw, () => {
+  stopPreview()
+  previewTime.value = 0
+})
+
+watch(activeSyncedIndex, async (idx) => {
+  if (idx < 0) return
+  await nextTick()
+  const root = syncPreviewRef.value
+  const el = root?.children?.[idx]
+  el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+})
 
 watch(
   () => ({ ...form, genreText: genreText.value, moodText: moodText.value, tagsText: tagsText.value }),
@@ -815,9 +930,7 @@ const restoreDraft = () => {
 }
 
 const transcribeLyrics = async () => {
-  if (!audioFile.value) {
-    return ElMessage.error('Upload audio first')
-  }
+  if (!audioFile.value) return ElMessage.error('Upload audio first')
 
   aiLoading.value = true
   try {
@@ -846,13 +959,8 @@ const transcribeLyrics = async () => {
 }
 
 const syncLyrics = async () => {
-  if (!audioFile.value) {
-    return ElMessage.error('Upload audio first')
-  }
-
-  if (!form.lyrics.trim()) {
-    return ElMessage.error('Add lyrics first')
-  }
+  if (!audioFile.value) return ElMessage.error('Upload audio first')
+  if (!form.lyrics.trim()) return ElMessage.error('Add lyrics first')
 
   aiSyncLoading.value = true
   try {
@@ -965,7 +1073,6 @@ const submitAs = async (status) => {
       type: 'error',
       duration: 3500,
     })
-    console.error('add music error:', e?.response?.data || e)
   } finally {
     loading.value = false
   }
@@ -979,11 +1086,7 @@ const isFilled = (v) => {
 }
 
 const handleCancel = async () => {
-  const dirty =
-    !!audioFile.value ||
-    !!coverFile.value ||
-    Object.values(form).some(isFilled)
-
+  const dirty = !!audioFile.value || !!coverFile.value || Object.values(form).some(isFilled)
   if (!dirty) return router.push('/admin')
 
   try {
@@ -997,5 +1100,8 @@ const handleCancel = async () => {
 }
 
 onMounted(restoreDraft)
-onBeforeUnmount(revokeCover)
+onBeforeUnmount(() => {
+  stopPreview()
+  revokeCover()
+})
 </script>

@@ -270,9 +270,7 @@ const filtered = computed(() => {
   let r = [...musics.value]
   const q = searchQuery.value.trim().toLowerCase()
 
-  if (q) {
-    r = r.filter((m) => matchesQuery(m, q))
-  }
+  if (q) r = r.filter((m) => matchesQuery(m, q))
 
   if (filter.value === 'draft') r = r.filter((m) => m.status === 'draft')
   if (filter.value === 'published') r = r.filter((m) => m.status === 'published')
