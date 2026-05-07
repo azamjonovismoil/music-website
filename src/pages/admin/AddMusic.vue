@@ -4,7 +4,7 @@
       <button class="am-mobile-back" @click="handleCancel">
         <ArrowLeftIcon class="w-4 h-4" />
       </button>
-      <div>
+      <div class="am-mobile-head-copy">
         <p class="am-mobile-kicker">Admin • Music</p>
         <h1 class="am-mobile-title">Add new track</h1>
       </div>
@@ -20,7 +20,7 @@
           <div>
             <p class="am-kicker">Admin • Music</p>
             <h1 class="am-title">Add new track</h1>
-            <p class="am-subtitle">Create a track with strong metadata, live preview and quality scoring.</p>
+            <p class="am-subtitle">Create a track with strong metadata, lyrics tools and live preview.</p>
           </div>
           <div class="am-status-pill" :class="targetStatus">
             <span class="am-status-dot" />
@@ -36,6 +36,7 @@
         </div>
 
         <div class="am-form-body">
+          <!-- Media -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico accent">
@@ -43,7 +44,7 @@
               </div>
               <div>
                 <h3>Media</h3>
-                <p>Upload audio file and cover image</p>
+                <p>Upload audio and cover</p>
               </div>
             </div>
 
@@ -64,7 +65,7 @@
                     </div>
                   </div>
                   <div class="am-wave-mini">
-                    <span v-for="n in 8" :key="n" :style="{ height: `${Math.random() * 22 + 8}px` }" />
+                    <span v-for="n in 8" :key="n" :style="{ height: `${Math.random() * 20 + 8}px` }" />
                   </div>
                   <span class="am-replace-label">Replace audio</span>
                 </template>
@@ -97,6 +98,7 @@
             <p v-if="errors.cover" class="am-err">{{ errors.cover }}</p>
           </div>
 
+          <!-- Basic -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -104,7 +106,7 @@
               </div>
               <div>
                 <h3>Basic info</h3>
-                <p>Main identity and track naming</p>
+                <p>Main identity and naming</p>
               </div>
             </div>
 
@@ -144,6 +146,7 @@
             </div>
           </div>
 
+          <!-- Credits -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -179,6 +182,7 @@
             </div>
           </div>
 
+          <!-- Classification -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -186,7 +190,7 @@
               </div>
               <div>
                 <h3>Classification</h3>
-                <p>Discovery and metadata tags</p>
+                <p>Discovery metadata</p>
               </div>
             </div>
 
@@ -224,6 +228,7 @@
             </div>
           </div>
 
+          <!-- Release -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -325,6 +330,7 @@
             </div>
           </div>
 
+          <!-- Lyrics -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -332,7 +338,7 @@
               </div>
               <div>
                 <h3>Lyrics</h3>
-                <p>Plain and synced LRC lyrics</p>
+                <p>Write, transcribe or sync lyrics</p>
               </div>
             </div>
 
@@ -352,8 +358,24 @@
               <textarea v-model="form.syncedLyricsRaw" class="am-textarea am-textarea--lrc"
                 placeholder="[00:12.00] First line..." />
             </div>
+
+            <div class="am-ai-actions">
+              <button class="am-ai-btn" type="button" :disabled="aiLoading || !audioFile" @click="transcribeLyrics">
+                {{ aiLoading ? 'Transcribing…' : 'Transcribe lyrics' }}
+              </button>
+
+              <button class="am-ai-btn" type="button" :disabled="aiSyncLoading || !audioFile || !form.lyrics.trim()"
+                @click="syncLyrics">
+                {{ aiSyncLoading ? 'Syncing…' : 'Auto sync lyrics' }}
+              </button>
+
+              <button class="am-ai-btn" type="button" disabled>
+                Generate lyrics
+              </button>
+            </div>
           </div>
 
+          <!-- Links -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -393,6 +415,7 @@
             </div>
           </div>
 
+          <!-- Note -->
           <div class="am-card">
             <div class="am-card-head">
               <div class="am-card-ico">
@@ -407,6 +430,7 @@
               placeholder="Promo plan, release reminders, edit notes..." />
           </div>
 
+          <!-- Footer -->
           <div class="am-footer">
             <div class="am-checklist">
               <span v-for="s in requireSteps" :key="s.label" class="am-check" :class="{ ok: s.done }">
@@ -459,7 +483,7 @@
           <div class="am-preview-cover-wrap">
             <img v-if="coverPreview" :src="coverPreview" class="am-preview-cover" alt="Cover" />
             <div v-else class="am-preview-cover-empty">
-              <MusicalNoteIcon class="w-8 h-8" />
+              <MusicalNoteIcon class="w-6 h-6" />
             </div>
           </div>
 
@@ -510,7 +534,7 @@
           <ul class="am-tips-list">
             <li>Upload a square cover for best results.</li>
             <li>Add genres and moods for better discovery.</li>
-            <li>Synced lyrics make the track feel more complete.</li>
+            <li>Transcribe first, then sync lyrics.</li>
             <li>Use unlisted before going fully public.</li>
           </ul>
         </div>
@@ -547,6 +571,9 @@ const storageKey = 'am-draft-v3'
 
 const loading = ref(false)
 const uploadPct = ref(0)
+const aiLoading = ref(false)
+const aiSyncLoading = ref(false)
+
 const audioFile = ref(null)
 const coverFile = ref(null)
 const coverPreview = ref('')
@@ -657,12 +684,12 @@ const targetStatusLabel = computed(() =>
 )
 
 const requireSteps = computed(() => [
-  { label: 'Audio uploaded', done: !!audioFile.value },
-  { label: 'Title added', done: !!form.title.trim() },
-  { label: 'Artist added', done: !!form.artist.trim() },
-  { label: 'Genre selected', done: genreList.value.length > 0 },
-  { label: 'Cover added', done: hasCover.value },
-  { label: 'Visibility set', done: !!form.visibility },
+  { label: 'Audio', done: !!audioFile.value },
+  { label: 'Title', done: !!form.title.trim() },
+  { label: 'Artist', done: !!form.artist.trim() },
+  { label: 'Genre', done: genreList.value.length > 0 },
+  { label: 'Cover', done: hasCover.value },
+  { label: 'Visibility', done: !!form.visibility },
 ])
 
 const lineCount = computed(() =>
@@ -785,6 +812,73 @@ const restoreDraft = () => {
     tagsText.value = p.tagsText || ''
     if (form.coverUrl) coverPreview.value = form.coverUrl
   } catch { }
+}
+
+const transcribeLyrics = async () => {
+  if (!audioFile.value) {
+    return ElMessage.error('Upload audio first')
+  }
+
+  aiLoading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('song', audioFile.value)
+
+    const { data } = await api.post('/tools/transcribe-lyrics', fd)
+    form.lyrics = data?.lyrics || ''
+
+    ElNotification({
+      title: 'Lyrics ready',
+      message: 'Transcription completed',
+      type: 'success',
+      duration: 2200,
+    })
+  } catch (e) {
+    ElNotification({
+      title: 'Transcription failed',
+      message: e?.response?.data?.message || e?.message || 'Could not transcribe lyrics',
+      type: 'error',
+      duration: 3200,
+    })
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+const syncLyrics = async () => {
+  if (!audioFile.value) {
+    return ElMessage.error('Upload audio first')
+  }
+
+  if (!form.lyrics.trim()) {
+    return ElMessage.error('Add lyrics first')
+  }
+
+  aiSyncLoading.value = true
+  try {
+    const fd = new FormData()
+    fd.append('song', audioFile.value)
+    fd.append('lyrics', form.lyrics)
+
+    const { data } = await api.post('/tools/sync-lyrics', fd)
+    form.syncedLyricsRaw = data?.syncedLyricsRaw || ''
+
+    ElNotification({
+      title: 'Lyrics synced',
+      message: 'Synced lyrics generated',
+      type: 'success',
+      duration: 2200,
+    })
+  } catch (e) {
+    ElNotification({
+      title: 'Sync failed',
+      message: e?.response?.data?.message || e?.message || 'Could not sync lyrics',
+      type: 'error',
+      duration: 3200,
+    })
+  } finally {
+    aiSyncLoading.value = false
+  }
 }
 
 const buildFD = (status) => {
