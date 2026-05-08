@@ -11,11 +11,9 @@
 .admin-library,
 .side-card,
 .metric-card {
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
-    rgba(15, 23, 42, 0.72);
-  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.16);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  box-shadow: var(--shadow-sm);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
@@ -28,10 +26,9 @@
   padding: 20px 22px;
   border-radius: 22px;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.08), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
-    rgba(15, 23, 42, 0.76);
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.1), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.06), transparent 28%),
+    var(--surface-1);
 }
 
 .admin-page__hero-content {
@@ -49,9 +46,9 @@
   font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #bfdbfe;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  background: var(--accent-soft);
 }
 
 .admin-page__title {
@@ -90,17 +87,15 @@
 }
 
 .metric-card--primary {
-  border-color: rgba(59, 130, 246, 0.18);
+  border-color: var(--border-hover);
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.1), transparent 42%),
-    rgba(15, 23, 42, 0.74);
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 42%), var(--surface-1);
 }
 
 .metric-card--warn {
-  border-color: rgba(244, 63, 94, 0.16);
+  border-color: rgba(214, 69, 111, 0.2);
   background:
-    radial-gradient(circle at top left, rgba(244, 63, 94, 0.08), transparent 42%),
-    rgba(15, 23, 42, 0.74);
+    radial-gradient(circle at top left, rgba(214, 69, 111, 0.08), transparent 42%), var(--surface-1);
 }
 
 .metric-card__label {
@@ -143,18 +138,13 @@
   gap: 12px;
 }
 
-.admin-toolbar__search {
-  flex: 1;
-  min-width: 0;
-}
-
 .admin-toolbar__input,
 .admin-toolbar__select {
   width: 100%;
   height: 42px;
   border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid var(--border);
+  background: var(--bg-input);
   color: var(--text-primary);
   padding: 0 13px;
   font-size: 13px;
@@ -167,14 +157,9 @@
 .admin-toolbar__input:focus,
 .admin-toolbar__select:focus {
   outline: none;
-  border-color: rgba(59, 130, 246, 0.26);
-  background: rgba(15, 23, 42, 0.92);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-}
-
-.admin-toolbar__filters {
-  width: 210px;
-  flex-shrink: 0;
+  border-color: var(--border-focus);
+  background: var(--surface-1);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .admin-toolbar__result {
@@ -195,8 +180,8 @@
   min-height: 32px;
   padding: 0 11px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--border);
+  background: var(--surface-1);
   color: var(--text-secondary);
   font-size: 11px;
   font-weight: 800;
@@ -210,14 +195,15 @@
 
 .admin-chip:hover {
   transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.18);
+  border-color: var(--border-hover);
+  background: var(--surface-2);
   color: var(--text-primary);
 }
 
 .admin-chip.is-active {
-  border-color: rgba(59, 130, 246, 0.22);
-  background: rgba(59, 130, 246, 0.1);
-  color: #dbeafe;
+  border-color: var(--border-hover);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .admin-grid {
@@ -256,7 +242,7 @@
 }
 
 .panel-card--attention {
-  border-color: rgba(244, 63, 94, 0.16);
+  border-color: rgba(214, 69, 111, 0.2);
 }
 
 .panel-card__head {
@@ -289,8 +275,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
   font-size: 11px;
   font-weight: 900;
   color: var(--text-primary);
@@ -307,7 +293,7 @@
   padding: 12px;
   border-radius: 14px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--bg-elevated);
   text-align: left;
   cursor: pointer;
   transition:
@@ -318,8 +304,8 @@
 
 .panel-list__item:hover {
   transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.14);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  background: var(--surface-2);
 }
 
 .panel-list__top {
@@ -362,18 +348,18 @@
 }
 
 .mini-pill--warn {
-  color: #fdba74;
-  background: rgba(249, 115, 22, 0.12);
+  color: var(--amber);
+  background: var(--amber-soft);
 }
 
 .mini-pill--ok {
-  color: #86efac;
-  background: rgba(34, 197, 94, 0.12);
+  color: var(--green);
+  background: var(--green-soft);
 }
 
 .mini-pill--info {
-  color: #7dd3fc;
-  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .admin-library {
@@ -427,7 +413,7 @@
   height: 24px;
   border-radius: 999px;
   border: 2px solid rgba(148, 163, 184, 0.2);
-  border-top-color: #3b82f6;
+  border-top-color: var(--accent);
   animation: admin-spin 0.8s linear infinite;
   margin: 0 auto 10px;
 }
@@ -453,7 +439,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid var(--border);
 }
 
 .side-metric:last-child {
@@ -496,7 +482,7 @@
   padding: 11px 12px;
   border-radius: 12px;
   border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--bg-elevated);
   cursor: pointer;
   text-align: left;
   transition:
@@ -507,8 +493,8 @@
 
 .side-priority__item:hover {
   transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.14);
-  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border);
+  background: var(--surface-2);
 }
 
 .side-priority__item strong {
@@ -578,10 +564,6 @@
   .admin-toolbar__main {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .admin-toolbar__filters {
-    width: 100%;
   }
 
   .admin-toolbar__result {

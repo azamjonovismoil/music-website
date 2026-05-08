@@ -25,8 +25,8 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 .admin-app {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 35% at 100% 100%, rgba(124, 58, 237, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 35% at 100% 100%, rgba(124, 58, 237, 0.04) 0%, transparent 60%),
     var(--bg-base);
 }
 
@@ -34,24 +34,24 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
   min-height: calc(100vh - var(--header-h));
-  align-items: stretch;
+  align-items: start;
 }
 
 .admin-app__sidebar {
   min-width: 0;
+  position: sticky;
+  top: var(--header-h);
   height: calc(100vh - var(--header-h));
-  min-height: calc(100vh - var(--header-h));
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(10, 14, 30, 0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid var(--border);
+  background: var(--sidebar-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow: hidden;
 }
 
 .admin-app__main {
   min-width: 0;
-  padding: 16px 16px calc(16px + var(--player-bar-safe, 110px));
+  padding: 20px 20px calc(20px + var(--player-bar-safe, 110px));
   display: flex;
   flex-direction: column;
 }
