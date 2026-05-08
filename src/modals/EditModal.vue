@@ -402,7 +402,7 @@
             Replace audio
           </label>
 
-          <div class="field" style="margin-top:10px">
+          <div class="field upload-url-field">
             <label class="field-label">Or cover URL</label>
             <input v-model="form.coverUrl" class="edit-input" type="url" placeholder="https://example.com/cover.jpg"
               @blur="applyCoverUrlPreview" />
@@ -530,9 +530,10 @@ const parseLrc = (raw = '') => {
         const ss = Number(m[2] || 0)
         const fracRaw = String(m[3] || '0')
         const frac =
-          fracRaw.length === 3 ? Number(fracRaw) / 1000 :
-            fracRaw.length === 2 ? Number(fracRaw) / 100 :
-              fracRaw.length === 1 ? Number(fracRaw) / 10 : 0
+          fracRaw.length === 3 ? Number(fracRaw) / 1000
+            : fracRaw.length === 2 ? Number(fracRaw) / 100
+              : fracRaw.length === 1 ? Number(fracRaw) / 10
+                : 0
 
         return { time: mm * 60 + ss + frac, text }
       })
@@ -650,7 +651,7 @@ const onCover = (e) => {
 const onAudio = (e) => {
   const f = e.target.files?.[0]
   if (!f) return
-  if (f.size / 1024 / 1024 > 100) return ElMessage.error('Audio must be under 100MB')
+  if (f.size / 1024 / 1024 > 50) return ElMessage.error('Audio must be under 50MB')
   audioFile.value = f
 }
 
@@ -823,6 +824,7 @@ const syncLyrics = async () => {
 
 const buildFD = () => {
   const fd = new FormData()
+
   fd.append('title', form.title.trim())
   fd.append('slug', form.slug.trim())
   fd.append('artist', form.artist.trim())
@@ -857,7 +859,12 @@ const buildFD = () => {
   fd.append('isRecommended', String(form.isRecommended))
   fd.append('isFreeDownload', String(form.isFreeDownload))
   fd.append('adminNote', form.adminNote.trim())
-  fd.append('coverUrl', form.coverUrl.trim())
+
+  const coverUrl = form.coverUrl.trim()
+  if (coverUrl) {
+    fd.append('coverUrl', coverUrl)
+  }
+
   fd.append('externalLinks', JSON.stringify({
     youtube: form.youtube.trim(),
     spotify: form.spotify.trim(),
@@ -866,13 +873,16 @@ const buildFD = () => {
     instagram: form.instagram.trim(),
     tiktok: form.tiktok.trim(),
   }))
+
   if (coverFile.value) fd.append('cover', coverFile.value)
   if (audioFile.value) fd.append('song', audioFile.value)
+
   return fd
 }
 
 const save = async () => {
   if (!props.music?._id) return
+
   loading.value = true
   clearErrors()
 
@@ -880,16 +890,20 @@ const save = async () => {
     const { data } = await api.put(`/music/${props.music._id}`, buildFD(), {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
+
     emit('saved', data)
     openState.value = false
     ElNotification({ title: 'Saved', type: 'success', duration: 2200 })
   } catch (e) {
-    Object.assign(errors, e?.response?.data?.errors || {})
+    const serverErrors = e?.response?.data?.errors || {}
+    Object.assign(errors, serverErrors)
+
+    const firstError = Object.values(serverErrors)?.[0]
     ElNotification({
       title: 'Save failed',
-      message: e?.response?.data?.message || 'Something went wrong',
+      message: firstError || e?.response?.data?.message || 'Something went wrong',
       type: 'error',
-      duration: 3200,
+      duration: 3500,
     })
   } finally {
     loading.value = false
