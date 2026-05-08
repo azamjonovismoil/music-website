@@ -1,13 +1,30 @@
 .app-header {
   position: sticky;
   top: 0;
-  z-index: 300;
+  z-index: 1200;
   height: var(--header-h, 62px);
   border-bottom: 1px solid var(--border);
-  background: var(--bg-surface);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-surface) 96%, black 4%),
+    var(--bg-surface)
+  );
   backdrop-filter: blur(var(--glass-blur, 20px));
   -webkit-backdrop-filter: blur(var(--glass-blur, 20px));
   isolation: isolate;
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(10, 14, 30, 0.92), rgba(10, 14, 30, 0.98));
+  pointer-events: none;
+}
+
+[data-theme='light'] .app-header::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.98));
 }
 
 .header-inner {
@@ -35,7 +52,7 @@
 .header-right {
   flex-shrink: 0;
   position: relative;
-  z-index: 310;
+  z-index: 1210;
 }
 
 .brand {
@@ -225,7 +242,7 @@
 .profile-wrap {
   position: relative;
   flex-shrink: 0;
-  z-index: 320;
+  z-index: 1210;
 }
 
 .notif-btn {
@@ -257,7 +274,7 @@
   right: 0;
   border-radius: 18px;
   box-shadow: var(--shadow-lg);
-  z-index: 999;
+  z-index: 1300;
   border: 1px solid var(--border);
   overflow: hidden;
 }
@@ -480,7 +497,7 @@
 .mobile-menu-overlay {
   position: fixed;
   inset: 0;
-  z-index: 500;
+  z-index: 1400;
   background: rgba(4, 8, 18, 0.6);
   backdrop-filter: blur(8px);
 }
@@ -622,7 +639,7 @@
   left: 12px;
   right: 12px;
   bottom: 10px;
-  z-index: 340;
+  z-index: 1100;
   display: none;
   align-items: center;
   justify-content: space-between;

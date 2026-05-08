@@ -151,7 +151,7 @@
           <MagnifyingGlassIcon class="mobile-search-icon" />
           <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
             placeholder="Search title, artist, album, tags..." class="mobile-search-input" />
-          <button v-if="search" class="mobile-search-clear" @click="emitClearSearch">
+          <button v-if="search" class="mobile-search-clear" @click="clearMobileSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
           <button class="mobile-search-close" @click="closeMobileSearch">Done</button>
@@ -231,13 +231,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import {
-  HomeIcon, MagnifyingGlassIcon, XMarkIcon, PlusIcon, ArrowDownTrayIcon,
-  SunIcon, MoonIcon, ChevronDownIcon, UserIcon, Squares2X2Icon,
-  ArrowRightOnRectangleIcon, Bars3Icon, UserPlusIcon, BellIcon,
+  HomeIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  PlusIcon,
+  ArrowDownTrayIcon,
+  SunIcon,
+  MoonIcon,
+  ChevronDownIcon,
+  UserIcon,
+  Squares2X2Icon,
+  ArrowRightOnRectangleIcon,
+  Bars3Icon,
+  UserPlusIcon,
+  BellIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { API_ROOT } from '@/utils/media'
@@ -280,7 +291,9 @@ const isXs = computed(() => viewport.value <= 540)
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
 const notificationCount = computed(() => notifSeen.value ? 0 : notifications.value.length)
 
-const emitClearSearch = () => emit('update:search', '')
+const emitClearSearch = () => {
+  emit('update:search', '')
+}
 
 const goHome = () => {
   if (!authStore.user) return router.push('/')
@@ -442,6 +455,7 @@ const handleOut = (e) => {
 
 const handleResize = () => {
   viewport.value = window.innerWidth
+
   if (window.innerWidth > 860) {
     mobileMenuOpen.value = false
     mobileSearchOpen.value = false
@@ -449,6 +463,10 @@ const handleResize = () => {
     notifOpen.value = false
   }
 }
+
+watch(isMobile, () => {
+  loadNotifications()
+})
 
 onMounted(async () => {
   const saved = localStorage.getItem('mw-theme') || 'dark'

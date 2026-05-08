@@ -60,7 +60,7 @@
             <button class="ctrl play-ctrl" type="button" title="Play/Pause" @click="togglePlay">
               <ArrowPathIcon v-if="isLoading" class="play-icon spin" />
               <PauseIcon v-else-if="isPlaying" class="play-icon" />
-              <PlayIcon v-else class="play-icon" />
+              <PlayIcon v-else class="play-icon play-icon--shift" />
             </button>
 
             <button class="ctrl" type="button" title="Next" @click="handleNext">

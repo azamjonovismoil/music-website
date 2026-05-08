@@ -142,8 +142,8 @@
         <section class="apage-content">
           <div v-if="filtered.length" class="apage-grid">
             <AdminMusicCard v-for="music in filtered" :key="music._id" :music="music" @play="playMusic" @edit="openEdit"
-              @toggle-like="toggleLike" @toggle-download="toggleDownload" @delete="archiveMusic" @clone="cloneMusic"
-              @quick-publish="quickPublish" @open-about="openEdit" />
+              @toggle-like="toggleLike" @delete="deleteMusic" @clone="cloneMusic" @quick-publish="quickPublish"
+              @open-about="openEdit" />
           </div>
 
           <div v-else class="apage-empty">
@@ -181,7 +181,7 @@
           </div>
 
           <ul class="side-notes">
-            <li>Tracks below 70% health should get cover, lyrics and links first.</li>
+            <li>Tracks below 70% health should get cover and links first.</li>
             <li>Ready drafts can be published directly from the card actions.</li>
             <li>Scheduled tracks should be checked before release time passes.</li>
           </ul>
@@ -361,31 +361,24 @@ const toggleLike = async (music) => {
   }
 }
 
-const toggleDownload = async (music) => {
-  try {
-    const { data } = await api.patch(`/music/${music._id}/download`)
-    handleSaved(data)
-  } catch {
-    ElMessage.error('Failed to update download')
-  }
-}
-
 const playMusic = async (music) => {
   try {
     await api.patch(`/music/${music._id}/play`)
   } catch { }
 }
 
-const archiveMusic = async (music) => {
+const deleteMusic = async (music) => {
   try {
-    await ElMessageBox.confirm(`Archive "${music.title}"?`, 'Archive track', {
-      confirmButtonText: 'Archive',
+    await ElMessageBox.confirm(`Delete "${music.title}" permanently?`, 'Delete track', {
+      confirmButtonText: 'Delete',
       cancelButtonText: 'Cancel',
       type: 'warning',
     })
-    const { data } = await api.patch(`/music/${music._id}/archive`)
-    handleSaved(data)
-    ElMessage.success('Track archived')
+
+    await api.delete(`/music/${music._id}`)
+    musics.value = musics.value.filter((m) => m._id !== music._id)
+    refreshAll()
+    ElMessage.success('Track deleted')
   } catch { }
 }
 

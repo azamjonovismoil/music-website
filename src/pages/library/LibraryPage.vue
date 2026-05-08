@@ -26,6 +26,7 @@
 
           <div class="lib-hero-actions">
             <span class="lib-count-badge">{{ filtered.length }} tracks</span>
+
             <button v-if="filtered.length" class="lib-play-all-btn" @click="playAll">
               <PlayIcon class="lib-play-ico" />
               Play all
@@ -61,17 +62,19 @@
 
         <div v-else class="lib-grid">
           <article v-for="track in filtered" :key="track._id" class="lib-card"
-            :class="{ 'lib-card--active': currentMusic?._id === track._id }" @click="openDetail(track)">
+            :class="{ 'lib-card--active': player.currentTrack?._id === track._id }" @click="openDetail(track)">
             <div class="lib-card-thumb">
               <img :src="getCover(track)" class="lib-card-img" alt="" @error="onImageError" />
 
               <div class="lib-card-overlay">
                 <button class="lib-card-play" @click.stop="playMusic(track)">
-                  <PlayIcon class="lib-card-play-ico" />
+                  <PauseIcon v-if="player.currentTrack?._id === track._id && player.isPlaying"
+                    class="lib-card-play-ico" />
+                  <PlayIcon v-else class="lib-card-play-ico" />
                 </button>
               </div>
 
-              <div v-if="currentMusic?._id === track._id" class="lib-card-bars">
+              <div v-if="player.currentTrack?._id === track._id && player.isPlaying" class="lib-card-bars">
                 <span />
                 <span />
                 <span />
@@ -105,22 +108,18 @@
         </div>
       </main>
     </div>
-
-    <PlayerBar :key="currentMusic?._id || 'empty'" :music="currentMusic" @prev="playPrev" @next="playNext"
-      @shuffle-next="playShuffle" @auth-required="router.push('/login')" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { HeartIcon, ArrowDownTrayIcon, PlayIcon } from '@heroicons/vue/24/outline'
+import { HeartIcon, ArrowDownTrayIcon, PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 
 import HeaderPage from '@/components/layout/HeaderPage.vue'
-import PlayerBar from '@/components/layout/PlayerBar.vue'
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
 import { usePlayerStore } from '@/stores/player'
@@ -144,8 +143,6 @@ const pageKey = computed(() => (route.path.includes('favourite') ? 'liked' : 'do
 const musics = ref([])
 const searchQuery = ref('')
 const sortBy = ref('newest')
-const currentMusic = ref(null)
-const currentIndex = ref(-1)
 const loading = ref(true)
 
 const onImageError = (event) => {
@@ -184,13 +181,49 @@ const filtered = computed(() => {
   }
 })
 
+const syncQueueWithFiltered = (preferredTrack = null, shouldPlay = false) => {
+  const preparedQueue = filtered.value.map(build)
+
+  if (!preparedQueue.length) {
+    player.clearQueue()
+    return
+  }
+
+  if (preferredTrack?._id) {
+    player.setTrack(build(preferredTrack), {
+      queue: preparedQueue,
+      playing: shouldPlay,
+    })
+    return
+  }
+
+  if (player.currentTrack?._id) {
+    const exists = preparedQueue.find((item) => item._id === player.currentTrack._id)
+    if (exists) {
+      player.setTrack(exists, {
+        queue: preparedQueue,
+        playing: player.isPlaying,
+        resetTime: false,
+      })
+      return
+    }
+  }
+
+  player.setQueue(preparedQueue)
+}
+
 const fetchTracks = async () => {
   loading.value = true
 
   try {
-    const endpoint = pageKey.value === 'liked' ? '/music/me/liked/list' : '/music/me/downloaded/list'
+    const endpoint =
+      pageKey.value === 'liked'
+        ? '/music/me/liked'
+        : '/music/me/downloaded/list'
+
     const { data } = await api.get(endpoint)
     musics.value = Array.isArray(data) ? data : []
+    syncQueueWithFiltered()
   } catch {
     ElMessage.error('Failed to load tracks')
   } finally {
@@ -200,45 +233,24 @@ const fetchTracks = async () => {
 
 const syncMusic = (data) => {
   musics.value = musics.value.map((item) => (item._id === data._id ? data : item))
-
-  if (currentMusic.value?._id === data._id) {
-    currentMusic.value = build(data)
-    player.setTrack(currentMusic.value)
-  }
+  syncQueueWithFiltered(data, player.currentTrack?._id === data._id ? player.isPlaying : false)
 }
 
 const openDetail = (track) => {
-  currentMusic.value = build(track)
-  player.setTrack(currentMusic.value)
+  player.setTrack(build(track), {
+    queue: filtered.value.map(build),
+    playing: player.isPlaying && player.currentTrack?._id === track._id,
+    resetTime: player.currentTrack?._id !== track._id,
+  })
 }
 
 const playMusic = (music) => {
-  const prepared = build(music)
-  currentMusic.value = prepared
-  currentIndex.value = filtered.value.findIndex((item) => item._id === music._id)
-  player.setTrack(prepared)
+  syncQueueWithFiltered(music, true)
 }
 
 const playAll = () => {
-  if (filtered.value.length) playMusic(filtered.value[0])
-}
-
-const playPrev = () => {
-  if (!filtered.value.length) return
-  currentIndex.value = currentIndex.value <= 0 ? filtered.value.length - 1 : currentIndex.value - 1
-  playMusic(filtered.value[currentIndex.value])
-}
-
-const playNext = () => {
-  if (!filtered.value.length) return
-  currentIndex.value = currentIndex.value >= filtered.value.length - 1 ? 0 : currentIndex.value + 1
-  playMusic(filtered.value[currentIndex.value])
-}
-
-const playShuffle = () => {
-  const source = filtered.value.filter((music) => music._id !== currentMusic.value?._id)
-  if (source.length) {
-    playMusic(source[Math.floor(Math.random() * source.length)])
+  if (filtered.value.length) {
+    syncQueueWithFiltered(filtered.value[0], true)
   }
 }
 
@@ -249,6 +261,7 @@ const toggleLike = async (music) => {
 
     if (pageKey.value === 'liked' && !data.liked) {
       musics.value = musics.value.filter((item) => item._id !== music._id)
+      syncQueueWithFiltered()
     }
   } catch {
     ElMessage.error('Failed')
@@ -262,11 +275,25 @@ const toggleDownload = async (music) => {
 
     if (pageKey.value === 'downloaded' && !data.downloaded) {
       musics.value = musics.value.filter((item) => item._id !== music._id)
+      syncQueueWithFiltered()
     }
   } catch {
     ElMessage.error('Failed')
   }
 }
+
+watch([filtered], () => {
+  if (!loading.value) {
+    syncQueueWithFiltered()
+  }
+})
+
+watch(
+  () => route.fullPath,
+  async () => {
+    await fetchTracks()
+  }
+)
 
 onMounted(async () => {
   await authStore.fetchMe()

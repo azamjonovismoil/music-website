@@ -85,8 +85,8 @@
           <HeartIcon v-else class="mcard-act-icon" />
         </button>
 
-        <button class="mcard-act" type="button" title="Archive" @click.stop="$emit('delete', music)">
-          <ArchiveBoxIcon class="mcard-act-icon" />
+        <button class="mcard-act mcard-act--danger" type="button" title="Delete" @click.stop="$emit('delete', music)">
+          <TrashIcon class="mcard-act-icon" />
         </button>
       </div>
     </div>
@@ -102,8 +102,8 @@ import {
   ArrowDownTrayIcon,
   PencilSquareIcon,
   DocumentDuplicateIcon,
-  ArchiveBoxIcon,
   RocketLaunchIcon,
+  TrashIcon,
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 import { resolveCover } from '@/utils/media'
