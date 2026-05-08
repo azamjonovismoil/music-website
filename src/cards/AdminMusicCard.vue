@@ -1,92 +1,106 @@
 <template>
-  <article class="mcard" :class="{
-    'is-playing': isCurrentTrack && player.isPlaying,
+  <article class="admin-music-card" :class="{
     'is-active': isCurrentTrack,
+    'is-playing': isCurrentTrack && player.isPlaying,
     'is-attention': music.needsAttention,
   }" @click="$emit('open-about', music)">
-    <div class="mcard-thumb">
-      <img v-if="safeCover && !imgErr" :src="safeCover" :alt="music.title || 'cover'" class="mcard-img" loading="lazy"
-        @error="imgErr = true" />
-      <div v-else class="mcard-img-fb">♪</div>
+    <div class="admin-music-card__media">
+      <img v-if="safeCover && !imgErr" :src="safeCover" :alt="music.title || 'cover'" class="admin-music-card__image"
+        loading="lazy" @error="imgErr = true" />
+      <div v-else class="admin-music-card__fallback">♪</div>
 
-      <div class="mcard-overlay">
-        <button class="mcard-play" type="button" :title="isCurrentTrack && player.isPlaying ? 'Pause' : 'Play'"
-          @click.stop="handlePlay">
-          <PauseIcon v-if="isCurrentTrack && player.isPlaying" class="mcard-play-icon" />
-          <PlayIcon v-else class="mcard-play-icon mcard-play-icon--shift" />
+      <div class="admin-music-card__overlay">
+        <button class="admin-music-card__play" type="button"
+          :title="isCurrentTrack && player.isPlaying ? 'Pause' : 'Play'" @click.stop="handlePlay">
+          <PauseIcon v-if="isCurrentTrack && player.isPlaying" class="admin-music-card__play-icon" />
+          <PlayIcon v-else class="admin-music-card__play-icon admin-music-card__play-icon--shift" />
         </button>
       </div>
 
-      <span class="mcard-status" :class="music.status || 'draft'">
-        {{ music.status || 'draft' }}
-      </span>
+      <div class="admin-music-card__topbar">
+        <span class="admin-music-card__status" :class="`is-${music.status || 'draft'}`">
+          {{ music.status || 'draft' }}
+        </span>
 
-      <span class="mcard-health" :class="music.healthTier || 'basic'">
-        {{ music.healthScore || 0 }}%
-      </span>
+        <span class="admin-music-card__health" :class="`is-${music.healthTier || 'basic'}`">
+          {{ music.healthScore || 0 }}%
+        </span>
+      </div>
 
-      <div v-if="isCurrentTrack && player.isPlaying" class="mcard-eq" aria-hidden="true">
+      <div v-if="isCurrentTrack && player.isPlaying" class="admin-music-card__eq" aria-hidden="true">
         <span></span><span></span><span></span>
       </div>
     </div>
 
-    <div class="mcard-body">
-      <div class="mcard-info">
-        <p class="mcard-title">{{ music.title || 'Untitled' }}</p>
-        <p class="mcard-artist">{{ music.artist || 'Unknown artist' }}</p>
+    <div class="admin-music-card__body">
+      <div class="admin-music-card__main">
+        <div class="admin-music-card__title-wrap">
+          <h3 class="admin-music-card__title">{{ music.title || 'Untitled' }}</h3>
+          <p class="admin-music-card__artist">{{ music.artist || 'Unknown artist' }}</p>
+        </div>
+
+        <div class="admin-music-card__chips">
+          <span v-if="music.healthTier" class="admin-music-card__chip">
+            {{ music.healthTier }}
+          </span>
+          <span v-if="music.needsAttention" class="admin-music-card__chip admin-music-card__chip--warn">
+            attention
+          </span>
+          <span v-if="music.genre?.length" class="admin-music-card__chip">
+            {{ music.genre[0] }}
+          </span>
+        </div>
+
+        <p v-if="music.needsAttention && music.attentionReasons?.length" class="admin-music-card__note">
+          {{ music.attentionReasons[0] }}
+        </p>
+
+        <div class="admin-music-card__meta">
+          <span class="admin-music-card__meta-item">
+            <PlayIcon class="admin-music-card__meta-icon" />
+            {{ music.playCount || 0 }}
+          </span>
+
+          <span class="admin-music-card__meta-item">
+            <HeartIcon class="admin-music-card__meta-icon" />
+            {{ music.likeCount || 0 }}
+          </span>
+
+          <span class="admin-music-card__meta-item">
+            <ArrowDownTrayIcon class="admin-music-card__meta-icon" />
+            {{ music.downloadCount || 0 }}
+          </span>
+        </div>
       </div>
 
-      <div class="mcard-tags">
-        <span v-if="music.healthTier" class="mcard-tag">{{ music.healthTier }}</span>
-        <span v-if="music.needsAttention" class="mcard-tag mcard-tag--warn">attention</span>
-        <span v-if="music.genre?.length" class="mcard-tag">{{ music.genre[0] }}</span>
-      </div>
-
-      <p v-if="music.needsAttention && music.attentionReasons?.length" class="mcard-note">
-        {{ music.attentionReasons[0] }}
-      </p>
-
-      <div class="mcard-meta">
-        <span class="mcard-meta-item">
-          <PlayIcon class="mcard-meta-icon" />
-          {{ music.playCount || 0 }}
-        </span>
-        <span class="mcard-meta-item">
-          <HeartIcon class="mcard-meta-icon" />
-          {{ music.likeCount || 0 }}
-        </span>
-        <span class="mcard-meta-item">
-          <ArrowDownTrayIcon class="mcard-meta-icon" />
-          {{ music.downloadCount || 0 }}
-        </span>
-      </div>
-
-      <div class="mcard-actions">
-        <button class="mcard-act" type="button" title="Play" @click.stop="handlePlay">
-          <PauseIcon v-if="isCurrentTrack && player.isPlaying" class="mcard-act-icon" />
-          <PlayIcon v-else class="mcard-act-icon" />
+      <div class="admin-music-card__actions">
+        <button class="admin-music-card__action" type="button" title="Play" @click.stop="handlePlay">
+          <PauseIcon v-if="isCurrentTrack && player.isPlaying" class="admin-music-card__action-icon" />
+          <PlayIcon v-else class="admin-music-card__action-icon" />
         </button>
 
-        <button class="mcard-act" type="button" title="Edit" @click.stop="$emit('edit', music)">
-          <PencilSquareIcon class="mcard-act-icon" />
+        <button class="admin-music-card__action" type="button" title="Edit" @click.stop="$emit('edit', music)">
+          <PencilSquareIcon class="admin-music-card__action-icon" />
         </button>
 
-        <button v-if="music.status !== 'published'" class="mcard-act mcard-act--primary" type="button" title="Publish"
-          @click.stop="$emit('quick-publish', music)">
-          <RocketLaunchIcon class="mcard-act-icon" />
+        <button v-if="music.status !== 'published'" class="admin-music-card__action admin-music-card__action--primary"
+          type="button" title="Publish" @click.stop="$emit('quick-publish', music)">
+          <RocketLaunchIcon class="admin-music-card__action-icon" />
         </button>
 
-        <button class="mcard-act" type="button" title="Clone" @click.stop="$emit('clone', music)">
-          <DocumentDuplicateIcon class="mcard-act-icon" />
+        <button class="admin-music-card__action" type="button" title="Clone" @click.stop="$emit('clone', music)">
+          <DocumentDuplicateIcon class="admin-music-card__action-icon" />
         </button>
 
-        <button class="mcard-act" type="button" title="Like" @click.stop="$emit('toggle-like', music)">
-          <HeartSolidIcon v-if="music.liked" class="mcard-act-icon mcard-act-icon--liked" />
-          <HeartIcon v-else class="mcard-act-icon" />
+        <button class="admin-music-card__action" type="button" title="Like" @click.stop="$emit('toggle-like', music)">
+          <HeartSolidIcon v-if="music.liked"
+            class="admin-music-card__action-icon admin-music-card__action-icon--liked" />
+          <HeartIcon v-else class="admin-music-card__action-icon" />
         </button>
 
-        <button class="mcard-act mcard-act--danger" type="button" title="Delete" @click.stop="$emit('delete', music)">
-          <TrashIcon class="mcard-act-icon" />
+        <button class="admin-music-card__action admin-music-card__action--danger" type="button" title="Delete"
+          @click.stop="$emit('delete', music)">
+          <TrashIcon class="admin-music-card__action-icon" />
         </button>
       </div>
     </div>
@@ -137,7 +151,7 @@ const isCurrentTrack = computed(() => {
 })
 
 const handlePlay = () => {
-  player.setTrack(props.music)
+  player.setTrack(props.music, { playing: true })
   emit('play', props.music)
 }
 
