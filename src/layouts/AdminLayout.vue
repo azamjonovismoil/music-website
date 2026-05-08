@@ -39,16 +39,19 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 
 .admin-app__sidebar {
   min-width: 0;
+  height: calc(100vh - var(--header-h));
   min-height: calc(100vh - var(--header-h));
+  display: flex;
+  flex-direction: column;
   border-right: 1px solid var(--border);
   background: rgba(10, 14, 30, 0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .admin-app__main {
   min-width: 0;
-  padding: 16px;
+  padding: 16px 16px calc(16px + var(--player-bar-h, 96px));
   display: flex;
   flex-direction: column;
 }
@@ -61,7 +64,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 
 @media (max-width: 1100px) {
   .admin-app__body {
-    grid-template-columns: 250px minmax(0, 1fr);
+    grid-template-columns: 252px minmax(0, 1fr);
   }
 }
 
@@ -75,7 +78,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
   }
 
   .admin-app__main {
-    padding: 12px 12px 84px;
+    padding: 12px 12px calc(84px + var(--player-bar-h, 96px));
   }
 }
 </style>

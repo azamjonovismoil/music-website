@@ -7,6 +7,7 @@
     <div class="admin-music-card__media">
       <img v-if="safeCover && !imgErr" :src="safeCover" :alt="music.title || 'cover'" class="admin-music-card__image"
         loading="lazy" @error="imgErr = true" />
+
       <div v-else class="admin-music-card__fallback">♪</div>
 
       <div class="admin-music-card__overlay">
@@ -43,9 +44,11 @@
           <span v-if="music.healthTier" class="admin-music-card__chip">
             {{ music.healthTier }}
           </span>
+
           <span v-if="music.needsAttention" class="admin-music-card__chip admin-music-card__chip--warn">
             attention
           </span>
+
           <span v-if="music.genre?.length" class="admin-music-card__chip">
             {{ music.genre[0] }}
           </span>
@@ -128,6 +131,16 @@ const props = defineProps({
   music: { type: Object, required: true },
 })
 
+defineEmits([
+  'play',
+  'edit',
+  'clone',
+  'quick-publish',
+  'toggle-like',
+  'delete',
+  'open-about',
+])
+
 const emit = defineEmits([
   'play',
   'edit',
@@ -151,7 +164,6 @@ const isCurrentTrack = computed(() => {
 })
 
 const handlePlay = () => {
-  player.setTrack(props.music, { playing: true })
   emit('play', props.music)
 }
 
