@@ -1,5 +1,5 @@
 <template>
-  <header class="app-header">
+  <header class="app-header" :class="{ 'app-header--mobile-min': isMobile && authStore.user }">
     <div class="header-inner">
       <div class="header-left">
         <button v-if="isMobile && authStore.user" class="hdr-btn icon-btn mobile-only" @click="mobileMenuOpen = true"
@@ -9,7 +9,7 @@
 
         <div class="brand" @click="goHome">
           <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo" @error="logoErr = true" />
-          <span class="brand-name">Music<span class="brand-dot">.</span></span>
+          <span v-if="!isMobile" class="brand-name">Music<span class="brand-dot">.</span></span>
         </div>
 
         <button v-if="authStore.user && !isMobile" class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
@@ -20,10 +20,10 @@
           :class="{ expanded: searchFocused || search }">
           <MagnifyingGlassIcon class="search-icon-el" />
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
-            @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="clearSearch" type="text"
+            @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="emitClearSearch" type="text"
             placeholder="Search title, artist, album, tags..." class="search-input" />
           <transition name="fade">
-            <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="clearSearch">
+            <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="emitClearSearch">
               <XMarkIcon class="search-clear-icon" />
             </button>
           </transition>
@@ -51,19 +51,21 @@
         </template>
 
         <template v-else>
-          <div class="notif-wrap" ref="notifRef">
+          <div v-if="!isMobile" class="notif-wrap" ref="notifRef">
             <button class="hdr-btn icon-btn notif-btn" @click="toggleNotif" aria-label="Notifications">
               <BellIcon class="hdr-icon" />
-              <span v-if="notificationCount > 0" class="notif-badge">{{ notificationCount > 9 ? '9+' : notificationCount
-                }}</span>
+              <span v-if="notificationCount > 0" class="notif-badge">
+                {{ notificationCount > 9 ? '9+' : notificationCount }}
+              </span>
             </button>
 
             <transition name="dropdown">
               <div v-if="notifOpen" class="notif-dropdown">
                 <div class="notif-head">
                   <h4>Notifications</h4>
-                  <button v-if="notifications.length" class="notif-clear-btn" @click="markNotificationsSeen">Mark
-                    read</button>
+                  <button v-if="notifications.length" class="notif-clear-btn" @click="markNotificationsSeen">
+                    Mark read
+                  </button>
                 </div>
 
                 <div v-if="notifications.length" class="notif-list">
@@ -84,17 +86,18 @@
             </transition>
           </div>
 
-          <button v-if="authStore.isAdmin && !isXs" class="hdr-btn accent-btn add-btn"
+          <button v-if="authStore.isAdmin && !isXs && !isMobile" class="hdr-btn accent-btn add-btn"
             @click="router.push('/admin/add-music')">
             <PlusIcon class="hdr-icon" />
-            <span v-if="!isMobile">Add track</span>
+            <span>Add track</span>
           </button>
 
-          <button v-if="!isXs" class="hdr-btn icon-btn" @click="router.push('/library/downloaded')" title="Downloads">
+          <button v-if="!isXs && !isMobile" class="hdr-btn icon-btn" @click="router.push('/library/downloaded')"
+            title="Downloads">
             <ArrowDownTrayIcon class="hdr-icon" />
           </button>
 
-          <div class="profile-wrap" ref="profileRef">
+          <div v-if="!isMobile" class="profile-wrap" ref="profileRef">
             <button class="profile-btn" :class="{ open: menuOpen }" @click="menuOpen = !menuOpen">
               <div class="avatar">{{ firstLetter }}</div>
               <ChevronDownIcon class="chevron" />
@@ -134,6 +137,10 @@
               </div>
             </transition>
           </div>
+
+          <button v-else class="hdr-btn icon-btn" @click="mobileMenuOpen = true" aria-label="Profile menu">
+            <UserIcon class="hdr-icon" />
+          </button>
         </template>
       </div>
     </div>
@@ -144,7 +151,7 @@
           <MagnifyingGlassIcon class="mobile-search-icon" />
           <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
             placeholder="Search title, artist, album, tags..." class="mobile-search-input" />
-          <button v-if="search" class="mobile-search-clear" @click="clearMobileSearch">
+          <button v-if="search" class="mobile-search-clear" @click="emitClearSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
           <button class="mobile-search-close" @click="closeMobileSearch">Done</button>
@@ -216,12 +223,7 @@
       <button v-if="authStore.isAdmin" class="mq-btn mq-btn--accent" @click="router.push('/admin/add-music')">
         <PlusIcon class="hdr-icon" />
       </button>
-      <button class="mq-btn mq-btn--notif" @click="toggleNotif">
-        <BellIcon class="hdr-icon" />
-        <span v-if="notificationCount > 0" class="notif-badge notif-badge--mobile">{{ notificationCount > 9 ? '9+' :
-          notificationCount }}</span>
-      </button>
-      <button class="mq-btn" @click="menuOpen = !menuOpen">
+      <button class="mq-btn" @click="mobileMenuOpen = true">
         <UserIcon class="hdr-icon" />
       </button>
     </div>
@@ -245,7 +247,8 @@ const props = defineProps({
   search: { type: String, default: '' },
   showSearch: { type: Boolean, default: true },
 })
-defineEmits(['update:search'])
+
+const emit = defineEmits(['update:search'])
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -275,23 +278,21 @@ const notifSeen = ref(false)
 const isMobile = computed(() => viewport.value <= 860)
 const isXs = computed(() => viewport.value <= 540)
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
-
 const notificationCount = computed(() => notifSeen.value ? 0 : notifications.value.length)
+
+const emitClearSearch = () => emit('update:search', '')
 
 const goHome = () => {
   if (!authStore.user) return router.push('/')
   router.push(authStore.isAdmin ? '/admin' : '/user')
 }
 
-const clearSearch = () => {
-  const ev = new CustomEvent('input')
-  searchRef.value?.blur()
-}
 const clearMobileSearch = async () => {
-  window.dispatchEvent(new CustomEvent('header-clear-search'))
+  emitClearSearch()
   await nextTick()
   mobileSearchRef.value?.focus()
 }
+
 const closeMobileSearch = () => {
   mobileSearchOpen.value = false
 }
@@ -306,6 +307,7 @@ const nav = (path) => {
   menuOpen.value = false
   router.push(path)
 }
+
 const navMobile = (path) => {
   mobileMenuOpen.value = false
   router.push(path)
@@ -403,7 +405,7 @@ const buildNotifications = (summary) => {
 }
 
 const loadNotifications = async () => {
-  if (!authStore.user || !authStore.isAdmin) {
+  if (!authStore.user || !authStore.isAdmin || isMobile.value) {
     notifications.value = []
     return
   }
@@ -443,6 +445,8 @@ const handleResize = () => {
   if (window.innerWidth > 860) {
     mobileMenuOpen.value = false
     mobileSearchOpen.value = false
+  } else {
+    notifOpen.value = false
   }
 }
 

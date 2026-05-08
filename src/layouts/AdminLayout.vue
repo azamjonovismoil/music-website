@@ -34,10 +34,12 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
   min-height: calc(100vh - var(--header-h));
+  align-items: stretch;
 }
 
 .admin-app__sidebar {
   min-width: 0;
+  min-height: calc(100vh - var(--header-h));
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border);
@@ -75,7 +77,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
   }
 
   .admin-app__main {
-    padding: 12px 12px 88px;
+    padding: 12px 12px 84px;
   }
 }
 </style>

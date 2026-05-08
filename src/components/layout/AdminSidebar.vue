@@ -132,6 +132,8 @@ const active = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .sidebar-nav-label {
@@ -145,7 +147,7 @@ const active = computed(() => {
 
 .sidebar-nav-item {
   width: 100%;
-  min-height: 40px;
+  min-height: 42px;
   border: 1px solid transparent;
   border-radius: 12px;
   background: transparent;
