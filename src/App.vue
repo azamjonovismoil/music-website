@@ -5,18 +5,21 @@
     </transition>
   </router-view>
 
-  <PlayerBar :key="player.currentTrack?._id || 'empty'" :music="player.currentTrack" @prev="playPrev" @next="playNext"
-    @shuffle-next="playShuffle" @auth-required="router.push('/login')" />
+  <PlayerBar v-if="!isAdminRoute" :key="player.currentTrack?._id || 'empty'" :music="player.currentTrack"
+    @prev="playPrev" @next="playNext" @shuffle-next="playShuffle" @auth-required="router.push('/login')" />
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import PlayerBar from '@/components/layout/PlayerBar.vue'
 import { usePlayerStore } from '@/stores/player'
 
 const router = useRouter()
+const route = useRoute()
 const player = usePlayerStore()
+
+const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
 const playPrev = () => {
   player.playPrev()
@@ -29,6 +32,12 @@ const playNext = () => {
 const playShuffle = () => {
   player.playShuffle()
 }
+
+watch(isAdminRoute, (isAdmin) => {
+  if (isAdmin) {
+    player.isPlaying = false
+  }
+})
 
 onMounted(() => {
   const saved = localStorage.getItem('mw-theme') || 'dark'

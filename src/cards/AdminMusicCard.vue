@@ -131,16 +131,6 @@ const props = defineProps({
   music: { type: Object, required: true },
 })
 
-defineEmits([
-  'play',
-  'edit',
-  'clone',
-  'quick-publish',
-  'toggle-like',
-  'delete',
-  'open-about',
-])
-
 const emit = defineEmits([
   'play',
   'edit',

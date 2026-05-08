@@ -29,10 +29,10 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: 18px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
     rgba(15, 23, 42, 0.72);
   cursor: pointer;
   text-align: left;
@@ -45,9 +45,9 @@
 
 .admin-sidebar__brand:hover {
   transform: translateY(-1px);
-  border-color: var(--border-hover);
-  background: var(--bg-card-hover);
-  box-shadow: var(--shadow-xs);
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.9);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.16);
 }
 
 .admin-sidebar__brand-icon {
@@ -57,10 +57,10 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   background:
     radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.18), transparent 60%),
-    var(--bg-elevated);
+    rgba(30, 41, 59, 0.9);
 }
 
 .admin-sidebar__brand-img {
@@ -106,11 +106,11 @@
 }
 
 .admin-sidebar__nav {
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 0;
-  flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 2px;
@@ -149,21 +149,21 @@
 
 .admin-sidebar__nav-item:hover {
   transform: translateY(-1px);
-  border-color: var(--border);
-  background: var(--bg-card);
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-primary);
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.12);
 }
 
 .admin-sidebar__nav-item.is-active {
-  border-color: var(--accent-border);
+  border-color: rgba(59, 130, 246, 0.22);
   background:
     linear-gradient(180deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.04)),
-    var(--accent-subtle);
+    rgba(30, 41, 59, 0.92);
   color: var(--text-primary);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 8px 24px rgba(37, 99, 235, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 10px 22px rgba(37, 99, 235, 0.1);
 }
 
 .admin-sidebar__nav-icon-wrap {
@@ -173,14 +173,14 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(30, 41, 59, 0.72);
 }
 
 .admin-sidebar__nav-item.is-active .admin-sidebar__nav-icon-wrap {
-  border-color: var(--accent-border);
+  border-color: rgba(59, 130, 246, 0.22);
   background: rgba(59, 130, 246, 0.12);
-  color: var(--accent);
+  color: #93c5fd;
 }
 
 .admin-sidebar__nav-icon {
@@ -214,7 +214,7 @@
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--accent);
+  background: #3b82f6;
   box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.1);
 }
 
@@ -224,10 +224,11 @@
   gap: 10px;
   padding: 14px 12px;
   border-radius: 18px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)), var(--bg-card);
-  box-shadow: var(--shadow-xs);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    rgba(15, 23, 42, 0.72);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.14);
 }
 
 .admin-sidebar__card-icon {
@@ -237,9 +238,9 @@
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  color: var(--accent);
-  border: 1px solid var(--accent-border);
-  background: var(--accent-subtle);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: rgba(59, 130, 246, 0.08);
 }
 
 .admin-sidebar__card-icon-svg {
