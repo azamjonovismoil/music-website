@@ -25,14 +25,14 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 .admin-app {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 60% 40% at 0% 0%, var(--accent-subtle) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 35% at 100% 100%, rgba(124, 58, 237, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 35% at 100% 100%, rgba(124, 58, 237, 0.07) 0%, transparent 60%),
     var(--bg-base);
 }
 
 .admin-app__body {
   display: grid;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
   min-height: calc(100vh - var(--header-h));
   align-items: stretch;
 }
@@ -40,12 +40,10 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 .admin-app__sidebar {
   min-width: 0;
   min-height: calc(100vh - var(--header-h));
-  display: flex;
-  flex-direction: column;
   border-right: 1px solid var(--border);
   background: rgba(10, 14, 30, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .admin-app__main {
@@ -57,13 +55,13 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 
 .admin-app__container {
   width: 100%;
-  max-width: 1380px;
+  max-width: 1540px;
   min-width: 0;
 }
 
 @media (max-width: 1100px) {
   .admin-app__body {
-    grid-template-columns: 228px minmax(0, 1fr);
+    grid-template-columns: 250px minmax(0, 1fr);
   }
 }
 

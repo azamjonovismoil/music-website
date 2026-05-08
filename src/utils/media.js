@@ -11,14 +11,28 @@ export const fallbackCover =
     </svg>
   `)
 
+export const norm = (value = '') => {
+  const s = String(value || '').trim()
+  if (!s) return ''
+  if (/^(blob:|data:|https?:)/i.test(s)) return s
+  return `${API_ROOT}/${s.replace(/^\/+/, '')}`
+}
+
 export const resolveCover = (music) => {
-  if (!music?.cover) return fallbackCover
-  if (/^https?:\/\//i.test(music.cover)) return music.cover
-  return `${API_ROOT}/${String(music.cover).replace(/^\/+/, '')}`
+  if (!music) return fallbackCover
+  return norm(music.cover || music.coverUrl || music.thumbnail || music.image) || fallbackCover
 }
 
 export const resolveAudio = (music) => {
-  if (!music?._id) return ''
-  if (music.url && /^https?:\/\//i.test(music.url)) return music.url
-  return `${API_ROOT}/api/music/${music._id}/stream`
+  if (!music) return ''
+  return norm(music.url || music.audioUrl || music.streamUrl)
+}
+
+export const buildMusic = (music) => {
+  if (!music) return null
+  return {
+    ...music,
+    coverUrl: resolveCover(music),
+    audioUrl: resolveAudio(music),
+  }
 }

@@ -11,64 +11,68 @@ export const usePlayerStore = defineStore('player', () => {
   const showLyricsPanel = ref(false)
   const showKaraokeMode = ref(false)
 
-  const hasQueue = computed(() => Array.isArray(queue.value) && queue.value.length > 0)
+  const hasQueue = computed(() => queue.value.length > 0)
   const currentTrackId = computed(() => String(currentTrack.value?._id || ''))
 
-  const syncIndexWithCurrent = () => {
-    if (!currentTrack.value?._id || !Array.isArray(queue.value)) {
-      queueIndex.value = -1
-      return
-    }
-
-    const idx = queue.value.findIndex(
-      (item) => String(item?._id || '') === String(currentTrack.value?._id || '')
-    )
-
-    queueIndex.value = idx
-  }
+  const findQueueIndex = (trackId) =>
+    queue.value.findIndex((item) => String(item?._id || '') === String(trackId || ''))
 
   const setQueue = (tracks = [], activeTrack = null) => {
     queue.value = Array.isArray(tracks) ? [...tracks] : []
 
+    if (!queue.value.length) {
+      queueIndex.value = -1
+      if (!activeTrack) currentTrack.value = null
+      return
+    }
+
     if (activeTrack?._id) {
       currentTrack.value = activeTrack
-      syncIndexWithCurrent()
-      if (queueIndex.value === -1 && currentTrack.value) {
-        queue.value.unshift(currentTrack.value)
+      const idx = findQueueIndex(activeTrack._id)
+
+      if (idx >= 0) {
+        queueIndex.value = idx
+      } else {
+        queue.value.unshift(activeTrack)
         queueIndex.value = 0
       }
+
       return
     }
 
-    if (queue.value.length && !currentTrack.value) {
-      currentTrack.value = queue.value[0]
-      queueIndex.value = 0
-      return
+    if (currentTrack.value?._id) {
+      const idx = findQueueIndex(currentTrack.value._id)
+      if (idx >= 0) {
+        queueIndex.value = idx
+        return
+      }
     }
 
-    syncIndexWithCurrent()
+    currentTrack.value = queue.value[0]
+    queueIndex.value = 0
   }
 
   const setTrack = (track, options = {}) => {
     if (!track) {
       currentTrack.value = null
+      queue.value = []
       queueIndex.value = -1
       currentTime.value = 0
       isPlaying.value = false
       return
     }
 
-    currentTrack.value = track
-
     if (Array.isArray(options.queue)) {
       queue.value = [...options.queue]
     }
 
-    syncIndexWithCurrent()
+    currentTrack.value = track
 
-    if (queueIndex.value === -1) {
-      if (!Array.isArray(queue.value)) queue.value = []
-      queue.value.unshift(track)
+    const idx = findQueueIndex(track._id)
+    if (idx >= 0) {
+      queueIndex.value = idx
+    } else {
+      queue.value = [track, ...queue.value.filter((item) => String(item?._id || '') !== String(track._id || ''))]
       queueIndex.value = 0
     }
 
@@ -90,53 +94,47 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   const playNext = () => {
-    if (!hasQueue.value) return null
+    if (!queue.value.length) return null
 
-    if (queueIndex.value < 0) {
-      syncIndexWithCurrent()
-    }
-
-    const nextIndex =
-      queueIndex.value >= 0 && queueIndex.value < queue.value.length - 1
-        ? queueIndex.value + 1
-        : 0
+    const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
+    const nextIndex = baseIndex >= 0 && baseIndex < queue.value.length - 1 ? baseIndex + 1 : 0
 
     queueIndex.value = nextIndex
     currentTrack.value = queue.value[nextIndex] || null
     currentTime.value = 0
+    isPlaying.value = true
     return currentTrack.value
   }
 
   const playPrev = () => {
-    if (!hasQueue.value) return null
+    if (!queue.value.length) return null
 
-    if (queueIndex.value < 0) {
-      syncIndexWithCurrent()
-    }
-
-    const prevIndex =
-      queueIndex.value > 0
-        ? queueIndex.value - 1
-        : queue.value.length - 1
+    const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
+    const prevIndex = baseIndex > 0 ? baseIndex - 1 : queue.value.length - 1
 
     queueIndex.value = prevIndex
     currentTrack.value = queue.value[prevIndex] || null
     currentTime.value = 0
+    isPlaying.value = true
     return currentTrack.value
   }
 
   const playShuffle = () => {
-    if (!hasQueue.value) return null
-    if (queue.value.length === 1) return currentTrack.value
+    if (!queue.value.length) return null
+    if (queue.value.length === 1) {
+      isPlaying.value = true
+      return currentTrack.value
+    }
 
-    let nextIndex = queueIndex.value
-    while (nextIndex === queueIndex.value) {
+    let nextIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
+    while (nextIndex === queueIndex.value || nextIndex < 0) {
       nextIndex = Math.floor(Math.random() * queue.value.length)
     }
 
     queueIndex.value = nextIndex
     currentTrack.value = queue.value[nextIndex] || null
     currentTime.value = 0
+    isPlaying.value = true
     return currentTrack.value
   }
 
@@ -144,23 +142,26 @@ export const usePlayerStore = defineStore('player', () => {
     const id = String(trackId || '')
     if (!id) return
 
-    const prevCurrentId = String(currentTrack.value?._id || '')
+    const wasCurrent = String(currentTrack.value?._id || '') === id
     queue.value = queue.value.filter((item) => String(item?._id || '') !== id)
 
-    if (prevCurrentId === id) {
-      if (queue.value.length) {
-        currentTrack.value = queue.value[0]
-        queueIndex.value = 0
-      } else {
-        currentTrack.value = null
-        queueIndex.value = -1
-        isPlaying.value = false
-        currentTime.value = 0
-      }
+    if (!queue.value.length) {
+      currentTrack.value = null
+      queueIndex.value = -1
+      currentTime.value = 0
+      isPlaying.value = false
       return
     }
 
-    syncIndexWithCurrent()
+    if (wasCurrent) {
+      const nextIndex = Math.min(queueIndex.value, queue.value.length - 1)
+      queueIndex.value = nextIndex
+      currentTrack.value = queue.value[nextIndex]
+      currentTime.value = 0
+      return
+    }
+
+    queueIndex.value = findQueueIndex(currentTrack.value?._id)
   }
 
   const clearQueue = () => {
@@ -168,29 +169,13 @@ export const usePlayerStore = defineStore('player', () => {
     queueIndex.value = -1
   }
 
-  const openLyrics = () => {
-    showLyricsPanel.value = true
-  }
+  const openLyrics = () => { showLyricsPanel.value = true }
+  const closeLyrics = () => { showLyricsPanel.value = false }
+  const toggleLyrics = () => { showLyricsPanel.value = !showLyricsPanel.value }
 
-  const closeLyrics = () => {
-    showLyricsPanel.value = false
-  }
-
-  const toggleLyrics = () => {
-    showLyricsPanel.value = !showLyricsPanel.value
-  }
-
-  const openKaraoke = () => {
-    showKaraokeMode.value = true
-  }
-
-  const closeKaraoke = () => {
-    showKaraokeMode.value = false
-  }
-
-  const toggleKaraoke = () => {
-    showKaraokeMode.value = !showKaraokeMode.value
-  }
+  const openKaraoke = () => { showKaraokeMode.value = true }
+  const closeKaraoke = () => { showKaraokeMode.value = false }
+  const toggleKaraoke = () => { showKaraokeMode.value = !showKaraokeMode.value }
 
   const resetPlayer = () => {
     currentTrack.value = null

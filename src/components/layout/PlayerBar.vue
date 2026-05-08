@@ -2,9 +2,9 @@
   <transition name="player-rise">
     <div v-if="music" class="player-shell">
       <div class="player-bar" :class="{ playing: isPlaying }">
-        <audio ref="audioRef" :key="audioSrc" :src="audioSrc" preload="metadata" crossorigin="use-credentials"
-          playsinline @timeupdate="onTimeUpdate" @loadedmetadata="onMeta" @progress="onProgress"
-          @waiting="isLoading = true" @playing="onPlaying" @pause="onPause" @ended="onEnded" @error="onAudioError" />
+        <audio ref="audioRef" :key="audioSrc" :src="audioSrc" preload="metadata" playsinline @timeupdate="onTimeUpdate"
+          @loadedmetadata="onMeta" @progress="onProgress" @waiting="isLoading = true" @playing="onPlaying"
+          @pause="onPause" @ended="onEnded" @error="onAudioError" />
 
         <div class="player-left">
           <div class="cover-wrap" @click="goDetail">
@@ -48,33 +48,30 @@
 
         <div class="player-center">
           <div class="controls">
-            <button class="ctrl" :class="{ active: isShuffle }" type="button" title="Shuffle"
-              @click="isShuffle = !isShuffle">
+            <button class="ctrl" :class="{ active: isShuffle }" type="button" @click="isShuffle = !isShuffle">
               <ArrowsRightLeftIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" type="button" title="Previous" @click="$emit('prev')">
+            <button class="ctrl" type="button" @click="$emit('prev')">
               <BackwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl play-ctrl" type="button" title="Play/Pause" @click="togglePlay">
+            <button class="ctrl play-ctrl" type="button" @click="togglePlay">
               <ArrowPathIcon v-if="isLoading" class="play-icon spin" />
               <PauseIcon v-else-if="isPlaying" class="play-icon" />
               <PlayIcon v-else class="play-icon play-icon--shift" />
             </button>
 
-            <button class="ctrl" type="button" title="Next" @click="handleNext">
+            <button class="ctrl" type="button" @click="handleNext">
               <ForwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" :class="{ active: repeatMode !== 'off' }" type="button" title="Repeat"
-              @click="cycleRepeat">
+            <button class="ctrl" :class="{ active: repeatMode !== 'off' }" type="button" @click="cycleRepeat">
               <ArrowPathRoundedSquareIcon class="ctrl-icon" />
               <span v-if="repeatMode === 'one'" class="repeat-badge">1</span>
             </button>
 
-            <button class="ctrl" :class="{ active: queueOpen }" type="button" title="Queue"
-              @click="$emit('toggle-queue')">
+            <button class="ctrl" :class="{ active: queueOpen }" type="button" @click="$emit('toggle-queue')">
               <QueueListIcon class="ctrl-icon" />
             </button>
           </div>
@@ -96,12 +93,11 @@
 
         <div class="player-right">
           <button v-if="!isAdmin" class="ctrl lyrics-btn" :class="{ active: lyricsOpen }" :disabled="!hasLyrics"
-            type="button" :title="hasLyrics ? 'Lyrics' : 'No lyrics available'" @click="handleLyricsOpen">
+            type="button" @click="handleLyricsOpen">
             <MicrophoneIcon class="ctrl-icon" />
           </button>
 
-          <button v-if="!isAdmin" class="ctrl expand-btn" type="button" title="Expand / Karaoke mode"
-            @click="handleExpand">
+          <button v-if="!isAdmin" class="ctrl expand-btn" type="button" @click="handleExpand">
             <ArrowsPointingOutIcon class="ctrl-icon" />
           </button>
 
@@ -115,8 +111,7 @@
               </div>
             </transition>
 
-            <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" title="Mute"
-              @click="toggleMute">
+            <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" @click="toggleMute">
               <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
               <SpeakerWaveIcon v-else class="ctrl-icon" />
             </button>
@@ -176,7 +171,6 @@ const emit = defineEmits([
   'add-to-playlist',
   'open-artist',
   'open-detail',
-  'auth-required',
   'expand',
   'open-lyrics',
 ])
@@ -207,9 +201,9 @@ const coverSrc = computed(() => resolveCover(props.music || {}) || fallbackCover
 
 const hasLyrics = computed(() => {
   if (isAdmin.value) return false
-  const synced = props.music?.syncedLyrics
   const plain = props.music?.lyrics
-  return (Array.isArray(synced) && synced.length > 0) || Boolean(String(plain || '').trim())
+  const synced = props.music?.syncedLyricsRaw
+  return Boolean(String(plain || '').trim() || String(synced || '').trim())
 })
 
 const pct = computed(() => (duration.value ? Math.min((progress.value / duration.value) * 100, 100) : 0))
@@ -221,7 +215,7 @@ const fmt = (t) => {
 }
 
 const updateMarquee = () => {
-  shouldScrollTitle.value = (props.music?.title || '').length > 26
+  shouldScrollTitle.value = String(props.music?.title || '').length > 26
 }
 
 const onCoverError = (e) => {
@@ -235,59 +229,37 @@ const resetPlaybackState = () => {
   buffered.value = 0
   isPlaying.value = false
   isLoading.value = false
-  player.setPlaying(false)
   player.setCurrentTime(0)
+  player.setPlaying(false)
 }
 
-const goDetail = () => {
-  if (props.music) emit('open-detail', props.music)
-}
-
-const goArtistDetail = () => {
-  if (props.music?.artist) emit('open-artist', props.music.artist)
-}
-
-const handleToggleLike = () => {
-  if (props.music) emit('toggle-like', props.music)
-}
-
-const handleAddToPlaylist = () => {
-  if (props.music && !isAdmin.value) emit('add-to-playlist', props.music)
-}
-
-const handleLyricsOpen = () => {
-  if (!hasLyrics.value || !props.music || isAdmin.value) return
-  emit('open-lyrics', props.music)
-}
-
-const handleExpand = () => {
-  if (props.music && !isAdmin.value) emit('expand', props.music)
-}
+const goDetail = () => props.music && emit('open-detail', props.music)
+const goArtistDetail = () => props.music?.artist && emit('open-artist', props.music.artist)
+const handleToggleLike = () => props.music && emit('toggle-like', props.music)
+const handleAddToPlaylist = () => props.music && !isAdmin.value && emit('add-to-playlist', props.music)
+const handleLyricsOpen = () => props.music && !isAdmin.value && hasLyrics.value && emit('open-lyrics', props.music)
+const handleExpand = () => props.music && !isAdmin.value && emit('expand', props.music)
 
 const play = async () => {
   if (!audioRef.value || !audioSrc.value) return
   try {
     isLoading.value = true
     await audioRef.value.play()
-    isPlaying.value = true
-    player.setPlaying(true)
   } catch {
+    isLoading.value = false
     isPlaying.value = false
     player.setPlaying(false)
-  } finally {
-    isLoading.value = false
   }
 }
 
 const pause = () => {
   audioRef.value?.pause()
-  isPlaying.value = false
-  player.setPlaying(false)
 }
 
 const togglePlay = () => {
   if (!audioRef.value) return
-  audioRef.value.paused ? play() : pause()
+  if (audioRef.value.paused) play()
+  else pause()
 }
 
 const cycleRepeat = () => {
@@ -306,7 +278,7 @@ const onTimeUpdate = () => {
 }
 
 const onMeta = () => {
-  if (audioRef.value) duration.value = audioRef.value.duration || 0
+  duration.value = audioRef.value?.duration || 0
 }
 
 const onProgress = () => {
@@ -319,12 +291,11 @@ const onProgress = () => {
 
 const onAudioError = () => {
   resetPlaybackState()
-  emit('auth-required')
 }
 
 const seekInput = () => {
   if (!audioRef.value) return
-  const t = Number(progress.value)
+  const t = Number(progress.value) || 0
   audioRef.value.currentTime = t
   currentTime.value = t
   player.setCurrentTime(t)
@@ -353,21 +324,19 @@ const changeVol = () => {
 
 const toggleMute = () => {
   if (!audioRef.value) return
-
-  if (isMuted.value || volume.value === 0) {
+  if (isMuted.value || Number(volume.value) === 0) {
     const restored = lastVol.value > 0 ? lastVol.value : 0.7
     volume.value = restored
     audioRef.value.volume = restored
     audioRef.value.muted = false
     isMuted.value = false
   } else {
-    lastVol.value = volume.value
+    lastVol.value = Number(volume.value) || 0.7
     volume.value = 0
     audioRef.value.volume = 0
     audioRef.value.muted = true
     isMuted.value = true
   }
-
   showVolHint()
 }
 
@@ -386,6 +355,7 @@ const onPlaying = () => {
 }
 
 const onPause = () => {
+  isLoading.value = false
   isPlaying.value = false
   player.setPlaying(false)
 }
@@ -394,14 +364,13 @@ const onEnded = async () => {
   if (repeatMode.value === 'one') {
     if (audioRef.value) {
       audioRef.value.currentTime = 0
-      progress.value = 0
       currentTime.value = 0
+      progress.value = 0
     }
     await play()
     return
   }
 
-  isPlaying.value = false
   player.setPlaying(false)
   isShuffle.value ? emit('shuffle-next') : emit('next')
 }
@@ -426,20 +395,25 @@ watch(
     resetPlaybackState()
     audioRef.value.pause()
     audioRef.value.load()
-    audioRef.value.volume = volume.value
-    audioRef.value.muted = volume.value === 0
-    isMuted.value = volume.value === 0
+    audioRef.value.volume = Number(volume.value)
+    audioRef.value.muted = Number(volume.value) === 0
+    isMuted.value = Number(volume.value) === 0
 
     updateMarquee()
-    await play()
+
+    if (player.isPlaying) {
+      await play()
+    } else {
+      await play()
+    }
   },
   { immediate: true }
 )
 
 onMounted(() => {
   if (audioRef.value) {
-    audioRef.value.volume = volume.value
-    audioRef.value.muted = volume.value === 0
+    audioRef.value.volume = Number(volume.value)
+    audioRef.value.muted = Number(volume.value) === 0
   }
   updateMarquee()
 })

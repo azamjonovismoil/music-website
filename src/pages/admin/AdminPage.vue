@@ -1,161 +1,195 @@
 <template>
-  <div class="apage">
-    <section class="apage-hero">
-      <div class="apage-hero-left">
-        <div class="apage-kicker">Admin workspace</div>
-        <h1 class="apage-title">Music library</h1>
-        <p class="apage-subtitle">Manage uploads, publishing, quality, and release readiness.</p>
+  <div class="admin-page">
+    <section class="admin-page__hero">
+      <div class="admin-page__hero-content">
+        <span class="admin-page__eyebrow">Admin workspace</span>
+        <h1 class="admin-page__title">Music library</h1>
+        <p class="admin-page__subtitle">
+          Monitor track quality, manage publishing, and keep your catalog release-ready.
+        </p>
       </div>
 
-      <div class="apage-hero-actions">
-        <button class="btn btn-ghost" type="button" @click="refreshAll">Refresh</button>
+      <div class="admin-page__hero-actions">
+        <button class="btn btn-ghost" type="button" @click="refreshAll" :disabled="loading">
+          {{ loading ? 'Refreshing...' : 'Refresh' }}
+        </button>
+
         <button class="btn btn-primary" type="button" @click="router.push('/admin/add-music')">
           Add track
         </button>
       </div>
     </section>
 
-    <div class="admin-shell">
-      <div class="admin-main">
-        <section class="apage-stats">
-          <div class="astat">
-            <span class="astat-label">Tracks</span>
-            <strong class="astat-val">{{ summary.total }}</strong>
-            <span class="astat-hint">All tracks</span>
-          </div>
+    <section class="admin-page__stats">
+      <article class="metric-card metric-card--primary">
+        <span class="metric-card__label">Total tracks</span>
+        <strong class="metric-card__value">{{ summary.total }}</strong>
+        <span class="metric-card__hint">All library items</span>
+      </article>
 
-          <div class="astat">
-            <span class="astat-label">Published</span>
-            <strong class="astat-val">{{ summary.published }}</strong>
-            <span class="astat-hint">Live now</span>
-          </div>
+      <article class="metric-card">
+        <span class="metric-card__label">Published</span>
+        <strong class="metric-card__value">{{ summary.published }}</strong>
+        <span class="metric-card__hint">Live right now</span>
+      </article>
 
-          <div class="astat">
-            <span class="astat-label">Ready</span>
-            <strong class="astat-val">{{ readyToPublish.length }}</strong>
-            <span class="astat-hint">Publish candidates</span>
-          </div>
+      <article class="metric-card">
+        <span class="metric-card__label">Ready</span>
+        <strong class="metric-card__value">{{ readyToPublish.length }}</strong>
+        <span class="metric-card__hint">Publish candidates</span>
+      </article>
 
-          <div class="astat">
-            <span class="astat-label">Attention</span>
-            <strong class="astat-val">{{ summary.attentionCount }}</strong>
-            <span class="astat-hint">Needs fixes</span>
-          </div>
+      <article class="metric-card metric-card--warn">
+        <span class="metric-card__label">Needs attention</span>
+        <strong class="metric-card__value">{{ summary.attentionCount }}</strong>
+        <span class="metric-card__hint">Metadata or publishing issues</span>
+      </article>
 
-          <div class="astat">
-            <span class="astat-label">Avg health</span>
-            <strong class="astat-val">{{ summary.avgHealth }}%</strong>
-            <span class="astat-hint">Metadata quality</span>
-          </div>
-        </section>
+      <article class="metric-card">
+        <span class="metric-card__label">Avg health</span>
+        <strong class="metric-card__value">{{ summary.avgHealth }}%</strong>
+        <span class="metric-card__hint">Overall metadata quality</span>
+      </article>
+    </section>
 
-        <section class="command-bar">
-          <div class="command-main">
-            <div class="command-search">
-              <input v-model="searchQuery" class="toolbar-input" type="text"
-                placeholder="Search title, artist, album, tags..." />
+    <section class="admin-toolbar">
+      <div class="admin-toolbar__main">
+        <div class="admin-toolbar__search">
+          <input v-model="searchQuery" class="admin-toolbar__input" type="text"
+            placeholder="Search title, artist, album, tags..." />
+        </div>
+
+        <div class="admin-toolbar__filters">
+          <select v-model="sortBy" class="admin-toolbar__select">
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="title-asc">Title A–Z</option>
+            <option value="artist-asc">Artist A–Z</option>
+            <option value="health-desc">Health high-low</option>
+          </select>
+        </div>
+
+        <div class="admin-toolbar__result">
+          {{ filtered.length }} results
+        </div>
+      </div>
+
+      <div class="admin-toolbar__chips">
+        <button v-for="f in smartFilters" :key="f.value" type="button" class="admin-chip"
+          :class="{ 'is-active': filter === f.value }" @click="filter = f.value">
+          {{ f.label }}
+        </button>
+      </div>
+    </section>
+
+    <div class="admin-grid">
+      <div class="admin-grid__main">
+        <section class="admin-panels">
+          <article class="panel-card panel-card--attention">
+            <div class="panel-card__head">
+              <div>
+                <h3 class="panel-card__title">Needs attention</h3>
+                <p class="panel-card__sub">Tracks with missing assets or publishing blockers</p>
+              </div>
+              <span class="panel-card__count">{{ attentionList.length }}</span>
             </div>
 
-            <div class="command-sort">
-              <select v-model="sortBy" class="toolbar-select">
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-                <option value="title-asc">Title A-Z</option>
-                <option value="artist-asc">Artist A-Z</option>
-                <option value="health-desc">Health high-low</option>
-              </select>
-            </div>
-
-            <div class="toolbar-count">{{ filtered.length }} results</div>
-          </div>
-
-          <div class="smart-filters">
-            <button v-for="f in smartFilters" :key="f.value" type="button" class="smart-filter"
-              :class="{ active: filter === f.value }" @click="filter = f.value">
-              {{ f.label }}
-            </button>
-          </div>
-        </section>
-
-        <section class="cockpit-grid">
-          <article class="cockpit-card cockpit-card--attention">
-            <div class="cockpit-head">
-              <h3>Needs attention</h3>
-              <span>{{ attentionList.length }}</span>
-            </div>
-
-            <div v-if="attentionList.length" class="cockpit-list">
-              <button v-for="item in attentionList.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
+            <div v-if="attentionList.length" class="panel-list">
+              <button v-for="item in attentionList.slice(0, 6)" :key="item._id" type="button" class="panel-list__item"
                 @click="openEdit(item)">
-                <div class="cockpit-item-top">
+                <div class="panel-list__top">
                   <strong>{{ item.title || 'Untitled' }}</strong>
-                  <span class="mini-status" :class="item.status">{{ item.status || 'draft' }}</span>
+                  <span class="mini-pill mini-pill--warn">{{ item.status || 'draft' }}</span>
                 </div>
                 <p>{{ item.attentionReasons?.join(' • ') || 'Needs review' }}</p>
               </button>
             </div>
 
-            <div v-else class="cockpit-empty">Everything looks healthy.</div>
+            <div v-else class="panel-empty">
+              Everything looks healthy.
+            </div>
           </article>
 
-          <article class="cockpit-card cockpit-card--ready">
-            <div class="cockpit-head">
-              <h3>Ready to publish</h3>
-              <span>{{ readyToPublish.length }}</span>
+          <article class="panel-card">
+            <div class="panel-card__head">
+              <div>
+                <h3 class="panel-card__title">Ready to publish</h3>
+                <p class="panel-card__sub">Drafts that already meet basic release requirements</p>
+              </div>
+              <span class="panel-card__count">{{ readyToPublish.length }}</span>
             </div>
 
-            <div v-if="readyToPublish.length" class="cockpit-list">
-              <button v-for="item in readyToPublish.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
+            <div v-if="readyToPublish.length" class="panel-list">
+              <button v-for="item in readyToPublish.slice(0, 6)" :key="item._id" type="button" class="panel-list__item"
                 @click="quickPublish(item)">
-                <div class="cockpit-item-top">
+                <div class="panel-list__top">
                   <strong>{{ item.title || 'Untitled' }}</strong>
-                  <span class="mini-health">{{ item.healthScore || 0 }}%</span>
+                  <span class="mini-pill mini-pill--ok">{{ item.healthScore || 0 }}%</span>
                 </div>
                 <p>{{ item.artist || 'Unknown artist' }} • Ready now</p>
               </button>
             </div>
 
-            <div v-else class="cockpit-empty">No publish-ready drafts.</div>
+            <div v-else class="panel-empty">
+              No publish-ready drafts.
+            </div>
           </article>
 
-          <article class="cockpit-card cockpit-card--scheduled">
-            <div class="cockpit-head">
-              <h3>Scheduled soon</h3>
-              <span>{{ scheduledSoon.length }}</span>
+          <article class="panel-card">
+            <div class="panel-card__head">
+              <div>
+                <h3 class="panel-card__title">Scheduled soon</h3>
+                <p class="panel-card__sub">Upcoming releases in the next 7 days</p>
+              </div>
+              <span class="panel-card__count">{{ scheduledSoon.length }}</span>
             </div>
 
-            <div v-if="scheduledSoon.length" class="cockpit-list">
-              <button v-for="item in scheduledSoon.slice(0, 6)" :key="item._id" class="cockpit-item" type="button"
+            <div v-if="scheduledSoon.length" class="panel-list">
+              <button v-for="item in scheduledSoon.slice(0, 6)" :key="item._id" type="button" class="panel-list__item"
                 @click="openEdit(item)">
-                <div class="cockpit-item-top">
+                <div class="panel-list__top">
                   <strong>{{ item.title || 'Untitled' }}</strong>
-                  <span class="mini-status mini-status--time">Soon</span>
+                  <span class="mini-pill mini-pill--info">Soon</span>
                 </div>
                 <p>{{ formatDateTime(item.publishAt) }}</p>
               </button>
             </div>
 
-            <div v-else class="cockpit-empty">Nothing scheduled soon.</div>
+            <div v-else class="panel-empty">
+              Nothing scheduled soon.
+            </div>
           </article>
         </section>
 
-        <section class="apage-content">
-          <div v-if="filtered.length" class="apage-grid">
+        <section class="admin-library">
+          <div class="admin-library__head">
+            <div>
+              <h2 class="admin-library__title">Library</h2>
+              <p class="admin-library__sub">Preview, edit, publish, duplicate, or delete tracks.</p>
+            </div>
+          </div>
+
+          <div v-if="loading" class="admin-library__state">
+            <span class="admin-library__spinner"></span>
+            <p>Loading tracks...</p>
+          </div>
+
+          <div v-else-if="filtered.length" class="admin-library__grid">
             <AdminMusicCard v-for="music in filtered" :key="music._id" :music="music" @play="playMusic" @edit="openEdit"
               @toggle-like="toggleLike" @delete="deleteMusic" @clone="cloneMusic" @quick-publish="quickPublish"
               @open-about="openEdit" />
           </div>
 
-          <div v-else class="apage-empty">
+          <div v-else class="admin-library__empty">
             <h3>No tracks found</h3>
             <p>Try another filter or add a new track.</p>
           </div>
         </section>
       </div>
 
-      <aside class="admin-side">
-        <section class="admin-side-card">
-          <div class="cockpit-head">
+      <aside class="admin-grid__side">
+        <section class="side-card">
+          <div class="side-card__head">
             <h3>Library health</h3>
           </div>
 
@@ -175,25 +209,25 @@
           </div>
         </section>
 
-        <section class="admin-side-card">
-          <div class="cockpit-head">
+        <section class="side-card">
+          <div class="side-card__head">
             <h3>Action notes</h3>
           </div>
 
           <ul class="side-notes">
-            <li>Tracks below 70% health should get cover and links first.</li>
+            <li>Tracks under 70% health should get cover and audio fixes first.</li>
             <li>Ready drafts can be published directly from the card actions.</li>
-            <li>Scheduled tracks should be checked before release time passes.</li>
+            <li>Scheduled tracks should be reviewed before their release time.</li>
           </ul>
         </section>
 
-        <section class="admin-side-card" v-if="attentionList.length">
-          <div class="cockpit-head">
+        <section v-if="attentionList.length" class="side-card">
+          <div class="side-card__head">
             <h3>Priority fixes</h3>
           </div>
 
-          <div class="side-priority-list">
-            <button v-for="item in attentionList.slice(0, 4)" :key="item._id" class="side-priority-item"
+          <div class="side-priority">
+            <button v-for="item in attentionList.slice(0, 4)" :key="item._id" type="button" class="side-priority__item"
               @click="openEdit(item)">
               <strong>{{ item.title || 'Untitled' }}</strong>
               <span>{{ item.attentionReasons?.[0] || 'Needs update' }}</span>
@@ -214,7 +248,8 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminMusicCard from '@/cards/AdminMusicCard.vue'
 import EditModal from '@/modals/EditModal.vue'
-import { API_ROOT } from '@/utils/media'
+import { API_ROOT, buildMusic } from '@/utils/media'
+import { usePlayerStore } from '@/stores/player'
 import '@/styles/admin_page.css'
 
 const api = axios.create({
@@ -223,7 +258,10 @@ const api = axios.create({
 })
 
 const router = useRouter()
+const player = usePlayerStore()
+
 const musics = ref([])
+const loading = ref(false)
 const showEdit = ref(false)
 const editMusic = ref(null)
 
@@ -270,6 +308,7 @@ const readyToPublish = computed(() =>
 const scheduledSoon = computed(() => {
   const now = Date.now()
   const in7d = now + 7 * 24 * 60 * 60 * 1000
+
   return musics.value
     .filter((m) => m.publishAt)
     .filter((m) => {
@@ -327,16 +366,23 @@ const filtered = computed(() => {
   return r
 })
 
+const buildQueue = (source = filtered.value) => source.map((item) => buildMusic(item))
+
 const refreshAll = async () => {
+  loading.value = true
+
   try {
     const [{ data }, { data: sum }] = await Promise.all([
       api.get('/music/admin/all'),
       api.get('/music/admin/summary'),
     ])
+
     musics.value = Array.isArray(data) ? data : []
     summary.value = sum || summary.value
   } catch {
     ElMessage.error('Failed to load tracks')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -362,6 +408,13 @@ const toggleLike = async (music) => {
 }
 
 const playMusic = async (music) => {
+  const prepared = buildMusic(music)
+
+  player.setTrack(prepared, {
+    queue: buildQueue(),
+    playing: true,
+  })
+
   try {
     await api.patch(`/music/${music._id}/play`)
   } catch { }
@@ -377,6 +430,11 @@ const deleteMusic = async (music) => {
 
     await api.delete(`/music/${music._id}`)
     musics.value = musics.value.filter((m) => m._id !== music._id)
+
+    if (player.currentTrack?._id === music._id) {
+      player.removeFromQueue(music._id)
+    }
+
     refreshAll()
     ElMessage.success('Track deleted')
   } catch { }
