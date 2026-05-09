@@ -9,7 +9,7 @@
       <div class="artist-hero-copy">
         <p class="artist-kicker">Artist</p>
         <h1>{{ artist.name || 'Unknown artist' }}</h1>
-        <p class="artist-bio">{{ artist.bio || 'No bio yet.' }}</p>
+        <p class="artist-bio">{{ artist.bio || 'A curated collection of tracks from this artist.' }}</p>
 
         <div class="artist-chips">
           <span v-for="g in artist.genres" :key="g" class="artist-chip">{{ g }}</span>
@@ -38,13 +38,14 @@
       </div>
 
       <div v-if="tracks.length" class="artist-track-grid">
-        <div v-for="track in tracks" :key="track._id" class="artist-track-card">
+        <button v-for="track in tracks" :key="track._id" class="artist-track-card" type="button"
+          @click="openTrack(track)">
           <img v-if="track.cover" :src="track.cover" :alt="track.title" class="artist-track-cover" />
           <div class="artist-track-copy">
             <h3>{{ track.title }}</h3>
             <p>{{ track.album || track.artist }}</p>
           </div>
-        </div>
+        </button>
       </div>
 
       <div v-else class="artist-empty">No tracks yet.</div>
@@ -55,11 +56,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { API_ROOT } from '@/utils/media'
 import '@/styles/artist_page.css'
 
 const route = useRoute()
+const router = useRouter()
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
@@ -80,8 +82,8 @@ const totalPlays = computed(() => tracks.value.reduce((s, t) => s + (t.playCount
 const totalLikes = computed(() => tracks.value.reduce((s, t) => s + (t.likeCount || 0), 0))
 
 const loadArtist = async () => {
-  const slug = route.params.slug
-  const { data } = await api.get(`/music?artist=${slug}`)
+  const slug = decodeURIComponent(route.params.slug || '')
+  const { data } = await api.get(`/music?artist=${encodeURIComponent(slug)}`)
   const list = Array.isArray(data) ? data : []
   tracks.value = list
 
@@ -93,6 +95,10 @@ const loadArtist = async () => {
       genres: [...new Set(list.flatMap((t) => t.genre || []))].slice(0, 6),
     }
   }
+}
+
+const openTrack = (track) => {
+  router.push({ name: 'TrackDetail', params: { id: track._id } })
 }
 
 onMounted(loadArtist)

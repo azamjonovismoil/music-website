@@ -17,6 +17,7 @@
 * {
   margin: 0;
   padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -32,6 +33,7 @@ body,
 }
 
 body {
+  min-height: 100vh;
   font-family: var(--font-body, Inter, sans-serif);
   background:
     radial-gradient(ellipse 60% 40% at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
@@ -82,6 +84,11 @@ video,
 canvas {
   max-width: 100%;
   display: block;
+}
+
+img {
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 a {
@@ -278,9 +285,11 @@ p {
     background var(--t-fast),
     color var(--t-fast),
     box-shadow var(--t-fast),
-    filter var(--t-fast);
+    filter var(--t-fast),
+    opacity var(--t-fast);
   border: 1px solid transparent;
   user-select: none;
+  white-space: nowrap;
 }
 
 .btn:disabled {
@@ -345,7 +354,8 @@ p {
   [data-theme='dark'],
   [data-theme='light'] {
     --header-h: 62px;
-    --player-bar-h: 74px;
+    --player-bar-h: 148px;
+    --player-bar-safe: calc(var(--player-bar-h) + env(safe-area-inset-bottom, 0px));
     --sidebar-w: 100%;
     --rightbar-w: 100%;
   }
@@ -358,5 +368,15 @@ p {
   .chip {
     min-height: 28px;
     padding: 0 10px;
+  }
+
+  .sort-select,
+  .input,
+  .select {
+    height: 40px;
+  }
+
+  .textarea {
+    min-height: 110px;
   }
 }

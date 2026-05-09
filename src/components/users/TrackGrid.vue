@@ -13,23 +13,12 @@
     </div>
 
     <div v-else class="tg-grid">
-      <article
-        v-for="track in tracks"
-        :key="track._id"
-        class="tc"
-        :class="{ 'tc--playing': currentMusic?._id === track._id }"
-        @click="$emit('select-track', track)"
-      >
+      <article v-for="track in tracks" :key="track._id" class="tc"
+        :class="{ 'tc--playing': currentMusic?._id === track._id }" @click="$emit('select-track', track)">
         <!-- cover -->
         <div class="tc-thumb">
-          <img
-            :src="getCover(track)"
-            class="tc-img"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            @error="e => { if (fallback) e.target.src = fallback }"
-          />
+          <img :src="getCover(track)" class="tc-img" alt="" loading="lazy" decoding="async"
+            @error="e => { if (fallback) e.target.src = fallback }" />
 
           <!-- overlay -->
           <div class="tc-overlay">
@@ -61,12 +50,8 @@
               <button class="tc-act" @click.stop="$emit('add-to-playlist', track)" title="Add to playlist">
                 <PlusIcon class="tc-act-ico" />
               </button>
-              <button
-                v-if="playlist"
-                class="tc-act tc-act--del"
-                @click.stop="$emit('remove-from-playlist', track)"
-                title="Remove"
-              >
+              <button v-if="playlist" class="tc-act tc-act--del" @click.stop="$emit('remove-from-playlist', track)"
+                title="Remove">
                 <XMarkIcon class="tc-act-ico" />
               </button>
             </div>
@@ -83,13 +68,13 @@ import { PlayIcon, QueueListIcon, PlusIcon, XMarkIcon, MusicalNoteIcon } from '@
 import '@/styles/track_grid.css'
 
 defineProps({
-  title:         { type: String,   default: 'Tracks' },
-  tracks:        { type: Array,    default: () => [] },
-  playlist:      { type: Object,   default: null },
-  currentMusic:  { type: Object,   default: null },
-  getCover:      { type: Function, required: true },
-  fallback:      { type: String,   default: '' },
-  compactHeader: { type: Boolean,  default: false },
+  title: { type: String, default: 'Tracks' },
+  tracks: { type: Array, default: () => [] },
+  playlist: { type: Object, default: null },
+  currentMusic: { type: Object, default: null },
+  getCover: { type: Function, required: true },
+  fallback: { type: String, default: '' },
+  compactHeader: { type: Boolean, default: false },
 })
 
 defineEmits(['select-track', 'play-track', 'add-to-playlist', 'add-to-queue', 'remove-from-playlist'])

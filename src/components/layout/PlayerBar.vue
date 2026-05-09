@@ -32,14 +32,12 @@
                 {{ music.artist || 'Unknown artist' }}
               </button>
 
-              <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" title="Favourite"
-                @click="handleToggleLike">
+              <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" @click="handleToggleLike">
                 <HeartSolidIcon v-if="music.liked" class="ctrl-icon" />
                 <HeartIcon v-else class="ctrl-icon" />
               </button>
 
-              <button v-if="!isAdmin" class="ctrl playlist-btn" type="button" title="Add to playlist"
-                @click="handleAddToPlaylist">
+              <button v-if="!isAdmin" class="ctrl playlist-btn" type="button" @click="handleAddToPlaylist">
                 <PlusIcon class="ctrl-icon" />
               </button>
             </div>
@@ -48,11 +46,11 @@
 
         <div class="player-center">
           <div class="controls">
-            <button class="ctrl" :class="{ active: isShuffle }" type="button" @click="isShuffle = !isShuffle">
+            <button class="ctrl" :class="{ active: player.shuffle }" type="button" @click="player.toggleShuffle()">
               <ArrowsRightLeftIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" type="button" @click="$emit('prev')">
+            <button class="ctrl" type="button" @click="player.playPrev()">
               <BackwardIcon class="ctrl-icon" />
             </button>
 
@@ -62,13 +60,14 @@
               <PlayIcon v-else class="play-icon play-icon--shift" />
             </button>
 
-            <button class="ctrl" type="button" @click="handleNext">
+            <button class="ctrl" type="button" @click="player.playNext()">
               <ForwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" :class="{ active: repeatMode !== 'off' }" type="button" @click="cycleRepeat">
+            <button class="ctrl" :class="{ active: player.repeatMode !== 'off' }" type="button"
+              @click="player.cycleRepeatMode()">
               <ArrowPathRoundedSquareIcon class="ctrl-icon" />
-              <span v-if="repeatMode === 'one'" class="repeat-badge">1</span>
+              <span v-if="player.repeatMode === 'one'" class="repeat-badge">1</span>
             </button>
 
             <button class="ctrl" :class="{ active: queueOpen }" type="button" @click="$emit('toggle-queue')">
@@ -120,7 +119,6 @@
               <div class="vol-track"></div>
               <div class="vol-fill" :style="{ width: effectiveVol + '%' }"></div>
               <div class="vol-thumb" :style="{ left: effectiveVol + '%' }"></div>
-
               <input v-model="volume" class="vol-input" type="range" min="0" max="1" step="0.01" @input="changeVol"
                 @mousedown="showVolHint" @touchstart.passive="showVolHint" />
             </div>
@@ -163,9 +161,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits([
-  'prev',
-  'next',
-  'shuffle-next',
   'toggle-queue',
   'toggle-like',
   'add-to-playlist',
@@ -186,8 +181,6 @@ const duration = ref(0)
 const progress = ref(0)
 const volume = ref(0.7)
 const isMuted = ref(false)
-const isShuffle = ref(false)
-const repeatMode = ref('off')
 const buffered = ref(0)
 const showVolTip = ref(false)
 const lastVol = ref(0.7)
@@ -211,9 +204,7 @@ const pct = computed(() => {
   return Math.min((progress.value / duration.value) * 100, 100)
 })
 
-const effectiveVol = computed(() => {
-  return isMuted.value ? 0 : Math.min(volume.value * 100, 100)
-})
+const effectiveVol = computed(() => (isMuted.value ? 0 : Math.min(volume.value * 100, 100)))
 
 const fmt = (t) => {
   if (!t || Number.isNaN(t)) return '0:00'
@@ -237,34 +228,15 @@ const resetPlaybackState = ({ keepStoreState = false } = {}) => {
   isLoading.value = false
   player.setCurrentTime(0)
 
-  if (!keepStoreState) {
-    player.setPlaying(false)
-  }
+  if (!keepStoreState) player.setPlaying(false)
 }
 
-const goDetail = () => {
-  if (props.music) emit('open-detail', props.music)
-}
-
-const goArtistDetail = () => {
-  if (props.music?.artist) emit('open-artist', props.music.artist)
-}
-
-const handleToggleLike = () => {
-  if (props.music) emit('toggle-like', props.music)
-}
-
-const handleAddToPlaylist = () => {
-  if (props.music && !isAdmin.value) emit('add-to-playlist', props.music)
-}
-
-const handleLyricsOpen = () => {
-  if (props.music && !isAdmin.value && hasLyrics.value) emit('open-lyrics', props.music)
-}
-
-const handleExpand = () => {
-  if (props.music && !isAdmin.value) emit('expand', props.music)
-}
+const goDetail = () => props.music && emit('open-detail', props.music)
+const goArtistDetail = () => props.music?.artist && emit('open-artist', props.music.artist)
+const handleToggleLike = () => props.music && emit('toggle-like', props.music)
+const handleAddToPlaylist = () => props.music && !isAdmin.value && emit('add-to-playlist', props.music)
+const handleLyricsOpen = () => props.music && !isAdmin.value && hasLyrics.value && emit('open-lyrics', props.music)
+const handleExpand = () => props.music && !isAdmin.value && emit('expand', props.music)
 
 const play = async () => {
   if (!audioRef.value || !audioSrc.value) return
@@ -288,20 +260,6 @@ const togglePlay = () => {
   else pause()
 }
 
-const cycleRepeat = () => {
-  repeatMode.value =
-    repeatMode.value === 'off'
-      ? 'all'
-      : repeatMode.value === 'all'
-        ? 'one'
-        : 'off'
-}
-
-const handleNext = () => {
-  if (isShuffle.value) emit('shuffle-next')
-  else emit('next')
-}
-
 const onTimeUpdate = () => {
   if (!audioRef.value) return
   currentTime.value = audioRef.value.currentTime || 0
@@ -317,9 +275,7 @@ const onProgress = () => {
   if (!audioRef.value || !duration.value) return
   try {
     const b = audioRef.value.buffered
-    if (b.length) {
-      buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
-    }
+    if (b.length) buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
   } catch { }
 }
 
@@ -397,7 +353,7 @@ const onPause = () => {
 }
 
 const onEnded = async () => {
-  if (repeatMode.value === 'one') {
+  if (player.repeatMode === 'one') {
     if (audioRef.value) {
       audioRef.value.currentTime = 0
       currentTime.value = 0
@@ -407,9 +363,12 @@ const onEnded = async () => {
     return
   }
 
-  player.setPlaying(false)
-  if (isShuffle.value) emit('shuffle-next')
-  else emit('next')
+  const nextTrack = player.playNext()
+  if (!nextTrack) {
+    isPlaying.value = false
+    isLoading.value = false
+    player.setPlaying(false)
+  }
 }
 
 watch(
@@ -438,9 +397,7 @@ watch(
 
     updateMarquee()
 
-    if (player.isPlaying) {
-      await play()
-    }
+    if (player.isPlaying) await play()
   },
   { immediate: true }
 )

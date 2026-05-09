@@ -1,49 +1,58 @@
 <template>
-  <div v-if="open" class="modal-backdrop" @click.self="$emit('close')">
-    <div class="modal-card modal-card--scroll">
-      <div class="modal-head">
-        <h3>{{ isEdit ? 'Edit playlist' : 'Create playlist' }}</h3>
-        <button class="modal-close" @click="$emit('close')">×</button>
-      </div>
-
-      <div class="modal-body modal-body--scroll">
-        <div class="form-group">
-          <label>Playlist name</label>
-          <input :value="name" type="text" :placeholder="isEdit ? 'Update playlist name' : 'Chill Vibes'"
-            @input="$emit('update:name', $event.target.value)" />
+  <div v-if="open" class="cp-modal-backdrop" @click.self="$emit('close')">
+    <div class="cp-modal-card">
+      <div class="cp-modal-head">
+        <div>
+          <h3>{{ isEdit ? 'Edit playlist' : 'Create playlist' }}</h3>
+          <p>{{ isEdit ? 'Update playlist details' : 'Build your personal collection' }}</p>
         </div>
 
-        <div class="form-group">
+        <button class="cp-icon-btn" type="button" @click="$emit('close')">
+          <XMarkIcon class="cp-icon" />
+        </button>
+      </div>
+
+      <div class="cp-modal-body">
+        <div class="cp-form-group">
+          <label>Playlist name</label>
+          <div class="cp-input-wrap">
+            <MusicalNoteIcon class="cp-field-icon" />
+            <input :value="name" type="text" :placeholder="isEdit ? 'Update playlist name' : 'Late night vibes'"
+              @input="$emit('update:name', $event.target.value)" />
+          </div>
+        </div>
+
+        <div class="cp-form-group">
           <label>Description</label>
           <textarea :value="description" rows="3" :placeholder="isEdit ? 'Update description' : 'Optional description'"
             @input="$emit('update:description', $event.target.value)" />
         </div>
 
-        <div class="form-group">
+        <div class="cp-form-group">
           <label>Preset colors</label>
-          <div class="color-grid">
-            <button v-for="color in colors" :key="color" type="button" class="color-option"
+          <div class="cp-color-grid">
+            <button v-for="color in colors" :key="color" type="button" class="cp-color-option"
               :class="{ active: selectedColor === color }" :style="{ background: color }"
               @click="$emit('update:color', color)" />
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="cp-form-group">
           <label>Custom color</label>
-          <div class="custom-color-row">
-            <input class="color-picker" type="color" :value="hexColor"
+          <div class="cp-custom-color-row">
+            <input class="cp-color-picker" type="color" :value="hexColor"
               @input="$emit('update:color', $event.target.value)" />
             <input :value="selectedColor" type="text" placeholder="#4f7cff or linear-gradient(...)"
               @input="$emit('update:color', $event.target.value)" />
           </div>
-          <small class="helper-text">Hex yoki gradient yozsa ham bo‘ladi</small>
         </div>
       </div>
 
-      <div class="modal-actions">
-        <button class="secondary-btn" @click="$emit('close')">Cancel</button>
-        <button class="primary-btn" :disabled="loading" @click="$emit('submit')">
-          {{ loading ? (isEdit ? 'Saving...' : 'Creating...') : (isEdit ? 'Save changes' : 'Create playlist') }}
+      <div class="cp-modal-actions">
+        <button class="cp-secondary-btn" type="button" @click="$emit('close')">Cancel</button>
+        <button class="cp-primary-btn" type="button" :disabled="loading" @click="$emit('submit')">
+          <PlusCircleIcon class="cp-btn-icon" />
+          <span>{{ loading ? 'Saving...' : (isEdit ? 'Save changes' : 'Create playlist') }}</span>
         </button>
       </div>
     </div>
@@ -52,6 +61,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { XMarkIcon, MusicalNoteIcon, PlusCircleIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   open: Boolean,
@@ -63,13 +73,7 @@ const props = defineProps({
   colors: { type: Array, default: () => [] }
 })
 
-defineEmits([
-  'close',
-  'submit',
-  'update:name',
-  'update:description',
-  'update:color'
-])
+defineEmits(['close', 'submit', 'update:name', 'update:description', 'update:color'])
 
 const hexColor = computed(() => {
   const value = String(props.selectedColor || '').trim()
@@ -78,158 +82,177 @@ const hexColor = computed(() => {
 })
 </script>
 
-<style>
-.modal-backdrop {
+<style scoped>
+.cp-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(8, 12, 24, 0.62);
-  backdrop-filter: blur(8px);
+  z-index: 2100;
   display: grid;
   place-items: center;
-  z-index: 2000;
   padding: 18px;
+  background: rgba(7, 10, 18, 0.72);
+  backdrop-filter: blur(10px);
 }
 
-.modal-card {
-  width: min(100%, 520px);
-  border-radius: 22px;
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
+.cp-modal-card {
+  width: min(100%, 540px);
+  border-radius: 24px;
   overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(14, 20, 34, 0.96);
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.45);
 }
 
-[data-theme='dark'] .modal-card {
-  background: rgba(20, 27, 40, 0.82);
-  backdrop-filter: blur(16px);
-}
-
-.modal-head {
+.cp-modal-head,
+.cp-modal-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px;
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.cp-modal-head {
   border-bottom: 1px solid var(--border);
 }
 
-.modal-head h3 {
-  font-size: 18px;
+.cp-modal-head h3 {
+  font-size: 20px;
   font-weight: 800;
 }
 
-.modal-close {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--bg-card-2);
-  color: var(--text-primary);
-  cursor: pointer;
-  font-size: 20px;
+.cp-modal-head p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
-.modal-body {
-  padding: 16px 18px;
+.cp-modal-body {
+  padding: 18px 20px;
 }
 
-.form-group {
+.cp-form-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
-.form-group label {
+.cp-form-group label {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-secondary);
 }
 
-.form-group input,
-.form-group textarea {
-  width: 100%;
+.cp-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 16px;
+  background: var(--surface-1);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--bg-input);
+}
+
+.cp-field-icon,
+.cp-icon,
+.cp-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.cp-input-wrap input,
+.cp-custom-color-row input,
+.cp-form-group textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
   color: var(--text-primary);
-  padding: 12px 13px;
-  transition: var(--t-fast);
+  outline: none;
 }
 
-.form-group input:focus,
-.form-group textarea:focus {
-  border-color: var(--border-focus);
-  background: var(--bg-input-focus);
+.cp-form-group textarea {
+  min-height: 110px;
+  resize: vertical;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
 }
 
-.color-grid {
+.cp-color-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
-.color-option {
+.cp-color-option {
   height: 42px;
   border-radius: 14px;
   border: 2px solid transparent;
-  cursor: pointer;
 }
 
-.color-option.active {
+.cp-color-option.active {
   border-color: #fff;
-  box-shadow: 0 0 0 2px var(--accent-border);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
-.custom-color-row {
+.cp-custom-color-row {
   display: grid;
   grid-template-columns: 64px 1fr;
   gap: 10px;
 }
 
-.color-picker {
-  padding: 0 !important;
+.cp-custom-color-row input {
   min-height: 46px;
-  overflow: hidden;
-  cursor: pointer;
-}
-
-.helper-text {
-  color: var(--text-hint);
-  font-size: 11px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 18px;
-  border-top: 1px solid var(--border);
-}
-
-.secondary-btn,
-.primary-btn {
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.secondary-btn {
+  border-radius: 14px;
+  padding: 0 12px;
+  background: var(--surface-1);
   border: 1px solid var(--border);
-  background: var(--bg-card-2);
-  color: var(--text-primary);
 }
 
-.primary-btn {
+.cp-color-picker {
+  padding: 0 !important;
+}
+
+.cp-modal-actions {
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+}
+
+.cp-secondary-btn,
+.cp-primary-btn,
+.cp-icon-btn {
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cp-icon-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+}
+
+.cp-secondary-btn,
+.cp-primary-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  font-weight: 700;
+}
+
+.cp-secondary-btn {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+}
+
+.cp-primary-btn {
+  color: #fff;
   border: none;
   background: linear-gradient(135deg, var(--accent), var(--accent-mid));
-  color: #fff;
-  box-shadow: var(--shadow-accent);
-}
-
-.primary-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
 }
 </style>

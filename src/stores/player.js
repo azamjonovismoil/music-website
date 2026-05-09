@@ -8,6 +8,9 @@ export const usePlayerStore = defineStore('player', () => {
   const currentTime = ref(0)
   const isPlaying = ref(false)
 
+  const shuffle = ref(false)
+  const repeatMode = ref('off') // off | all | one
+
   const showLyricsPanel = ref(false)
   const showKaraokeMode = ref(false)
 
@@ -30,22 +33,12 @@ export const usePlayerStore = defineStore('player', () => {
       currentTrack.value = activeTrack
       const idx = findQueueIndex(activeTrack._id)
 
-      if (idx >= 0) {
-        queueIndex.value = idx
-      } else {
+      if (idx >= 0) queueIndex.value = idx
+      else {
         queue.value.unshift(activeTrack)
         queueIndex.value = 0
       }
-
       return
-    }
-
-    if (currentTrack.value?._id) {
-      const idx = findQueueIndex(currentTrack.value._id)
-      if (idx >= 0) {
-        queueIndex.value = idx
-        return
-      }
     }
 
     currentTrack.value = queue.value[0]
@@ -76,13 +69,15 @@ export const usePlayerStore = defineStore('player', () => {
       queueIndex.value = 0
     }
 
-    if (options.resetTime !== false) {
-      currentTime.value = 0
-    }
+    if (options.resetTime !== false) currentTime.value = 0
+    if (typeof options.playing === 'boolean') isPlaying.value = options.playing
+  }
 
-    if (typeof options.playing === 'boolean') {
-      isPlaying.value = options.playing
-    }
+  const addToQueue = (track) => {
+    if (!track?._id) return
+    const exists = queue.value.some((q) => String(q?._id) === String(track._id))
+    if (exists) return
+    queue.value.push(track)
   }
 
   const setCurrentTime = (time) => {
@@ -93,14 +88,42 @@ export const usePlayerStore = defineStore('player', () => {
     isPlaying.value = !!value
   }
 
+  const toggleShuffle = () => {
+    shuffle.value = !shuffle.value
+  }
+
+  const cycleRepeatMode = () => {
+    repeatMode.value =
+      repeatMode.value === 'off'
+        ? 'all'
+        : repeatMode.value === 'all'
+          ? 'one'
+          : 'off'
+  }
+
   const playNext = () => {
     if (!queue.value.length) return null
 
-    const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
-    const nextIndex = baseIndex >= 0 && baseIndex < queue.value.length - 1 ? baseIndex + 1 : 0
+    if (shuffle.value && queue.value.length > 1) {
+      let nextIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
+      while (nextIndex === queueIndex.value || nextIndex < 0) {
+        nextIndex = Math.floor(Math.random() * queue.value.length)
+      }
+      queueIndex.value = nextIndex
+    } else {
+      const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
 
-    queueIndex.value = nextIndex
-    currentTrack.value = queue.value[nextIndex] || null
+      if (baseIndex < queue.value.length - 1) {
+        queueIndex.value = baseIndex + 1
+      } else if (repeatMode.value === 'all') {
+        queueIndex.value = 0
+      } else {
+        isPlaying.value = false
+        return null
+      }
+    }
+
+    currentTrack.value = queue.value[queueIndex.value] || null
     currentTime.value = 0
     isPlaying.value = true
     return currentTrack.value
@@ -114,25 +137,6 @@ export const usePlayerStore = defineStore('player', () => {
 
     queueIndex.value = prevIndex
     currentTrack.value = queue.value[prevIndex] || null
-    currentTime.value = 0
-    isPlaying.value = true
-    return currentTrack.value
-  }
-
-  const playShuffle = () => {
-    if (!queue.value.length) return null
-    if (queue.value.length === 1) {
-      isPlaying.value = true
-      return currentTrack.value
-    }
-
-    let nextIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
-    while (nextIndex === queueIndex.value || nextIndex < 0) {
-      nextIndex = Math.floor(Math.random() * queue.value.length)
-    }
-
-    queueIndex.value = nextIndex
-    currentTrack.value = queue.value[nextIndex] || null
     currentTime.value = 0
     isPlaying.value = true
     return currentTrack.value
@@ -183,6 +187,8 @@ export const usePlayerStore = defineStore('player', () => {
     queueIndex.value = -1
     currentTime.value = 0
     isPlaying.value = false
+    shuffle.value = false
+    repeatMode.value = 'off'
     showLyricsPanel.value = false
     showKaraokeMode.value = false
   }
@@ -193,17 +199,21 @@ export const usePlayerStore = defineStore('player', () => {
     queueIndex,
     currentTime,
     isPlaying,
+    shuffle,
+    repeatMode,
     showLyricsPanel,
     showKaraokeMode,
     hasQueue,
     currentTrackId,
     setQueue,
     setTrack,
+    addToQueue,
     setCurrentTime,
     setPlaying,
+    toggleShuffle,
+    cycleRepeatMode,
     playNext,
     playPrev,
-    playShuffle,
     removeFromQueue,
     clearQueue,
     openLyrics,

@@ -7,71 +7,57 @@ const routes = [
   {
     path: '/',
     name: 'Landing',
-    component: () => import('../pages/home/UserPage.vue'),
-    meta: { title: 'Welcome' },
+    component: () => import('../pages/landing/LandingPage.vue'),
+    meta: { title: 'Welcome', hidePlayerBar: true },
   },
-
   {
     path: '/login',
     name: 'Login',
     component: () => import('../pages/auth/LoginPage.vue'),
-    meta: {
-      guestOnly: true,
-      title: 'Login',
-      hidePlayerBar: true,
-    },
+    meta: { guestOnly: true, title: 'Login', hidePlayerBar: true },
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('../pages/auth/RegistrationPage.vue'),
-    meta: {
-      guestOnly: true,
-      title: 'Register',
-      hidePlayerBar: true,
-    },
+    meta: { guestOnly: true, title: 'Register', hidePlayerBar: true },
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
     component: () => import('../pages/auth/ForgotPassword.vue'),
-    meta: {
-      guestOnly: true,
-      title: 'Forgot password',
-      hidePlayerBar: true,
-    },
+    meta: { guestOnly: true, title: 'Forgot password', hidePlayerBar: true },
   },
   {
     path: '/reset-password',
     name: 'ResetPassword',
     component: () => import('../pages/auth/ResetPassword.vue'),
-    meta: {
-      guestOnly: true,
-      title: 'Reset password',
-      hidePlayerBar: true,
-    },
+    meta: { guestOnly: true, title: 'Reset password', hidePlayerBar: true },
   },
-
   {
     path: '/user',
     name: 'User',
     component: () => import('../pages/home/UserPage.vue'),
-    meta: { requiresAuth: true, title: 'Home' },
+    meta: { requiresAuth: true, title: 'User' },
   },
   {
-    path: '/about/:id',
-    name: 'About',
-    component: () => import('../pages/home/UserPage.vue'),
+    path: '/artist/:slug',
+    name: 'Artist',
+    component: () => import('../pages/artist/ArtistPage.vue'),
     meta: { requiresAuth: true, title: 'Artist' },
   },
-
   {
-    path: '/library/:type(downloaded|favourites)',
-    name: 'LibraryType',
-    component: () => import('../pages/library/LibraryPage.vue'),
-    meta: { requiresAuth: true, title: 'Library' },
+    path: '/track/:id',
+    name: 'TrackDetail',
+    component: () => import('../pages/tracks/TrackDetailPage.vue'),
+    meta: { requiresAuth: true, title: 'Track' },
   },
-
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('../pages/settings/SettingsPage.vue'),
+    meta: { requiresAuth: true, title: 'Settings' },
+  },
   {
     path: '/profile',
     redirect: () => {
@@ -79,7 +65,6 @@ const routes = [
       return auth.isAdmin ? '/admin/profile' : '/user'
     },
   },
-
   {
     path: '/admin',
     component: () => import('../layouts/AdminLayout.vue'),
@@ -104,14 +89,13 @@ const routes = [
         meta: { title: 'Admin profile', hidePlayerBar: true },
       },
       {
-        path: '/settings',
-        name: 'Settings',
+        path: 'settings',
+        name: 'AdminSettings',
         component: () => import('../pages/settings/SettingsPage.vue'),
-        meta: { requiresAuth: true, title: 'Settings' },
+        meta: { title: 'Settings', hidePlayerBar: true },
       },
     ],
   },
-
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -131,25 +115,17 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
-  if (!auth.initialized) {
-    await auth.fetchMe()
+  if (!auth.initialized) await auth.fetchMe()
+
+  if (to.meta?.guestOnly && auth.isLoggedIn) {
+    return next(auth.isAdmin ? '/admin' : '/user')
   }
 
-  const isAuth = auth.isLoggedIn
-  const isAdmin = auth.isAdmin
-
-  if (to.meta?.guestOnly && isAuth) {
-    return next(isAdmin ? '/admin' : '/user')
+  if (to.meta?.requiresAuth && !auth.isLoggedIn) {
+    return next({ path: '/login', query: { redirect: to.fullPath } })
   }
 
-  if (to.meta?.requiresAuth && !isAuth) {
-    return next({
-      path: '/login',
-      query: { redirect: to.fullPath },
-    })
-  }
-
-  if (to.meta?.requiresAdmin && !isAdmin) {
+  if (to.meta?.requiresAdmin && !auth.isAdmin) {
     return next('/user')
   }
 
@@ -157,9 +133,7 @@ router.beforeEach(async (to, from, next) => {
 })
 
 router.afterEach((to) => {
-  document.title = to.meta?.title
-    ? `${to.meta.title} | ${APP_NAME}`
-    : APP_NAME
+  document.title = to.meta?.title ? `${to.meta.title} | ${APP_NAME}` : APP_NAME
 })
 
 export default router

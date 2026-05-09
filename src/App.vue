@@ -2,12 +2,14 @@
   <div class="app-shell" :class="{ 'has-player': showPlayerBar }">
     <router-view v-slot="{ Component, route }">
       <transition name="page" mode="out-in">
-        <component :is="Component" :key="route.fullPath" />
+        <component :is="Component" :key="route.fullPath" @toggle-like="handleToggleLike"
+          @add-to-playlist="handleAddToPlaylist" @open-artist="handleOpenArtist" @open-detail="handleOpenDetail" />
       </transition>
     </router-view>
 
     <PlayerBar v-if="showPlayerBar" :key="player.currentTrack?._id || 'empty'" :music="player.currentTrack"
-      @prev="playPrev" @next="playNext" @shuffle-next="playShuffle" @auth-required="router.push('/login')" />
+      @toggle-like="handleToggleLike" @add-to-playlist="handleAddToPlaylist" @open-artist="handleOpenArtist"
+      @open-detail="handleOpenDetail" />
   </div>
 </template>
 
@@ -33,14 +35,34 @@ const showPlayerBar = computed(() => {
   return true
 })
 
-const playPrev = () => player.playPrev()
-const playNext = () => player.playNext()
-const playShuffle = () => player.playShuffle()
+const handleToggleLike = (track) => {
+  if (!track?._id) return
+  window.dispatchEvent(new CustomEvent('mw:toggle-like', { detail: track }))
+}
+
+const handleAddToPlaylist = (track) => {
+  if (!track?._id) return
+  window.dispatchEvent(new CustomEvent('mw:add-to-playlist', { detail: track }))
+}
+
+const handleOpenArtist = (artist) => {
+  if (!artist) return
+  router.push({
+    name: 'Artist',
+    params: { slug: encodeURIComponent(String(artist).trim()) },
+  })
+}
+
+const handleOpenDetail = (track) => {
+  if (!track?._id) return
+  router.push({
+    name: 'TrackDetail',
+    params: { id: track._id },
+  })
+}
 
 watch(isAdminRoute, (isAdmin) => {
-  if (isAdmin) {
-    player.setPlaying(false)
-  }
+  if (isAdmin) player.setPlaying(false)
 })
 
 onMounted(() => {
@@ -62,12 +84,12 @@ onMounted(() => {
 
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(4px);
+  transform: translateY(6px);
 }
 </style>

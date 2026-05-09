@@ -9,27 +9,33 @@
             <span>Premium listening</span>
           </div>
         </router-link>
-        <button class="sidebar-close" @click="sidebarOpen = false">✕</button>
+
+        <button class="sidebar-close" type="button" @click="sidebarOpen = false">✕</button>
       </div>
 
-      <nav class="side-nav">
-        <button v-for="item in navItems" :key="item.id" type="button" class="side-nav__item"
-          :class="{ active: tab === item.id }" @click="setTab(item.id)">
-          <span>{{ item.label }}</span>
-          <span v-if="item.id === 'favorites' && likedCount" class="side-nav__badge">{{ likedCount }}</span>
-        </button>
-      </nav>
-
-      <div class="side-block" v-if="recentTracks.length">
-        <div class="side-block__head">
-          <h4>Recent</h4>
+      <div class="sidebar-search-mobile">
+        <div class="topbar__search">
+          <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
+          <button v-if="search" type="button" @click="search = ''">✕</button>
         </div>
-        <button v-for="t in recentTracks.slice(0, 4)" :key="t._id" type="button" class="mini-track"
-          @click="toggleTrack(t)">
-          <img :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
-          <div>
-            <strong>{{ t.title }}</strong>
-            <span>{{ t.artist }}</span>
+      </div>
+
+      <div class="side-playlists">
+        <div class="side-head-row">
+          <h4>Your playlists</h4>
+          <button class="side-create-btn" type="button" @click="showCreatePlaylist = true">+</button>
+        </div>
+
+        <div v-if="!playlists.length" class="side-empty">
+          <p>No playlists yet</p>
+        </div>
+
+        <button v-for="pl in playlists" :key="pl._id" type="button" class="side-playlist"
+          :class="{ active: selectedPlaylist?._id === pl._id }" @click="selectPlaylist(pl)">
+          <span class="side-playlist__color" :style="{ background: pl.color || playlistColors[0] }" />
+          <div class="side-playlist__body">
+            <strong>{{ pl.name }}</strong>
+            <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
           </div>
         </button>
       </div>
@@ -58,8 +64,24 @@
 
     <main class="music-main">
       <header class="topbar">
-        <div class="topbar__left">
-          <button class="menu-btn" type="button" @click="sidebarOpen = true">☰</button>
+        <div class="topbar__row topbar__row--main">
+          <div class="topbar__left">
+            <button class="menu-btn" type="button" @click="sidebarOpen = true">☰</button>
+            <div class="topbar__heading">
+              <h1>{{ sectionTitle }}</h1>
+              <p>{{ sectionKicker }}</p>
+            </div>
+          </div>
+
+          <router-link to="/profile" class="topbar__avatar">{{ initial }}</router-link>
+        </div>
+
+        <div class="topbar__row topbar__row--search">
+          <div class="topbar__search">
+            <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
+            <button v-if="search" type="button" @click="search = ''">✕</button>
+          </div>
+
           <div class="topbar__tabs">
             <button v-for="item in navItems" :key="item.id" type="button" class="topbar__tab"
               :class="{ active: tab === item.id }" @click="setTab(item.id)">
@@ -67,13 +89,6 @@
             </button>
           </div>
         </div>
-
-        <div class="topbar__search">
-          <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
-          <button v-if="search" type="button" @click="search = ''">✕</button>
-        </div>
-
-        <router-link to="/profile" class="topbar__avatar">{{ initial }}</router-link>
       </header>
 
       <section v-if="featuredTrack && tab === 'home'" class="hero">
@@ -91,7 +106,7 @@
 
           <div class="hero__meta">
             <p class="hero__eyebrow">Featured track</p>
-            <h1>{{ featuredTrack.title }}</h1>
+            <h2>{{ featuredTrack.title }}</h2>
             <p class="hero__artist">{{ featuredTrack.artist }}</p>
 
             <div class="hero__chips">
@@ -102,7 +117,7 @@
 
             <div class="hero__actions">
               <button class="btn btn-primary" type="button" @click="toggleTrack(featuredTrack)">Play now</button>
-              <button class="btn btn-ghost" type="button" @click="like(featuredTrack)">Like</button>
+              <button class="btn btn-ghost icon-btn" type="button" @click="like(featuredTrack)">♥</button>
               <button class="btn btn-ghost" type="button" @click="openAddToPlaylist(featuredTrack)">Playlist</button>
             </div>
           </div>
@@ -113,7 +128,7 @@
         <div class="content-section__head">
           <div>
             <p class="section-kicker">{{ sectionKicker }}</p>
-            <h2>{{ sectionTitle }}</h2>
+            <h2>{{ activeSectionTitle }}</h2>
           </div>
 
           <div class="toolbar">
@@ -138,27 +153,32 @@
 
         <div v-else-if="list.length === 0" class="empty-box">
           <h3>No tracks found</h3>
-          <p>Try a different search.</p>
+          <p>Try a different search or playlist.</p>
         </div>
 
-        <div v-else class="track-grid track-grid--compact">
+        <div v-else class="track-grid">
           <button v-for="t in list" :key="t._id" type="button" class="track-card track-card--cover"
             :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
             <img class="track-card__img" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
 
             <div class="track-card__overlay">
-              <button class="track-card__like" type="button" @click.stop="like(t)">♥</button>
+              <div class="track-card__top">
+                <button class="track-card__icon like" type="button" @click.stop="like(t)">
+                  <span>{{ t.liked ? '♥' : '♡' }}</span>
+                </button>
+              </div>
 
-              <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
-                <span v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying">❚❚</span>
-                <span v-else>▶</span>
-              </button>
-
-              <button class="track-card__playlist" type="button" @click.stop="openAddToPlaylist(t)">+</button>
+              <div class="track-card__center">
+                <button class="track-card__icon add" type="button" @click.stop="openAddToPlaylist(t)">+</button>
+                <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
+                  <span v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying">❚❚</span>
+                  <span v-else>▶</span>
+                </button>
+              </div>
 
               <div class="track-card__meta">
                 <strong>{{ t.title }}</strong>
-                <span>{{ t.artist }}</span>
+                <span @click.stop="openArtist(t.artist)">{{ t.artist }}</span>
               </div>
             </div>
           </button>
@@ -167,11 +187,10 @@
     </main>
 
     <aside class="music-rightbar">
-      <RightPanel :queue="playerStore.queue" :playlists="playlists" :current-music="playerStore.currentTrack"
+      <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
         :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
         @remove-from-queue="playerStore.removeFromQueue" @clear-queue="playerStore.clearQueue"
-        @add-to-queue="addToQueue" @create-playlist="showCreatePlaylist = true"
-        @select-playlist="selectedPlaylist = $event" />
+        @add-to-queue="addToQueue" />
     </aside>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
@@ -246,14 +265,7 @@ const navItems = [
 ]
 
 const initial = computed(() => (authStore.user?.name || 'U')[0].toUpperCase())
-const likedCount = computed(() => tracks.value.filter((t) => t.liked).length)
-
 const featuredTrack = computed(() => tracks.value.find((t) => t.isFeatured) || tracks.value[0] || null)
-
-const recentTracks = computed(() => {
-  const history = JSON.parse(localStorage.getItem('recentTracks') || '[]')
-  return history.map((id) => tracks.value.find((t) => t._id === id)).filter(Boolean).slice(0, 8)
-})
 
 const recommendations = computed(() =>
   [...tracks.value]
@@ -263,21 +275,31 @@ const recommendations = computed(() =>
 )
 
 const sectionKicker = computed(() => ({
-  home: 'Explore',
-  favorites: 'Collection',
-  library: 'Library',
+  home: 'Explore your premium library',
+  favorites: 'Your liked collection',
+  library: selectedPlaylist.value ? 'Playlist view' : 'Complete music archive',
 }[tab.value] || 'Music'))
 
 const sectionTitle = computed(() => ({
   home: 'Discover music',
   favorites: 'Your favorites',
-  library: 'All tracks',
+  library: 'Library',
 }[tab.value] || 'Music'))
+
+const activeSectionTitle = computed(() => {
+  if (tab.value === 'library' && selectedPlaylist.value) return selectedPlaylist.value.name
+  return sectionTitle.value
+})
 
 const list = computed(() => {
   let arr = [...tracks.value]
 
   if (tab.value === 'favorites') arr = arr.filter((t) => t.liked)
+
+  if (tab.value === 'library' && selectedPlaylist.value?._id) {
+    const ids = new Set((selectedPlaylist.value.tracks || []).map((t) => String(t._id || t)))
+    arr = arr.filter((t) => ids.has(String(t._id)))
+  }
 
   const q = search.value.trim().toLowerCase()
   if (q) {
@@ -314,7 +336,7 @@ const fetchTracks = async () => {
 
 const fetchPlaylists = async () => {
   try {
-    const { data } = await api.get('/playlists/me')
+    const { data } = await api.get('/playlists')
     playlists.value = Array.isArray(data) ? data : []
   } catch {
     playlists.value = []
@@ -325,20 +347,19 @@ const setTab = (value) => {
   tab.value = value
   sidebarOpen.value = false
   profileMenu.value = false
+  if (value !== 'library') selectedPlaylist.value = null
 }
 
-const saveRecent = (track) => {
-  const hist = JSON.parse(localStorage.getItem('recentTracks') || '[]')
-  const filtered = hist.filter((id) => id !== track._id)
-  localStorage.setItem('recentTracks', JSON.stringify([track._id, ...filtered].slice(0, 12)))
+const selectPlaylist = (pl) => {
+  selectedPlaylist.value = pl
+  tab.value = 'library'
+  sidebarOpen.value = false
 }
 
 const toggleTrack = (track) => {
   const sameTrack = String(playerStore.currentTrack?._id || '') === String(track._id || '')
-
   if (sameTrack) {
     playerStore.setPlaying(!playerStore.isPlaying)
-    saveRecent(track)
     return
   }
 
@@ -347,14 +368,10 @@ const toggleTrack = (track) => {
     playing: true,
     resetTime: true,
   })
-
-  saveRecent(track)
 }
 
 const addToQueue = (track) => {
-  const exists = playerStore.queue.find((q) => String(q._id) === String(track._id))
-  if (exists) return
-  playerStore.queue.push(track)
+  playerStore.addToQueue(track)
 }
 
 const openAddToPlaylist = async (track) => {
@@ -391,16 +408,16 @@ const addTrackToPlaylist = async (playlist) => {
   if (!selectedTrack.value?._id || !playlist?._id) return
   try {
     const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
-      trackId: selectedTrack.value._id,
+      musicId: selectedTrack.value._id,
     })
     playlists.value = playlists.value.map((pl) => pl._id === data._id ? data : pl)
+    if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     showAddToPlaylist.value = false
   } catch { }
 }
 
 const like = async (track) => {
   if (likeInFlight.value.has(track._id)) return
-
   likeInFlight.value = new Set([...likeInFlight.value, track._id])
   const idx = tracks.value.findIndex((t) => t._id === track._id)
 
@@ -433,6 +450,11 @@ const like = async (track) => {
   }
 }
 
+const openArtist = (artist) => {
+  if (!artist) return
+  router.push({ name: 'Artist', params: { slug: encodeURIComponent(String(artist).trim()) } })
+}
+
 const imgErr = (e) => {
   e.target.src = fallbackCover
 }
@@ -445,5 +467,8 @@ const logout = async () => {
 onMounted(async () => {
   await fetchTracks()
   await fetchPlaylists()
+
+  window.addEventListener('mw:toggle-like', (e) => like(e.detail))
+  window.addEventListener('mw:add-to-playlist', (e) => openAddToPlaylist(e.detail))
 })
 </script>
