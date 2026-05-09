@@ -1,151 +1,125 @@
 <template>
   <aside class="rp">
-    <!-- tabs -->
-    <div class="rp-tabs">
-      <button class="rp-tab" :class="{ active: tab === 'rec' }" @click="setTab('rec')">
-        <SparklesIcon class="rp-tab-ico" />
-        <span>For you</span>
-      </button>
-      <button class="rp-tab" :class="{ active: tab === 'queue' }" @click="setTab('queue')">
-        <QueueListIcon class="rp-tab-ico" />
-        <span>Up next</span>
-        <span v-if="queue.length" class="rp-tab-badge">{{ queue.length }}</span>
-      </button>
+    <div class="rp-top">
+      <div class="rp-tabs">
+        <button class="rp-tab" :class="{ active: tab === 'playlists' }" @click="tab = 'playlists'">
+          Playlists
+        </button>
+        <button class="rp-tab" :class="{ active: tab === 'queue' }" @click="tab = 'queue'">
+          Up next
+          <span v-if="queue.length" class="rp-badge">{{ queue.length }}</span>
+        </button>
+        <button class="rp-tab" :class="{ active: tab === 'rec' }" @click="tab = 'rec'">
+          For you
+        </button>
+      </div>
     </div>
 
     <div class="rp-body">
+      <div v-if="tab === 'playlists'" class="rp-section">
+        <div class="rp-headline">
+          <h3>Your playlists</h3>
+          <button class="rp-create" @click="$emit('create-playlist')">+ New</button>
+        </div>
 
-      <!-- FOR YOU -->
-      <transition name="rp-fade" mode="out-in">
-        <div v-if="tab === 'rec'" key="rec" class="rp-section">
-          <div v-if="!recommendations.length" class="rp-empty">
-            <SparklesIcon class="rp-empty-ico" />
-            <p>Play a few tracks<br>to get picks</p>
-          </div>
+        <div v-if="!playlists.length" class="rp-empty">
+          <p>No playlists yet</p>
+        </div>
 
-          <div
-            v-for="track in recommendations"
-            :key="track._id"
-            class="rp-item"
-            @click="$emit('select-track', track)"
-          >
-            <img
-              :src="getCover(track)"
-              class="rp-item-cover"
-              alt=""
-              @error="e => { if (fallback) e.target.src = fallback }"
-            />
-            <div class="rp-item-info">
-              <p class="rp-item-title">{{ track.title }}</p>
-              <p class="rp-item-artist">{{ track.artist || 'Unknown' }}</p>
+        <div v-else class="rp-list">
+          <button v-for="pl in playlists" :key="pl._id" class="rp-playlist" @click="$emit('select-playlist', pl)">
+            <span class="rp-playlist__color" :style="{ background: pl.color || defaultPlaylistColor }" />
+            <div class="rp-playlist__body">
+              <strong>{{ pl.name }}</strong>
+              <span>{{ pl.tracks?.length || 0 }} tracks</span>
             </div>
-            <div class="rp-item-actions">
-              <button class="rp-act" @click.stop="$emit('play-track', track)" title="Play">
-                <PlayIcon class="rp-act-ico" />
-              </button>
-              <button class="rp-act" @click.stop="$emit('add-to-queue', track)" title="Queue">
-                <QueueListIcon class="rp-act-ico" />
-              </button>
+          </button>
+        </div>
+      </div>
+
+      <div v-else-if="tab === 'queue'" class="rp-section">
+        <div v-if="currentMusic" class="rp-now">
+          <p class="rp-now__label">Now playing</p>
+          <div class="rp-now__row">
+            <img :src="getCover(currentMusic)" class="rp-now__cover" alt="" />
+            <div>
+              <strong>{{ currentMusic.title }}</strong>
+              <span>{{ currentMusic.artist || 'Unknown' }}</span>
             </div>
           </div>
         </div>
 
-        <!-- QUEUE -->
-        <div v-else key="queue" class="rp-section">
-
-          <!-- now playing -->
-          <div v-if="currentMusic" class="rp-now">
-            <p class="rp-now-label">Now playing</p>
-            <div class="rp-now-row">
-              <div class="rp-now-cover-wrap">
-                <img
-                  :src="getCover(currentMusic)"
-                  class="rp-now-cover"
-                  alt=""
-                  @error="e => { if (fallback) e.target.src = fallback }"
-                />
-                <div class="rp-now-bars">
-                  <span /><span /><span />
-                </div>
-              </div>
-              <div class="rp-now-info">
-                <p class="rp-now-title">{{ currentMusic.title }}</p>
-                <p class="rp-now-artist">{{ currentMusic.artist }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="!queue.length" class="rp-empty">
-            <QueueListIcon class="rp-empty-ico" />
-            <p>Queue is empty</p>
-          </div>
-
-          <template v-else>
-            <div class="rp-queue-head">
-              <span class="rp-queue-count">{{ queue.length }} tracks</span>
-              <button class="rp-clear" @click="$emit('clear-queue')">Clear all</button>
-            </div>
-
-            <div
-              v-for="(item, i) in queue"
-              :key="`${item._id}-${i}`"
-              class="rp-item"
-              @click="$emit('select-track', item)"
-            >
-              <span class="rp-item-idx">{{ i + 1 }}</span>
-              <img
-                :src="getCover(item)"
-                class="rp-item-cover"
-                alt=""
-                @error="e => { if (fallback) e.target.src = fallback }"
-              />
-              <div class="rp-item-info">
-                <p class="rp-item-title">{{ item.title }}</p>
-                <p class="rp-item-artist">{{ item.artist || 'Unknown' }}</p>
-              </div>
-              <div class="rp-item-actions">
-                <button class="rp-act" @click.stop="$emit('play-track', item)">
-                  <PlayIcon class="rp-act-ico" />
-                </button>
-                <button class="rp-act rp-act--del" @click.stop="$emit('remove-from-queue', item._id)">
-                  <XMarkIcon class="rp-act-ico" />
-                </button>
-              </div>
-            </div>
-          </template>
+        <div class="rp-headline">
+          <h3>Queue</h3>
+          <button class="rp-clear" @click="$emit('clear-queue')">Clear</button>
         </div>
-      </transition>
+
+        <div v-if="!queue.length" class="rp-empty">
+          <p>Queue is empty</p>
+        </div>
+
+        <div v-else class="rp-list">
+          <button v-for="(item, i) in queue" :key="`${item._id}-${i}`" class="rp-item"
+            @click="$emit('play-track', item)">
+            <span class="rp-item__index">{{ i + 1 }}</span>
+            <img :src="getCover(item)" class="rp-item__cover" alt="" />
+            <div class="rp-item__body">
+              <strong>{{ item.title }}</strong>
+              <span>{{ item.artist || 'Unknown' }}</span>
+            </div>
+            <button class="rp-icon-btn" @click.stop="$emit('remove-from-queue', item._id)">×</button>
+          </button>
+        </div>
+      </div>
+
+      <div v-else class="rp-section">
+        <div class="rp-headline">
+          <h3>Recommended</h3>
+        </div>
+
+        <div v-if="!recommendations.length" class="rp-empty">
+          <p>No recommendations yet</p>
+        </div>
+
+        <div v-else class="rp-list">
+          <button v-for="track in recommendations" :key="track._id" class="rp-item" @click="$emit('play-track', track)">
+            <img :src="getCover(track)" class="rp-item__cover" alt="" />
+            <div class="rp-item__body">
+              <strong>{{ track.title }}</strong>
+              <span>{{ track.artist || 'Unknown' }}</span>
+            </div>
+            <button class="rp-icon-btn" @click.stop="$emit('add-to-queue', track)">+</button>
+          </button>
+        </div>
+      </div>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { PlayIcon, QueueListIcon, SparklesIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { ref } from 'vue'
 import '@/styles/right_panel.css'
 
-const props = defineProps({
-  isQueueOpen:     { type: Boolean, default: false },
-  queue:           { type: Array,   default: () => [] },
-  currentMusic:    { type: Object,  default: null },
-  recommendations: { type: Array,   default: () => [] },
-  getCover:        { type: Function, required: true },
-  fallback:        { type: String,  default: '' },
+defineProps({
+  queue: { type: Array, default: () => [] },
+  playlists: { type: Array, default: () => [] },
+  currentMusic: { type: Object, default: null },
+  recommendations: { type: Array, default: () => [] },
+  getCover: { type: Function, required: true },
+  defaultPlaylistColor: {
+    type: String,
+    default: 'linear-gradient(135deg,#0ea5e9,#2563eb)'
+  }
 })
 
-const emit = defineEmits([
-  'toggle-queue', 'play-track', 'remove-from-queue',
-  'clear-queue', 'select-track', 'add-to-queue',
+defineEmits([
+  'play-track',
+  'remove-from-queue',
+  'clear-queue',
+  'add-to-queue',
+  'create-playlist',
+  'select-playlist',
 ])
 
-const tab = ref(props.isQueueOpen ? 'queue' : 'rec')
-
-const setTab = (next) => {
-  tab.value = next
-  emit('toggle-queue', next === 'queue')
-}
-
-watch(() => props.isQueueOpen, (open) => {
-  tab.value = open ? 'queue' : 'rec'
-}, { immediate: true })
+const tab = ref('playlists')
 </script>

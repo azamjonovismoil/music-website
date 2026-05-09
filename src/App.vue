@@ -1,12 +1,14 @@
 <template>
-  <router-view v-slot="{ Component, route }">
-    <transition name="page" mode="out-in">
-      <component :is="Component" :key="route.fullPath" />
-    </transition>
-  </router-view>
+  <div class="app-shell" :class="{ 'has-player': showPlayerBar }">
+    <router-view v-slot="{ Component, route }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" :key="route.fullPath" />
+      </transition>
+    </router-view>
 
-  <PlayerBar v-if="showPlayerBar" :key="player.currentTrack?._id || 'empty'" :music="player.currentTrack"
-    @prev="playPrev" @next="playNext" @shuffle-next="playShuffle" @auth-required="router.push('/login')" />
+    <PlayerBar v-if="showPlayerBar" :key="player.currentTrack?._id || 'empty'" :music="player.currentTrack"
+      @prev="playPrev" @next="playNext" @shuffle-next="playShuffle" @auth-required="router.push('/login')" />
+  </div>
 </template>
 
 <script setup>
@@ -31,21 +33,13 @@ const showPlayerBar = computed(() => {
   return true
 })
 
-const playPrev = () => {
-  player.playPrev()
-}
-
-const playNext = () => {
-  player.playNext()
-}
-
-const playShuffle = () => {
-  player.playShuffle()
-}
+const playPrev = () => player.playPrev()
+const playNext = () => player.playNext()
+const playShuffle = () => player.playShuffle()
 
 watch(isAdminRoute, (isAdmin) => {
   if (isAdmin) {
-    player.isPlaying = false
+    player.setPlaying(false)
   }
 })
 
@@ -57,6 +51,14 @@ onMounted(() => {
 
 <style>
 @import './styles/global.css';
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-shell.has-player {
+  padding-bottom: var(--player-bar-safe);
+}
 
 .page-enter-active,
 .page-leave-active {

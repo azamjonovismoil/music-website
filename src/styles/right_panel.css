@@ -1,331 +1,182 @@
-/* ══════════════════════════════════════
-   RightPanel.css
-   ══════════════════════════════════════ */
-
 .rp {
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* tabs */
-.rp-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 12px 12px 8px;
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.rp-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 34px;
-  border-radius: 10px;
+  border-radius: 24px;
   border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-secondary);
+  background: rgba(16, 22, 34, 0.72);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme='light'] .rp {
+  background: rgba(255, 255, 255, 0.82);
+}
+.rp-top {
+  border-bottom: 1px solid var(--border);
+}
+.rp-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+}
+.rp-tab {
+  min-height: 38px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--t-fast);
+  font-weight: 700;
   position: relative;
 }
-
-.rp-tab:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-}
-
 .rp-tab.active {
-  background: var(--accent-subtle);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-
-.rp-tab-ico {
-  width: 13px;
-  height: 13px;
-}
-
-.rp-tab-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: var(--accent);
   color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+  border-color: transparent;
 }
-
-/* body */
+.rp-badge {
+  margin-left: 6px;
+  font-size: 10px;
+}
 .rp-body {
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
-  padding: 8px 10px 12px;
+  padding: 12px;
 }
-
-.rp-body::-webkit-scrollbar {
-  display: none;
-}
-
 .rp-section {
   display: flex;
   flex-direction: column;
+  gap: 12px;
 }
-
-/* empty state */
-.rp-empty {
-  padding: 40px 16px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.rp-empty-ico {
-  width: 28px;
-  height: 28px;
-  color: var(--text-hint);
-}
-
-.rp-empty p {
-  font-size: 12px;
-  color: var(--text-hint);
-  line-height: 1.55;
-}
-
-/* now playing */
-.rp-now {
-  padding: 10px 6px 12px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 8px;
-}
-
-.rp-now-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  margin-bottom: 8px;
-}
-
-.rp-now-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.rp-now-cover-wrap {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-}
-
-.rp-now-cover {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  object-fit: cover;
-  border: 1px solid var(--border);
-}
-
-.rp-now-bars {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 10px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 2px;
-  padding-bottom: 5px;
-}
-
-.rp-now-bars span {
-  width: 3px;
-  border-radius: 2px;
-  background: var(--accent);
-  animation: rp-bar 0.9s ease-in-out infinite alternate;
-}
-
-.rp-now-bars span:nth-child(1) {
-  height: 8px;
-  animation-delay: 0s;
-}
-.rp-now-bars span:nth-child(2) {
-  height: 14px;
-  animation-delay: 0.15s;
-}
-.rp-now-bars span:nth-child(3) {
-  height: 10px;
-  animation-delay: 0.3s;
-}
-
-@keyframes rp-bar {
-  to {
-    transform: scaleY(0.3);
-  }
-}
-
-.rp-now-info {
-  min-width: 0;
-}
-.rp-now-title {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 2px;
-}
-.rp-now-artist {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-/* queue head */
-.rp-queue-head {
+.rp-headline {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 4px 8px;
+  gap: 10px;
 }
-
-.rp-queue-count {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-hint);
+.rp-headline h3 {
+  font-size: 14px;
 }
-
+.rp-create,
+.rp-clear,
+.rp-icon-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 10px;
+}
+.rp-create,
 .rp-clear {
-  font-size: 11px;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--rose);
-  background: var(--rose-bg);
-  border: 1px solid var(--rose-border);
-  border-radius: 999px;
-  padding: 2px 10px;
-  cursor: pointer;
-  transition: all var(--t-fast);
 }
-.rp-clear:hover {
-  filter: brightness(1.1);
+.rp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-
-/* item */
-.rp-item {
+.rp-empty {
+  padding: 28px 14px;
+  text-align: center;
+  border-radius: 16px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.rp-now {
+  padding: 12px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(53, 109, 255, 0.14), rgba(124, 58, 237, 0.08)), var(--surface-2);
+  border: 1px solid var(--border);
+}
+.rp-now__label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 10px;
+}
+.rp-now__row {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 6px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background var(--t-fast);
+  gap: 10px;
 }
-
-.rp-item:hover {
-  background: var(--bg-card-hover);
-}
-
-.rp-item-idx {
-  width: 18px;
-  text-align: center;
-  font-size: 10.5px;
-  color: var(--text-hint);
-  flex-shrink: 0;
-}
-
-.rp-item-cover {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+.rp-now__cover {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   object-fit: cover;
-  border: 1px solid var(--border);
-  flex-shrink: 0;
 }
-
-.rp-item-info {
-  flex: 1;
+.rp-now strong,
+.rp-item__body strong,
+.rp-playlist__body strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+.rp-now span,
+.rp-item__body span,
+.rp-playlist__body span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.rp-item,
+.rp-playlist {
+  min-height: 56px;
+  padding: 8px;
+  border-radius: 16px;
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  transition: 0.18s ease;
+  text-align: left;
+}
+.rp-item {
+  grid-template-columns: 22px 46px minmax(0, 1fr) 28px;
+}
+.rp-playlist {
+  grid-template-columns: 20px minmax(0, 1fr);
+}
+.rp-item:hover,
+.rp-playlist:hover {
+  background: var(--surface-2);
+}
+.rp-item__index {
+  font-size: 10px;
+  color: var(--text-hint);
+  text-align: center;
+}
+.rp-item__cover {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.rp-item__body,
+.rp-playlist__body {
   min-width: 0;
 }
-
-.rp-item-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary);
+.rp-item__body strong,
+.rp-item__body span,
+.rp-playlist__body strong,
+.rp-playlist__body span {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 2px;
 }
-
-.rp-item-artist {
-  font-size: 10.5px;
-  color: var(--text-hint);
-}
-
-.rp-item-actions {
-  display: flex;
-  gap: 3px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity var(--t-fast);
-}
-
-.rp-item:hover .rp-item-actions {
-  opacity: 1;
-}
-
-.rp-act {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
+.rp-icon-btn {
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  cursor: pointer;
-  transition: all var(--t-fast);
 }
-
-.rp-act:hover {
-  background: var(--accent-subtle);
-  border-color: var(--accent-border);
-  color: var(--accent);
-}
-.rp-act--del:hover {
-  background: var(--rose-bg);
-  border-color: var(--rose-border);
-  color: var(--rose);
-}
-.rp-act-ico {
-  width: 12px;
-  height: 12px;
-}
-
-/* transition */
-.rp-fade-enter-active,
-.rp-fade-leave-active {
-  transition: opacity 0.15s ease;
-}
-.rp-fade-enter-from,
-.rp-fade-leave-to {
-  opacity: 0;
+.rp-playlist__color {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
 }

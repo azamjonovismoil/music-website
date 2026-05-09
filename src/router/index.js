@@ -103,6 +103,12 @@ const routes = [
         component: () => import('../pages/profile/ProfilePage.vue'),
         meta: { title: 'Admin profile', hidePlayerBar: true },
       },
+      {
+        path: '/settings',
+        name: 'Settings',
+        component: () => import('../pages/settings/SettingsPage.vue'),
+        meta: { requiresAuth: true, title: 'Settings' },
+      },
     ],
   },
 

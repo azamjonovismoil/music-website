@@ -228,7 +228,7 @@ const onCoverError = (e) => {
   e.target.src = fallbackCover
 }
 
-const resetPlaybackState = () => {
+const resetPlaybackState = ({ keepStoreState = false } = {}) => {
   currentTime.value = 0
   progress.value = 0
   duration.value = 0
@@ -236,7 +236,10 @@ const resetPlaybackState = () => {
   isPlaying.value = false
   isLoading.value = false
   player.setCurrentTime(0)
-  player.setPlaying(false)
+
+  if (!keepStoreState) {
+    player.setPlaying(false)
+  }
 }
 
 const goDetail = () => {
@@ -384,13 +387,13 @@ const showVolHint = () => {
 const onPlaying = () => {
   isLoading.value = false
   isPlaying.value = true
-  player.setPlaying(true)
+  if (!player.isPlaying) player.setPlaying(true)
 }
 
 const onPause = () => {
   isLoading.value = false
   isPlaying.value = false
-  player.setPlaying(false)
+  if (player.isPlaying) player.setPlaying(false)
 }
 
 const onEnded = async () => {
@@ -426,7 +429,7 @@ watch(
     await nextTick()
     if (!audioRef.value) return
 
-    resetPlaybackState()
+    resetPlaybackState({ keepStoreState: true })
     audioRef.value.pause()
     audioRef.value.load()
     audioRef.value.volume = Number(volume.value)
@@ -434,9 +437,33 @@ watch(
     isMuted.value = Number(volume.value) === 0
 
     updateMarquee()
-    await play()
+
+    if (player.isPlaying) {
+      await play()
+    }
   },
   { immediate: true }
+)
+
+watch(
+  () => player.isPlaying,
+  async (nextPlaying) => {
+    if (!audioRef.value || !audioSrc.value) return
+
+    if (nextPlaying) {
+      if (audioRef.value.paused) {
+        try {
+          isLoading.value = true
+          await audioRef.value.play()
+        } catch {
+          isLoading.value = false
+          player.setPlaying(false)
+        }
+      }
+    } else if (!audioRef.value.paused) {
+      audioRef.value.pause()
+    }
+  }
 )
 
 onMounted(() => {
