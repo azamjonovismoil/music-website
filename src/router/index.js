@@ -15,25 +15,41 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: () => import('../pages/auth/LoginPage.vue'),
-    meta: { guestOnly: true, title: 'Login' },
+    meta: {
+      guestOnly: true,
+      title: 'Login',
+      hidePlayerBar: true,
+    },
   },
   {
     path: '/register',
     name: 'Register',
     component: () => import('../pages/auth/RegistrationPage.vue'),
-    meta: { guestOnly: true, title: 'Register' },
+    meta: {
+      guestOnly: true,
+      title: 'Register',
+      hidePlayerBar: true,
+    },
   },
   {
     path: '/forgot-password',
     name: 'ForgotPassword',
     component: () => import('../pages/auth/ForgotPassword.vue'),
-    meta: { guestOnly: true, title: 'Forgot password' },
+    meta: {
+      guestOnly: true,
+      title: 'Forgot password',
+      hidePlayerBar: true,
+    },
   },
   {
     path: '/reset-password',
     name: 'ResetPassword',
     component: () => import('../pages/auth/ResetPassword.vue'),
-    meta: { guestOnly: true, title: 'Reset password' },
+    meta: {
+      guestOnly: true,
+      title: 'Reset password',
+      hidePlayerBar: true,
+    },
   },
 
   {
@@ -58,7 +74,7 @@ const routes = [
 
   {
     path: '/profile',
-    redirect: (to) => {
+    redirect: () => {
       const auth = useAuthStore()
       return auth.isAdmin ? '/admin/profile' : '/user'
     },
@@ -67,25 +83,25 @@ const routes = [
   {
     path: '/admin',
     component: () => import('../layouts/AdminLayout.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true },
+    meta: { requiresAuth: true, requiresAdmin: true, hidePlayerBar: true },
     children: [
       {
         path: '',
-        name: 'Admin',
+        name: 'AdminDashboard',
         component: () => import('../pages/admin/AdminPage.vue'),
-        meta: { title: 'Admin' },
+        meta: { title: 'Dashboard', hidePlayerBar: true },
       },
       {
         path: 'add-music',
-        name: 'AddMusic',
+        name: 'AdminAddMusic',
         component: () => import('../pages/admin/AddMusic.vue'),
-        meta: { title: 'Add music' },
+        meta: { title: 'Add track', hidePlayerBar: true },
       },
       {
         path: 'profile',
         name: 'AdminProfile',
         component: () => import('../pages/profile/ProfilePage.vue'),
-        meta: { title: 'Admin profile' },
+        meta: { title: 'Admin profile', hidePlayerBar: true },
       },
     ],
   },
@@ -94,14 +110,16 @@ const routes = [
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('../pages/system/NotFoundPage.vue'),
-    meta: { title: 'Page not found' },
+    meta: { title: 'Page not found', hidePlayerBar: true },
   },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior: () => ({ top: 0 }),
+  scrollBehavior() {
+    return { top: 0 }
+  },
 })
 
 router.beforeEach(async (to, from, next) => {
@@ -114,18 +132,18 @@ router.beforeEach(async (to, from, next) => {
   const isAuth = auth.isLoggedIn
   const isAdmin = auth.isAdmin
 
-  if (to.meta.guestOnly && isAuth) {
+  if (to.meta?.guestOnly && isAuth) {
     return next(isAdmin ? '/admin' : '/user')
   }
 
-  if (to.meta.requiresAuth && !isAuth) {
+  if (to.meta?.requiresAuth && !isAuth) {
     return next({
       path: '/login',
       query: { redirect: to.fullPath },
     })
   }
 
-  if (to.meta.requiresAdmin && !isAdmin) {
+  if (to.meta?.requiresAdmin && !isAdmin) {
     return next('/user')
   }
 

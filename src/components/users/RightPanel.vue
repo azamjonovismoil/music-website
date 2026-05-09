@@ -122,7 +122,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { PlayIcon, QueueListIcon, SparklesIcon, XMarkIcon } from '@heroicons/vue/24/outline'
-import '@/styles/RightPanel.css'
+import '@/styles/right_panel.css'
 
 const props = defineProps({
   isQueueOpen:     { type: Boolean, default: false },

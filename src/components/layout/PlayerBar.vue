@@ -206,8 +206,14 @@ const hasLyrics = computed(() => {
   return Boolean(String(plain || '').trim() || String(synced || '').trim())
 })
 
-const pct = computed(() => (duration.value ? Math.min((progress.value / duration.value) * 100, 100) : 0))
-const effectiveVol = computed(() => (isMuted.value ? 0 : Math.min(volume.value * 100, 100)))
+const pct = computed(() => {
+  if (!duration.value) return 0
+  return Math.min((progress.value / duration.value) * 100, 100)
+})
+
+const effectiveVol = computed(() => {
+  return isMuted.value ? 0 : Math.min(volume.value * 100, 100)
+})
 
 const fmt = (t) => {
   if (!t || Number.isNaN(t)) return '0:00'
@@ -233,12 +239,29 @@ const resetPlaybackState = () => {
   player.setPlaying(false)
 }
 
-const goDetail = () => props.music && emit('open-detail', props.music)
-const goArtistDetail = () => props.music?.artist && emit('open-artist', props.music.artist)
-const handleToggleLike = () => props.music && emit('toggle-like', props.music)
-const handleAddToPlaylist = () => props.music && !isAdmin.value && emit('add-to-playlist', props.music)
-const handleLyricsOpen = () => props.music && !isAdmin.value && hasLyrics.value && emit('open-lyrics', props.music)
-const handleExpand = () => props.music && !isAdmin.value && emit('expand', props.music)
+const goDetail = () => {
+  if (props.music) emit('open-detail', props.music)
+}
+
+const goArtistDetail = () => {
+  if (props.music?.artist) emit('open-artist', props.music.artist)
+}
+
+const handleToggleLike = () => {
+  if (props.music) emit('toggle-like', props.music)
+}
+
+const handleAddToPlaylist = () => {
+  if (props.music && !isAdmin.value) emit('add-to-playlist', props.music)
+}
+
+const handleLyricsOpen = () => {
+  if (props.music && !isAdmin.value && hasLyrics.value) emit('open-lyrics', props.music)
+}
+
+const handleExpand = () => {
+  if (props.music && !isAdmin.value) emit('expand', props.music)
+}
 
 const play = async () => {
   if (!audioRef.value || !audioSrc.value) return
@@ -263,11 +286,17 @@ const togglePlay = () => {
 }
 
 const cycleRepeat = () => {
-  repeatMode.value = repeatMode.value === 'off' ? 'all' : repeatMode.value === 'all' ? 'one' : 'off'
+  repeatMode.value =
+    repeatMode.value === 'off'
+      ? 'all'
+      : repeatMode.value === 'all'
+        ? 'one'
+        : 'off'
 }
 
 const handleNext = () => {
-  isShuffle.value ? emit('shuffle-next') : emit('next')
+  if (isShuffle.value) emit('shuffle-next')
+  else emit('next')
 }
 
 const onTimeUpdate = () => {
@@ -285,7 +314,9 @@ const onProgress = () => {
   if (!audioRef.value || !duration.value) return
   try {
     const b = audioRef.value.buffered
-    if (b.length) buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
+    if (b.length) {
+      buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
+    }
   } catch { }
 }
 
@@ -324,6 +355,7 @@ const changeVol = () => {
 
 const toggleMute = () => {
   if (!audioRef.value) return
+
   if (isMuted.value || Number(volume.value) === 0) {
     const restored = lastVol.value > 0 ? lastVol.value : 0.7
     volume.value = restored
@@ -337,6 +369,7 @@ const toggleMute = () => {
     audioRef.value.muted = true
     isMuted.value = true
   }
+
   showVolHint()
 }
 
@@ -372,7 +405,8 @@ const onEnded = async () => {
   }
 
   player.setPlaying(false)
-  isShuffle.value ? emit('shuffle-next') : emit('next')
+  if (isShuffle.value) emit('shuffle-next')
+  else emit('next')
 }
 
 watch(
@@ -400,12 +434,7 @@ watch(
     isMuted.value = Number(volume.value) === 0
 
     updateMarquee()
-
-    if (player.isPlaying) {
-      await play()
-    } else {
-      await play()
-    }
+    await play()
   },
   { immediate: true }
 )
@@ -418,5 +447,7 @@ onMounted(() => {
   updateMarquee()
 })
 
-onBeforeUnmount(() => clearTimeout(volTimer))
+onBeforeUnmount(() => {
+  clearTimeout(volTimer)
+})
 </script>
