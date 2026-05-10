@@ -7,7 +7,7 @@ const routes = [
   {
     path: '/',
     name: 'Landing',
-    component: () => import('../pages/landing/LandingPage.vue'),
+    component: () => import('../pages/home/LandingPage.vue'),
     meta: { title: 'Welcome', hidePlayerBar: true },
   },
   {
@@ -49,7 +49,7 @@ const routes = [
   {
     path: '/track/:id',
     name: 'TrackDetail',
-    component: () => import('../pages/tracks/TrackDetailPage.vue'),
+    component: () => import('../components/users/TrackDetail.vue'),
     meta: { requiresAuth: true, title: 'Track' },
   },
   {
