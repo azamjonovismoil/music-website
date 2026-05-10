@@ -49,7 +49,6 @@
         </div>
       </div>
 
-      <!-- FIX #5: Profile at bottom, dropdown opens UPWARD -->
       <div class="profile-box">
         <div v-if="profileMenu" class="profile-dropdown profile-dropdown--up">
           <router-link to="/profile" class="profile-dropdown__item" @click="profileMenu = false">
@@ -104,7 +103,6 @@
             </button>
           </div>
 
-          <!-- FIX #4: search with / keybind -->
           <div class="topbar__search" :class="{ focused: searchFocused }">
             <MagnifyingGlassIcon class="search-ico" />
             <input ref="searchInputRef" v-model="search" type="text" placeholder="Search songs, artists, genres…"
@@ -117,7 +115,6 @@
         </div>
       </header>
 
-      <!-- FIX #8: Recently Played section at top (home tab) -->
       <section v-if="tab === 'home' && recentlyPlayed.length" class="recent-section">
         <div class="recent-section__head">
           <ClockIcon class="recent-icon" />
@@ -140,7 +137,6 @@
         </div>
       </section>
 
-      <!-- Featured hero (home tab) -->
       <section v-if="featuredTrack && tab === 'home'" class="hero">
         <div class="hero__bg">
           <img :src="resolveCover(featuredTrack)" alt="" @error="imgErr" />
@@ -222,7 +218,6 @@
           <p>Try a different search or playlist.</p>
         </div>
 
-        <!-- FIX #4: Smaller cards -->
         <div v-else class="track-grid">
           <article v-for="t in list" :key="t._id" class="track-card track-card--cover"
             :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="openTrackModal(t)">
@@ -267,7 +262,6 @@
       </div>
     </aside>
 
-    <!-- FIX #7: Track detail opens as centered modal (Spotify-style) -->
     <Teleport to="body">
       <Transition name="track-modal">
         <div v-if="trackModalOpen && modalTrack" class="track-modal-overlay" @click.self="trackModalOpen = false">
@@ -283,8 +277,9 @@
                 <p class="track-modal-kicker">Track</p>
                 <h2 class="track-modal-title">{{ modalTrack.title }}</h2>
                 <p class="track-modal-artist">
-                  <span class="track-modal-artist-link" @click="openArtist(modalTrack.artist)">{{ modalTrack.artist ||
-                    'Unknown' }}</span>
+                  <span class="track-modal-artist-link" @click="openArtist(modalTrack.artist)">
+                    {{ modalTrack.artist || 'Unknown' }}
+                  </span>
                   <template v-if="modalTrack.album">
                     <span class="track-modal-dot">·</span>
                     <span>{{ modalTrack.album }}</span>
@@ -337,17 +332,17 @@
               </div>
               <p class="track-modal-lyrics-text">{{ modalDisplayLyrics }}</p>
               <button v-if="modalTrack.lyrics.length > 400 && !lyricsExpanded" class="track-modal-lyrics-more"
-                @click="lyricsExpanded = true">
+                type="button" @click="lyricsExpanded = true">
                 Show all
               </button>
             </div>
 
-            <!-- Recommendations in modal -->
             <div v-if="modalRecommendations.length" class="track-modal-recs">
               <h4>You might also like</h4>
               <div class="track-modal-recs-list">
-                <button v-for="r in modalRecommendations" :key="r._id" type="button" class="track-modal-rec-item"
-                  @click="openTrackModal(r)">
+                <div v-for="r in modalRecommendations" :key="r._id" class="track-modal-rec-item" role="button"
+                  tabindex="0" @click="openTrackModal(r)" @keydown.enter="openTrackModal(r)"
+                  @keydown.space.prevent="openTrackModal(r)">
                   <img class="track-modal-rec-cover" :src="resolveCover(r)" :alt="r.title" @error="imgErr" />
                   <div class="track-modal-rec-meta">
                     <strong>{{ r.title }}</strong>
@@ -356,7 +351,7 @@
                   <button class="rp-icon-btn" type="button" @click.stop="toggleTrack(r)">
                     <PlayIcon class="rp-item__icon" />
                   </button>
-                </button>
+                </div>
               </div>
             </div>
           </div>
@@ -434,7 +429,6 @@ const showCreatePlaylist = ref(false)
 const playlistLoading = ref(false)
 const recentlyPlayed = ref([])
 
-// Track modal state (FIX #7)
 const trackModalOpen = ref(false)
 const modalTrack = ref(null)
 const lyricsExpanded = ref(false)
@@ -462,6 +456,9 @@ const navItems = [
   { id: 'library', label: 'Library' },
 ]
 
+const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
+const MAX_RECENT = 6
+
 const initial = computed(() => (authStore.user?.name || 'U')[0].toUpperCase())
 const featuredTrack = computed(() => tracks.value.find((t) => t.isFeatured) || tracks.value[0] || null)
 
@@ -472,7 +469,6 @@ const recommendations = computed(() =>
     .slice(0, 8)
 )
 
-// Modal computed
 const modalTags = computed(() => {
   if (!modalTrack.value) return []
   return [
@@ -509,7 +505,6 @@ const modalDisplayLyrics = computed(() => {
   return modalTrack.value.lyrics.slice(0, 400) + '…'
 })
 
-// Recommendations based on same genre/mood as modal track (FIX #7)
 const modalRecommendations = computed(() => {
   if (!modalTrack.value) return []
   const currentGenres = new Set(modalTrack.value.genre || [])
@@ -596,14 +591,10 @@ const fetchPlaylists = async () => {
   }
 }
 
-// Recently played: stored in localStorage keyed by user id
-const RECENT_KEY = `rp_${authStore.user?._id || 'u'}`
-const MAX_RECENT = 6
-
 const loadRecentlyPlayed = () => {
   try {
-    const raw = localStorage.getItem(RECENT_KEY)
-    if (raw) recentlyPlayed.value = JSON.parse(raw)
+    const raw = localStorage.getItem(RECENT_KEY.value)
+    recentlyPlayed.value = raw ? JSON.parse(raw) : []
   } catch {
     recentlyPlayed.value = []
   }
@@ -613,7 +604,7 @@ const saveRecentlyPlayed = (track) => {
   const prev = recentlyPlayed.value.filter((t) => t._id !== track._id)
   recentlyPlayed.value = [track, ...prev].slice(0, MAX_RECENT)
   try {
-    localStorage.setItem(RECENT_KEY, JSON.stringify(recentlyPlayed.value))
+    localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
   } catch { }
 }
 
@@ -653,7 +644,6 @@ const toggleTrack = (track) => {
   trackPlay(track)
 }
 
-// FIX #7: Open track detail as modal
 const openTrackModal = (track) => {
   if (!track?._id) return
   modalTrack.value = track
@@ -716,25 +706,35 @@ const like = async (track) => {
 
   if (idx !== -1) {
     const current = tracks.value[idx]
+    const nextLiked = !current.liked
     tracks.value[idx] = {
       ...current,
-      liked: !current.liked,
-      likeCount: current.liked
-        ? Math.max(0, (current.likeCount || 0) - 1)
-        : (current.likeCount || 0) + 1,
+      liked: nextLiked,
+      likeCount: nextLiked
+        ? (current.likeCount || 0) + 1
+        : Math.max(0, (current.likeCount || 0) - 1),
     }
-  }
 
-  // Also update modal track if open
-  if (modalTrack.value?._id === track._id) {
-    modalTrack.value = { ...modalTrack.value, liked: !track.liked }
+    if (modalTrack.value?._id === track._id) {
+      modalTrack.value = { ...tracks.value[idx] }
+    }
   }
 
   try {
     const { data } = await api.patch(`/music/${track._id}/like`)
-    if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...data }
+    if (idx !== -1) {
+      tracks.value[idx] = { ...tracks.value[idx], ...data }
+      if (modalTrack.value?._id === track._id) {
+        modalTrack.value = { ...tracks.value[idx] }
+      }
+    }
   } catch {
-    if (idx !== -1 && prev) tracks.value[idx] = prev
+    if (idx !== -1 && prev) {
+      tracks.value[idx] = prev
+      if (modalTrack.value?._id === track._id) {
+        modalTrack.value = { ...prev }
+      }
+    }
   } finally {
     const set = new Set(likeInFlight.value)
     set.delete(track._id)
@@ -748,16 +748,18 @@ const openArtist = (artist) => {
   router.push({ name: 'Artist', params: { slug: encodeURIComponent(String(artist).trim()) } })
 }
 
-const imgErr = (e) => { e.target.src = fallbackCover }
+const imgErr = (e) => {
+  e.target.src = fallbackCover
+}
 
 const logout = async () => {
   await authStore.logout()
   router.push('/')
 }
 
-// FIX #4: "/" keybind for search
 const handleKeyDown = (e) => {
-  if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+  const tag = document.activeElement?.tagName
+  if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
     e.preventDefault()
     searchInputRef.value?.focus()
   }
@@ -772,6 +774,9 @@ const handleToggleLike = (e) => {
   const incoming = e.detail
   const idx = tracks.value.findIndex((t) => String(t._id) === String(incoming?._id))
   if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...incoming }
+  if (modalTrack.value?._id === incoming?._id && idx !== -1) {
+    modalTrack.value = { ...tracks.value[idx] }
+  }
 }
 
 const handleAddToPlaylist = (e) => openAddToPlaylist(e.detail)

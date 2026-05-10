@@ -16,7 +16,6 @@
     </div>
 
     <div class="rp-body">
-      <!-- Queue tab -->
       <section v-if="tab === 'queue'" class="rp-section">
         <div v-if="currentMusic" class="rp-now">
           <p class="rp-now__label">Now playing</p>
@@ -44,8 +43,9 @@
         </div>
 
         <div v-else class="rp-list">
-          <button v-for="(item, i) in queue" :key="`${item._id}-${i}`" class="rp-item rp-item--queue" type="button"
-            @click="$emit('play-track', item)">
+          <div v-for="(item, i) in queue" :key="`${item._id}-${i}`" class="rp-item rp-item--queue" role="button"
+            tabindex="0" @click="$emit('play-track', item)" @keydown.enter="$emit('play-track', item)"
+            @keydown.space.prevent="$emit('play-track', item)">
             <span class="rp-item__index">{{ i + 1 }}</span>
             <img :src="getCover(item)" class="rp-item__cover" alt="" />
             <div class="rp-item__body">
@@ -55,11 +55,10 @@
             <button class="rp-icon-btn danger" type="button" @click.stop="$emit('remove-from-queue', item._id)">
               <XMarkIcon class="rp-item__icon" />
             </button>
-          </button>
+          </div>
         </div>
       </section>
 
-      <!-- Recommendations tab -->
       <section v-else class="rp-section">
         <div class="rp-headline">
           <h3>Recommended</h3>
@@ -73,8 +72,9 @@
         </div>
 
         <div v-else class="rp-list">
-          <button v-for="track in recommendations" :key="track._id" class="rp-item rp-item--rec" type="button"
-            @click="$emit('play-track', track)">
+          <div v-for="track in recommendations" :key="track._id" class="rp-item rp-item--rec" role="button" tabindex="0"
+            @click="$emit('play-track', track)" @keydown.enter="$emit('play-track', track)"
+            @keydown.space.prevent="$emit('play-track', track)">
             <img :src="getCover(track)" class="rp-item__cover" alt="" />
             <div class="rp-item__body">
               <strong>{{ track.title }}</strong>
@@ -83,7 +83,7 @@
             <button class="rp-icon-btn" type="button" @click.stop="$emit('add-to-queue', track)">
               <PlusIcon class="rp-item__icon" />
             </button>
-          </button>
+          </div>
         </div>
       </section>
     </div>
