@@ -277,7 +277,7 @@ import {
   ArrowsRightLeftIcon,
   LockClosedIcon,
 } from '@heroicons/vue/24/outline'
-import AuthRequiredModal from '@/components/users/AuthRequiredModal.vue'
+import AuthRequiredModal from '@/modals/AuthRequiredModal.vue'
 import { API_ROOT } from '@/utils/media'
 import '@/styles/landing_page.css'
 
