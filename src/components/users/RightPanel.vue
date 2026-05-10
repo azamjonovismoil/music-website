@@ -16,6 +16,7 @@
     </div>
 
     <div class="rp-body">
+      <!-- Queue tab -->
       <section v-if="tab === 'queue'" class="rp-section">
         <div v-if="currentMusic" class="rp-now">
           <p class="rp-now__label">Now playing</p>
@@ -30,7 +31,7 @@
 
         <div class="rp-headline">
           <h3>Queue</h3>
-          <button class="rp-clear" type="button" @click="$emit('clear-queue')">
+          <button v-if="queue.length" class="rp-clear" type="button" @click="$emit('clear-queue')">
             <TrashIcon class="rp-action-icon" />
             <span>Clear</span>
           </button>
@@ -39,10 +40,11 @@
         <div v-if="!queue.length" class="rp-empty">
           <QueueListIcon class="rp-empty__icon" />
           <p>Queue is empty</p>
+          <small>Add tracks to start a queue</small>
         </div>
 
         <div v-else class="rp-list">
-          <button v-for="(item, i) in queue" :key="`${item._id}-${i}`" class="rp-item" type="button"
+          <button v-for="(item, i) in queue" :key="`${item._id}-${i}`" class="rp-item rp-item--queue" type="button"
             @click="$emit('play-track', item)">
             <span class="rp-item__index">{{ i + 1 }}</span>
             <img :src="getCover(item)" class="rp-item__cover" alt="" />
@@ -57,18 +59,21 @@
         </div>
       </section>
 
+      <!-- Recommendations tab -->
       <section v-else class="rp-section">
         <div class="rp-headline">
           <h3>Recommended</h3>
+          <span class="rp-sub">Based on your taste</span>
         </div>
 
         <div v-if="!recommendations.length" class="rp-empty">
           <SparklesIcon class="rp-empty__icon" />
           <p>No recommendations yet</p>
+          <small>Play some tracks first</small>
         </div>
 
         <div v-else class="rp-list">
-          <button v-for="track in recommendations" :key="track._id" class="rp-item" type="button"
+          <button v-for="track in recommendations" :key="track._id" class="rp-item rp-item--rec" type="button"
             @click="$emit('play-track', track)">
             <img :src="getCover(track)" class="rp-item__cover" alt="" />
             <div class="rp-item__body">

@@ -1,3 +1,4 @@
+/* ─── existing landing styles (kept intact) ─── */
 .landing {
   min-height: 100vh;
   background:
@@ -101,11 +102,11 @@
   width: 20px;
   height: 20px;
 }
-
 .lp-mobile {
   display: none;
 }
 
+/* ─── hero ─── */
 .lp-hero {
   position: relative;
   overflow: hidden;
@@ -132,7 +133,6 @@
   height: 260px;
   background: rgba(37, 99, 235, 0.22);
 }
-
 .lp-orb--2 {
   top: 10%;
   right: 8%;
@@ -140,7 +140,6 @@
   height: 260px;
   background: rgba(139, 92, 246, 0.2);
 }
-
 .lp-orb--3 {
   bottom: 6%;
   left: 44%;
@@ -244,7 +243,6 @@
   display: block;
   font-size: 20px;
 }
-
 .lp-stat span {
   display: block;
   margin-top: 4px;
@@ -313,9 +311,11 @@
 }
 .lp-player-card__eq span:nth-child(2) {
   height: 16px;
+  animation-delay: 0.2s;
 }
 .lp-player-card__eq span:nth-child(3) {
   height: 11px;
+  animation-delay: 0.4s;
 }
 
 @keyframes lpEq {
@@ -341,7 +341,6 @@
   margin-top: 8px;
   font-size: 24px;
 }
-
 .lp-player-card span {
   display: block;
   margin-top: 4px;
@@ -435,12 +434,159 @@
   color: var(--text-muted);
   margin-bottom: 8px;
 }
-
 .lp-lyrics-card p.active {
   color: #fff;
   font-weight: 700;
 }
 
+/* ─── music preview section ─── */
+.lp-music-preview {
+  padding: 48px 0 20px;
+}
+
+.lp-music-preview__head {
+  margin-bottom: 24px;
+}
+
+.lp-preview-sub {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.lp-track-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.lp-track-skeleton {
+  aspect-ratio: 1;
+  border-radius: 20px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  animation: lp-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes lp-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.lp-track-card {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.lp-track-card:hover {
+  transform: translateY(-4px);
+}
+
+.lp-track-card__img-wrap {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+}
+
+.lp-track-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.lp-track-card__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 10, 18, 0.58);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  backdrop-filter: blur(2px);
+}
+
+.lp-track-card:hover .lp-track-card__overlay {
+  opacity: 1;
+}
+
+.lp-track-card__play-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+  display: grid;
+  place-items: center;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(53, 109, 255, 0.35);
+}
+
+.lp-tc-ico {
+  width: 22px;
+  height: 22px;
+  margin-left: 2px;
+}
+
+.lp-track-card__lock {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(10, 16, 32, 0.72);
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lp-lock-ico {
+  width: 14px;
+  height: 14px;
+}
+
+.lp-track-card__meta {
+  margin-top: 10px;
+  padding: 0 2px;
+}
+
+.lp-track-card__meta strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-track-card__meta span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-preview-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+/* ─── features ─── */
 .lp-features,
 .lp-cta {
   padding: 44px 0 20px;
@@ -480,17 +626,16 @@
   width: 20px;
   height: 20px;
 }
-
 .lp-feature-card h3 {
   font-size: 17px;
 }
-
 .lp-feature-card p {
   margin-top: 8px;
   color: var(--text-secondary);
   font-size: 13px;
 }
 
+/* ─── cta ─── */
 .lp-cta__box {
   position: relative;
   overflow: hidden;
@@ -515,17 +660,16 @@
   z-index: 1;
   max-width: 620px;
 }
-
 .lp-cta__content h2 {
   font-size: clamp(28px, 4vw, 42px);
 }
-
 .lp-cta__content p:not(.page-label) {
   margin-top: 10px;
   color: var(--text-secondary);
   font-size: 14px;
 }
 
+/* ─── footer ─── */
 .lp-footer {
   padding: 36px 0 24px;
 }
@@ -552,6 +696,7 @@
   font-size: 13px;
 }
 
+/* ─── responsive ─── */
 @media (max-width: 980px) {
   .lp-nav__links {
     display: none;
@@ -598,30 +743,33 @@
   .lp-feature-grid {
     grid-template-columns: 1fr 1fr;
   }
+
+  .lp-track-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
   .lp-nav__inner {
     height: 66px;
   }
-
   .lp-title {
     font-size: 42px;
   }
-
   .lp-subtitle {
     font-size: 14px;
   }
-
   .lp-player-card {
     grid-template-columns: 1fr;
   }
-
   .lp-feature-grid {
     grid-template-columns: 1fr;
   }
-
   .lp-cta__box {
     padding: 22px;
+  }
+  .lp-track-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 }
