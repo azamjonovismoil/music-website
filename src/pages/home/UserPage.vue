@@ -15,10 +15,10 @@
         </button>
       </div>
 
-      <div class="sidebar-search-mobile">
-        <div class="topbar__search">
+      <div class="sidebar-search">
+        <div class="sidebar-search__box">
           <MagnifyingGlassIcon class="search-ico" />
-          <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
+          <input v-model="search" type="text" placeholder="Search songs, artists, albums, genres..." />
           <button v-if="search" type="button" @click="search = ''">
             <XMarkIcon class="ui-ico" />
           </button>
@@ -29,7 +29,7 @@
         <div class="side-playlists">
           <div class="side-head-row">
             <h4>Your playlists</h4>
-            <button class="side-create-btn" type="button" @click="showCreatePlaylist = true">
+            <button class="side-create-btn" type="button" @click="openCreatePlaylist">
               <PlusIcon class="ui-ico" />
             </button>
           </div>
@@ -38,14 +38,27 @@
             <p>No playlists yet</p>
           </div>
 
-          <button v-for="pl in playlists" :key="pl._id" type="button" class="side-playlist"
-            :class="{ active: selectedPlaylist?._id === pl._id }" @click="selectPlaylist(pl)">
-            <span class="side-playlist__color" :style="{ background: pl.color || playlistColors[0] }" />
-            <div class="side-playlist__body">
-              <strong>{{ pl.name }}</strong>
-              <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
+          <div v-for="pl in playlists" :key="pl._id" class="side-playlist-wrap">
+            <button type="button" class="side-playlist" :class="{ active: selectedPlaylist?._id === pl._id }"
+              @click="selectPlaylist(pl)">
+              <span class="side-playlist__color" :style="{ background: pl.color || playlistColors[0] }" />
+              <div class="side-playlist__body">
+                <strong>{{ pl.name }}</strong>
+                <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
+              </div>
+            </button>
+
+            <div v-if="selectedPlaylist?._id === pl._id" class="side-playlist__actions">
+              <button class="side-action-btn" type="button" @click.stop="openEditPlaylist(pl)">
+                <PencilSquareIcon class="side-action-icon" />
+                <span>Edit</span>
+              </button>
+              <button class="side-action-btn danger" type="button" @click.stop="deletePlaylist(pl)">
+                <TrashIcon class="side-action-icon" />
+                <span>Delete</span>
+              </button>
             </div>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -80,46 +93,24 @@
 
     <main class="music-main">
       <header class="topbar">
-        <div class="topbar__row topbar__row--main">
-          <div class="topbar__left">
-            <button class="menu-btn" type="button" @click="sidebarOpen = true">
-              <Bars3Icon class="ui-ico" />
-            </button>
+        <div class="topbar__left">
+          <button class="menu-btn" type="button" @click="sidebarOpen = true">
+            <Bars3Icon class="ui-ico" />
+          </button>
 
-            <div class="topbar__heading">
-              <h1>{{ sectionTitle }}</h1>
-              <p>{{ sectionKicker }}</p>
-            </div>
-          </div>
-
-          <router-link to="/profile" class="topbar__avatar">{{ initial }}</router-link>
-        </div>
-
-        <div class="topbar__row topbar__row--search">
-          <div class="topbar__tabs">
-            <button v-for="item in navItems" :key="item.id" type="button" class="topbar__tab"
-              :class="{ active: tab === item.id }" @click="setTab(item.id)">
-              {{ item.label }}
-            </button>
-          </div>
-
-          <div class="topbar__search" :class="{ focused: searchFocused }">
-            <MagnifyingGlassIcon class="search-ico" />
-            <input ref="searchInputRef" v-model="search" type="text" placeholder="Search songs, artists, genres…"
-              @focus="searchFocused = true" @blur="searchFocused = false" />
-            <kbd v-if="!searchFocused && !search" class="search-kbd">/</kbd>
-            <button v-if="search" type="button" @click="search = ''">
-              <XMarkIcon class="ui-ico" />
-            </button>
+          <div class="topbar__heading">
+            <h1>{{ activeSectionTitle }}</h1>
+            <p>{{ sectionKicker }}</p>
           </div>
         </div>
       </header>
 
-      <section v-if="tab === 'home' && recentlyPlayed.length" class="recent-section">
+      <section v-if="recentlyPlayed.length" class="recent-section">
         <div class="recent-section__head">
           <ClockIcon class="recent-icon" />
           <h3>Recently played</h3>
         </div>
+
         <div class="recent-list">
           <button v-for="t in recentlyPlayed" :key="t._id" type="button" class="recent-item"
             :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
@@ -137,69 +128,11 @@
         </div>
       </section>
 
-      <section v-if="featuredTrack && tab === 'home'" class="hero">
-        <div class="hero__bg">
-          <img :src="resolveCover(featuredTrack)" alt="" @error="imgErr" />
-        </div>
-
-        <div class="hero__content">
-          <div class="hero__cover-wrap">
-            <div class="hero__cover" @click="openTrackModal(featuredTrack)">
-              <img :src="resolveCover(featuredTrack)" :alt="featuredTrack.title" @error="imgErr" />
-            </div>
-
-            <button type="button" class="hero__play" @click.stop="toggleTrack(featuredTrack)">
-              <PauseIcon v-if="playerStore.currentTrack?._id === featuredTrack._id && playerStore.isPlaying"
-                class="hero__play-ico" />
-              <PlayIcon v-else class="hero__play-ico hero__play-ico--shift" />
-            </button>
-          </div>
-
-          <div class="hero__meta">
-            <p class="hero__eyebrow">Featured track</p>
-            <h2>{{ featuredTrack.title }}</h2>
-            <p class="hero__artist">{{ featuredTrack.artist }}</p>
-
-            <div class="hero__chips">
-              <span v-for="g in (featuredTrack.genre || []).slice(0, 3)" :key="g">{{ g }}</span>
-              <span v-if="featuredTrack.releaseType">{{ featuredTrack.releaseType }}</span>
-              <span v-if="featuredTrack.bpm">{{ featuredTrack.bpm }} BPM</span>
-            </div>
-
-            <div class="hero__actions">
-              <button class="btn btn-primary" type="button" @click="toggleTrack(featuredTrack)">
-                <PlayIcon class="btn-ico btn-ico--shift" />
-                <span>Play now</span>
-              </button>
-
-              <button class="btn btn-ghost" type="button" @click="like(featuredTrack)">
-                <HeartIcon class="btn-ico" />
-                <span>{{ featuredTrack.liked ? 'Liked' : 'Like' }}</span>
-              </button>
-
-              <button class="btn btn-ghost" type="button" @click="openAddToPlaylist(featuredTrack)">
-                <PlusIcon class="btn-ico" />
-                <span>Playlist</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section class="content-section">
         <div class="content-section__head">
           <div>
             <p class="section-kicker">{{ sectionKicker }}</p>
             <h2>{{ activeSectionTitle }}</h2>
-          </div>
-
-          <div class="toolbar">
-            <select v-model="sortBy" class="toolbar__select">
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="title-asc">Title A-Z</option>
-              <option value="artist-asc">Artist A-Z</option>
-            </select>
           </div>
         </div>
 
@@ -220,33 +153,20 @@
 
         <div v-else class="track-grid">
           <article v-for="t in list" :key="t._id" class="track-card track-card--cover"
-            :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="openTrackModal(t)">
+            :class="{ playing: playerStore.currentTrack?._id === t._id }">
             <img class="track-card__img" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
 
             <div class="track-card__overlay">
-              <div class="track-card__top">
-                <button class="track-card__icon like" type="button" @click.stop="like(t)">
-                  <HeartIcon v-if="!t.liked" class="card-ico" />
-                  <HeartSolid v-else class="card-ico liked" />
-                </button>
-              </div>
-
-              <div class="track-card__center">
-                <button class="track-card__icon add" type="button" @click.stop="openAddToPlaylist(t)">
-                  <PlusIcon class="card-ico" />
-                </button>
-
-                <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
-                  <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
-                    class="card-play-ico" />
-                  <PlayIcon v-else class="card-play-ico card-play-ico--shift" />
-                </button>
-              </div>
-
               <div class="track-card__meta">
                 <strong>{{ t.title }}</strong>
-                <span @click.stop="openArtist(t.artist)">{{ t.artist }}</span>
+                <span>{{ t.artist }}</span>
               </div>
+
+              <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
+                <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
+                  class="card-play-ico" />
+                <PlayIcon v-else class="card-play-ico card-play-ico--shift" />
+              </button>
             </div>
           </article>
         </div>
@@ -262,110 +182,14 @@
       </div>
     </aside>
 
-    <Teleport to="body">
-      <Transition name="track-modal">
-        <div v-if="trackModalOpen && modalTrack" class="track-modal-overlay" @click.self="trackModalOpen = false">
-          <div class="track-modal-card">
-            <button class="track-modal-close" type="button" @click="trackModalOpen = false">
-              <XMarkIcon class="ui-ico" />
-            </button>
-
-            <div class="track-modal-hero">
-              <img class="track-modal-cover" :src="resolveCover(modalTrack)" :alt="modalTrack.title" @error="imgErr" />
-
-              <div class="track-modal-info">
-                <p class="track-modal-kicker">Track</p>
-                <h2 class="track-modal-title">{{ modalTrack.title }}</h2>
-                <p class="track-modal-artist">
-                  <span class="track-modal-artist-link" @click="openArtist(modalTrack.artist)">
-                    {{ modalTrack.artist || 'Unknown' }}
-                  </span>
-                  <template v-if="modalTrack.album">
-                    <span class="track-modal-dot">·</span>
-                    <span>{{ modalTrack.album }}</span>
-                  </template>
-                </p>
-
-                <div class="track-modal-tags" v-if="modalTags.length">
-                  <span v-for="tag in modalTags.slice(0, 6)" :key="tag" class="track-modal-tag">{{ tag }}</span>
-                </div>
-
-                <div class="track-modal-actions">
-                  <button class="btn btn-primary" type="button"
-                    @click="toggleTrack(modalTrack); trackModalOpen = false">
-                    <PlayIcon class="btn-ico btn-ico--shift" />
-                    <span>Play</span>
-                  </button>
-                  <button class="btn btn-ghost" type="button" @click="like(modalTrack)">
-                    <HeartIcon class="btn-ico" />
-                    <span>{{ modalTrack.liked ? 'Liked' : 'Like' }}</span>
-                  </button>
-                  <button class="btn btn-ghost" type="button" @click="addToQueue(modalTrack); trackModalOpen = false">
-                    <QueueListIcon class="btn-ico" />
-                    <span>Queue</span>
-                  </button>
-                  <button class="btn btn-ghost" type="button"
-                    @click="openAddToPlaylist(modalTrack); trackModalOpen = false">
-                    <PlusIcon class="btn-ico" />
-                    <span>Playlist</span>
-                  </button>
-                  <router-link :to="`/track/${modalTrack._id}`" class="btn btn-ghost" @click="trackModalOpen = false">
-                    <ArrowTopRightOnSquareIcon class="btn-ico" />
-                    <span>Full page</span>
-                  </router-link>
-                </div>
-
-                <div class="track-modal-meta" v-if="modalMetaItems.length">
-                  <div v-for="m in modalMetaItems" :key="m.label" class="track-modal-meta-item">
-                    <span class="track-modal-meta-label">{{ m.label }}</span>
-                    <span class="track-modal-meta-val">{{ m.value }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="modalTrack.lyrics" class="track-modal-lyrics">
-              <div class="track-modal-lyrics-head">
-                <MicrophoneIcon class="track-modal-lyrics-ico" />
-                <span>Lyrics</span>
-                <span class="track-modal-lyrics-count">{{ modalLyricLines }} lines</span>
-              </div>
-              <p class="track-modal-lyrics-text">{{ modalDisplayLyrics }}</p>
-              <button v-if="modalTrack.lyrics.length > 400 && !lyricsExpanded" class="track-modal-lyrics-more"
-                type="button" @click="lyricsExpanded = true">
-                Show all
-              </button>
-            </div>
-
-            <div v-if="modalRecommendations.length" class="track-modal-recs">
-              <h4>You might also like</h4>
-              <div class="track-modal-recs-list">
-                <div v-for="r in modalRecommendations" :key="r._id" class="track-modal-rec-item" role="button"
-                  tabindex="0" @click="openTrackModal(r)" @keydown.enter="openTrackModal(r)"
-                  @keydown.space.prevent="openTrackModal(r)">
-                  <img class="track-modal-rec-cover" :src="resolveCover(r)" :alt="r.title" @error="imgErr" />
-                  <div class="track-modal-rec-meta">
-                    <strong>{{ r.title }}</strong>
-                    <span>{{ r.artist }}</span>
-                  </div>
-                  <button class="rp-icon-btn" type="button" @click.stop="toggleTrack(r)">
-                    <PlayIcon class="rp-item__icon" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
       @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
 
-    <CreatePlaylists :open="showCreatePlaylist" :loading="playlistLoading" :isEdit="false" :name="playlistForm.name"
-      :description="playlistForm.description" :selectedColor="playlistForm.color" :colors="playlistColors"
-      @close="showCreatePlaylist = false" @submit="createPlaylist" @update:name="playlistForm.name = $event"
-      @update:description="playlistForm.description = $event" @update:color="playlistForm.color = $event" />
+    <CreatePlaylists :open="showCreatePlaylist" :loading="playlistLoading" :isEdit="isEditingPlaylist"
+      :name="playlistForm.name" :description="playlistForm.description" :selectedColor="playlistForm.color"
+      :colors="playlistColors" @close="closePlaylistModal" @submit="submitPlaylistForm"
+      @update:name="playlistForm.name = $event" @update:description="playlistForm.description = $event"
+      @update:color="playlistForm.color = $event" />
   </div>
 </template>
 
@@ -390,16 +214,13 @@ import {
   ChevronDownIcon,
   PlayIcon,
   PauseIcon,
-  HeartIcon,
   ClockIcon,
-  QueueListIcon,
-  MicrophoneIcon,
   UserIcon,
   Cog6ToothIcon,
   ArrowLeftOnRectangleIcon,
-  ArrowTopRightOnSquareIcon,
+  PencilSquareIcon,
+  TrashIcon,
 } from '@heroicons/vue/24/outline'
-import { HeartIcon as HeartSolid } from '@heroicons/vue/24/solid'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -412,26 +233,18 @@ const api = axios.create({
 
 const sidebarOpen = ref(false)
 const profileMenu = ref(false)
-const tab = ref('home')
-const search = ref('')
-const searchFocused = ref(false)
-const searchInputRef = ref(null)
-const sortBy = ref('newest')
 const loading = ref(false)
 const errMsg = ref('')
 const tracks = ref([])
 const playlists = ref([])
-const likeInFlight = ref(new Set())
 const selectedTrack = ref(null)
 const selectedPlaylist = ref(null)
 const showAddToPlaylist = ref(false)
 const showCreatePlaylist = ref(false)
 const playlistLoading = ref(false)
 const recentlyPlayed = ref([])
-
-const trackModalOpen = ref(false)
-const modalTrack = ref(null)
-const lyricsExpanded = ref(false)
+const search = ref('')
+const editingPlaylistId = ref(null)
 
 const playlistForm = reactive({
   name: '',
@@ -450,17 +263,11 @@ const playlistColors = [
   '#8b5cf6',
 ]
 
-const navItems = [
-  { id: 'home', label: 'Discover' },
-  { id: 'favorites', label: 'Favorites' },
-  { id: 'library', label: 'Library' },
-]
-
 const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
 const MAX_RECENT = 6
 
 const initial = computed(() => (authStore.user?.name || 'U')[0].toUpperCase())
-const featuredTrack = computed(() => tracks.value.find((t) => t.isFeatured) || tracks.value[0] || null)
+const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 
 const recommendations = computed(() =>
   [...tracks.value]
@@ -469,104 +276,40 @@ const recommendations = computed(() =>
     .slice(0, 8)
 )
 
-const modalTags = computed(() => {
-  if (!modalTrack.value) return []
-  return [
-    ...(modalTrack.value.genre || []),
-    ...(modalTrack.value.mood || []),
-    ...(modalTrack.value.tags || []).map((t) => `#${t}`),
-  ]
-})
-
-const modalMetaItems = computed(() => {
-  if (!modalTrack.value) return []
-  const t = modalTrack.value
-  const items = []
-  const fmtDur = (s) => {
-    const n = Number(s || 0)
-    if (!n) return ''
-    return `${Math.floor(n / 60)}:${String(Math.floor(n % 60)).padStart(2, '0')}`
-  }
-  if (t.duration) items.push({ label: 'Duration', value: fmtDur(t.duration) })
-  if (t.releaseDate) items.push({ label: 'Released', value: String(t.releaseDate).slice(0, 10) })
-  if (t.language) items.push({ label: 'Language', value: t.language })
-  if (t.playCount) items.push({ label: 'Plays', value: t.playCount.toLocaleString() })
-  if (t.likeCount) items.push({ label: 'Likes', value: t.likeCount.toLocaleString() })
-  return items
-})
-
-const modalLyricLines = computed(() =>
-  modalTrack.value?.lyrics ? modalTrack.value.lyrics.split('\n').filter(Boolean).length : 0
+const sectionKicker = computed(() =>
+  selectedPlaylist.value ? 'Playlist tracks' : 'Explore your premium library'
 )
 
-const modalDisplayLyrics = computed(() => {
-  if (!modalTrack.value?.lyrics) return ''
-  if (lyricsExpanded.value || modalTrack.value.lyrics.length <= 400) return modalTrack.value.lyrics
-  return modalTrack.value.lyrics.slice(0, 400) + '…'
-})
-
-const modalRecommendations = computed(() => {
-  if (!modalTrack.value) return []
-  const currentGenres = new Set(modalTrack.value.genre || [])
-  const currentMoods = new Set(modalTrack.value.mood || [])
-  return tracks.value
-    .filter((t) => t._id !== modalTrack.value._id)
-    .map((t) => {
-      let score = 0
-        ; (t.genre || []).forEach((g) => { if (currentGenres.has(g)) score += 2 })
-        ; (t.mood || []).forEach((m) => { if (currentMoods.has(m)) score += 1 })
-      return { ...t, _score: score }
-    })
-    .filter((t) => t._score > 0)
-    .sort((a, b) => b._score - a._score)
-    .slice(0, 5)
-})
-
-const sectionKicker = computed(() => ({
-  home: 'Explore your premium library',
-  favorites: 'Your liked collection',
-  library: selectedPlaylist.value ? 'Playlist view' : 'Complete music archive',
-}[tab.value] || 'Music'))
-
-const sectionTitle = computed(() => ({
-  home: 'Discover music',
-  favorites: 'Your favorites',
-  library: 'Library',
-}[tab.value] || 'Music'))
-
-const activeSectionTitle = computed(() => {
-  if (tab.value === 'library' && selectedPlaylist.value) return selectedPlaylist.value.name
-  return sectionTitle.value
-})
+const activeSectionTitle = computed(() =>
+  selectedPlaylist.value?.name || 'Discover music'
+)
 
 const list = computed(() => {
   let arr = [...tracks.value]
 
-  if (tab.value === 'favorites') arr = arr.filter((t) => t.liked)
-
-  if (tab.value === 'library' && selectedPlaylist.value?._id) {
+  if (selectedPlaylist.value?._id) {
     const ids = new Set((selectedPlaylist.value.tracks || []).map((t) => String(t._id || t)))
     arr = arr.filter((t) => ids.has(String(t._id)))
   }
 
   const q = search.value.trim().toLowerCase()
   if (q) {
-    arr = arr.filter((t) =>
-      (t.title || '').toLowerCase().includes(q) ||
-      (t.artist || '').toLowerCase().includes(q) ||
-      (t.album || '').toLowerCase().includes(q) ||
-      (t.genre || []).some((g) => g.toLowerCase().includes(q))
-    )
+    arr = arr.filter((t) => {
+      const fields = [
+        t.title,
+        t.artist,
+        t.album,
+        t.releaseType,
+        t.language,
+        ...(t.genre || []),
+        ...(t.mood || []),
+        ...(t.tags || []),
+      ]
+      return fields.some((item) => String(item || '').toLowerCase().includes(q))
+    })
   }
 
-  arr.sort((a, b) => {
-    if (sortBy.value === 'oldest') return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-    if (sortBy.value === 'title-asc') return (a.title || '').localeCompare(b.title || '')
-    if (sortBy.value === 'artist-asc') return (a.artist || '').localeCompare(b.artist || '')
-    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-  })
-
-  return arr
+  return arr.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 })
 
 const fetchTracks = async () => {
@@ -608,17 +351,14 @@ const saveRecentlyPlayed = (track) => {
   } catch { }
 }
 
-const setTab = (value) => {
-  tab.value = value
+const selectPlaylist = (pl) => {
+  if (selectedPlaylist.value?._id === pl._id) {
+    selectedPlaylist.value = null
+  } else {
+    selectedPlaylist.value = pl
+  }
   sidebarOpen.value = false
   profileMenu.value = false
-  if (value !== 'library') selectedPlaylist.value = null
-}
-
-const selectPlaylist = (pl) => {
-  selectedPlaylist.value = pl
-  tab.value = 'library'
-  sidebarOpen.value = false
 }
 
 const trackPlay = async (track) => {
@@ -644,26 +384,29 @@ const toggleTrack = (track) => {
   trackPlay(track)
 }
 
-const openTrackModal = (track) => {
-  if (!track?._id) return
-  modalTrack.value = track
-  lyricsExpanded.value = false
-  trackModalOpen.value = true
-}
-
 const addToQueue = (track) => {
   playerStore.addToQueue(track)
 }
 
-const openAddToPlaylist = async (track) => {
-  selectedTrack.value = track
-  await fetchPlaylists()
-  showAddToPlaylist.value = true
+const openCreatePlaylist = () => {
+  editingPlaylistId.value = null
+  playlistForm.name = ''
+  playlistForm.description = ''
+  playlistForm.color = 'linear-gradient(135deg,#2563eb,#60a5fa)'
+  showCreatePlaylist.value = true
 }
 
-const openCreateFromAdd = () => {
-  showAddToPlaylist.value = false
+const openEditPlaylist = (playlist) => {
+  editingPlaylistId.value = playlist._id
+  playlistForm.name = playlist.name || ''
+  playlistForm.description = playlist.description || ''
+  playlistForm.color = playlist.color || 'linear-gradient(135deg,#2563eb,#60a5fa)'
   showCreatePlaylist.value = true
+}
+
+const closePlaylistModal = () => {
+  showCreatePlaylist.value = false
+  editingPlaylistId.value = null
 }
 
 const createPlaylist = async () => {
@@ -676,13 +419,66 @@ const createPlaylist = async () => {
       color: playlistForm.color,
     })
     playlists.value.unshift(data)
+    closePlaylistModal()
     playlistForm.name = ''
     playlistForm.description = ''
     playlistForm.color = 'linear-gradient(135deg,#2563eb,#60a5fa)'
-    showCreatePlaylist.value = false
   } finally {
     playlistLoading.value = false
   }
+}
+
+const updatePlaylist = async () => {
+  if (!editingPlaylistId.value || !playlistForm.name.trim()) return
+  playlistLoading.value = true
+  try {
+    const { data } = await api.patch(`/playlists/${editingPlaylistId.value}`, {
+      name: playlistForm.name.trim(),
+      description: playlistForm.description.trim(),
+      color: playlistForm.color,
+    })
+
+    playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
+    if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
+
+    closePlaylistModal()
+  } finally {
+    playlistLoading.value = false
+  }
+}
+
+const submitPlaylistForm = async () => {
+  if (isEditingPlaylist.value) {
+    await updatePlaylist()
+  } else {
+    await createPlaylist()
+  }
+}
+
+const deletePlaylist = async (playlist) => {
+  const ok = window.confirm(`Delete "${playlist.name}" playlist?`)
+  if (!ok) return
+
+  try {
+    await api.delete(`/playlists/${playlist._id}`)
+    playlists.value = playlists.value.filter((pl) => pl._id !== playlist._id)
+    if (selectedPlaylist.value?._id === playlist._id) {
+      selectedPlaylist.value = null
+    }
+  } catch (err) {
+    alert(err?.response?.data?.message || 'Playlist could not be deleted')
+  }
+}
+
+const openAddToPlaylist = async (track) => {
+  selectedTrack.value = track
+  await fetchPlaylists()
+  showAddToPlaylist.value = true
+}
+
+const openCreateFromAdd = () => {
+  showAddToPlaylist.value = false
+  openCreatePlaylist()
 }
 
 const addTrackToPlaylist = async (playlist) => {
@@ -697,57 +493,6 @@ const addTrackToPlaylist = async (playlist) => {
   } catch { }
 }
 
-const like = async (track) => {
-  if (likeInFlight.value.has(track._id)) return
-  likeInFlight.value = new Set([...likeInFlight.value, track._id])
-
-  const idx = tracks.value.findIndex((t) => t._id === track._id)
-  const prev = idx !== -1 ? { ...tracks.value[idx] } : null
-
-  if (idx !== -1) {
-    const current = tracks.value[idx]
-    const nextLiked = !current.liked
-    tracks.value[idx] = {
-      ...current,
-      liked: nextLiked,
-      likeCount: nextLiked
-        ? (current.likeCount || 0) + 1
-        : Math.max(0, (current.likeCount || 0) - 1),
-    }
-
-    if (modalTrack.value?._id === track._id) {
-      modalTrack.value = { ...tracks.value[idx] }
-    }
-  }
-
-  try {
-    const { data } = await api.patch(`/music/${track._id}/like`)
-    if (idx !== -1) {
-      tracks.value[idx] = { ...tracks.value[idx], ...data }
-      if (modalTrack.value?._id === track._id) {
-        modalTrack.value = { ...tracks.value[idx] }
-      }
-    }
-  } catch {
-    if (idx !== -1 && prev) {
-      tracks.value[idx] = prev
-      if (modalTrack.value?._id === track._id) {
-        modalTrack.value = { ...prev }
-      }
-    }
-  } finally {
-    const set = new Set(likeInFlight.value)
-    set.delete(track._id)
-    likeInFlight.value = set
-  }
-}
-
-const openArtist = (artist) => {
-  if (!artist) return
-  trackModalOpen.value = false
-  router.push({ name: 'Artist', params: { slug: encodeURIComponent(String(artist).trim()) } })
-}
-
 const imgErr = (e) => {
   e.target.src = fallbackCover
 }
@@ -758,41 +503,19 @@ const logout = async () => {
 }
 
 const handleKeyDown = (e) => {
-  const tag = document.activeElement?.tagName
-  if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
-    e.preventDefault()
-    searchInputRef.value?.focus()
-  }
   if (e.key === 'Escape') {
-    trackModalOpen.value = false
     profileMenu.value = false
-    if (searchFocused.value) searchInputRef.value?.blur()
   }
 }
-
-const handleToggleLike = (e) => {
-  const incoming = e.detail
-  const idx = tracks.value.findIndex((t) => String(t._id) === String(incoming?._id))
-  if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...incoming }
-  if (modalTrack.value?._id === incoming?._id && idx !== -1) {
-    modalTrack.value = { ...tracks.value[idx] }
-  }
-}
-
-const handleAddToPlaylist = (e) => openAddToPlaylist(e.detail)
 
 onMounted(async () => {
   await fetchTracks()
   await fetchPlaylists()
   loadRecentlyPlayed()
-  window.addEventListener('mw:toggle-like', handleToggleLike)
-  window.addEventListener('mw:add-to-playlist', handleAddToPlaylist)
   window.addEventListener('keydown', handleKeyDown)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('mw:toggle-like', handleToggleLike)
-  window.removeEventListener('mw:add-to-playlist', handleAddToPlaylist)
   window.removeEventListener('keydown', handleKeyDown)
 })
 </script>

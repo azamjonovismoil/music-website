@@ -158,6 +158,8 @@ defineEmits(['close', 'select', 'create-new'])
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
 }
 
 .ap-item {

@@ -51,7 +51,8 @@
       <div class="cp-modal-actions">
         <button class="cp-secondary-btn" type="button" @click="$emit('close')">Cancel</button>
         <button class="cp-primary-btn" type="button" :disabled="loading" @click="$emit('submit')">
-          <PlusCircleIcon class="cp-btn-icon" />
+          <PencilSquareIcon v-if="isEdit" class="cp-btn-icon" />
+          <PlusCircleIcon v-else class="cp-btn-icon" />
           <span>{{ loading ? 'Saving...' : (isEdit ? 'Save changes' : 'Create playlist') }}</span>
         </button>
       </div>
@@ -65,6 +66,7 @@ import {
   XMarkIcon,
   MusicalNoteIcon,
   PlusCircleIcon,
+  PencilSquareIcon,
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
