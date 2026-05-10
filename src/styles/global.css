@@ -8,6 +8,7 @@
   --player-bar-safe: calc(var(--player-bar-h) + env(safe-area-inset-bottom, 0px));
 }
 
+/* reset */
 *,
 *::before,
 *::after {
@@ -49,6 +50,7 @@ body {
     color var(--t-slow);
 }
 
+/* form reset */
 button,
 input,
 textarea,
@@ -78,6 +80,7 @@ textarea {
   resize: vertical;
 }
 
+/* media */
 img,
 svg,
 video,
@@ -91,6 +94,7 @@ img {
   -webkit-user-drag: none;
 }
 
+/* text */
 a {
   color: inherit;
   text-decoration: none;
@@ -101,6 +105,23 @@ ol {
   list-style: none;
 }
 
+p {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display, Inter, sans-serif);
+  color: var(--text-primary);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+/* selection + focus */
 ::selection {
   background: var(--accent-soft-2);
   color: var(--text-primary);
@@ -111,6 +132,7 @@ ol {
   outline-offset: 2px;
 }
 
+/* scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -129,22 +151,7 @@ ol {
   background: rgba(148, 163, 184, 0.34);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-display, Inter, sans-serif);
-  color: var(--text-primary);
-  line-height: 1.08;
-  letter-spacing: -0.035em;
-}
-
-p {
-  color: inherit;
-}
-
+/* utility */
 .page-label {
   display: inline-flex;
   align-items: center;
@@ -218,6 +225,7 @@ p {
   letter-spacing: 0.02em;
 }
 
+/* inputs */
 .sort-select,
 .input,
 .textarea,
@@ -249,7 +257,9 @@ p {
 }
 
 .input::placeholder,
-.textarea::placeholder {
+.textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
   color: var(--text-muted);
 }
 
@@ -269,6 +279,7 @@ p {
   background: var(--surface-1);
 }
 
+/* buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -329,6 +340,47 @@ p {
   box-shadow: var(--shadow-sm);
 }
 
+/* brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.brand__logo {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 12px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand__text {
+  min-width: 0;
+}
+
+.brand__text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.brand__text span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* animation */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.18s ease;
@@ -349,6 +401,57 @@ p {
   }
 }
 
+/* element plus tune */
+.el-overlay {
+  backdrop-filter: blur(8px);
+}
+
+.el-dialog {
+  border-radius: 22px !important;
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.el-dialog__header,
+.el-dialog__footer {
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select__wrapper {
+  background: var(--bg-input) !important;
+  box-shadow: none !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 14px !important;
+  color: var(--text-primary) !important;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused,
+.el-textarea__inner:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px var(--accent-soft) !important;
+}
+
+.el-button {
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-mid)) !important;
+  border-color: transparent !important;
+}
+
+.el-button.is-round {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* mobile */
 @media (max-width: 860px) {
   :root,
   [data-theme='dark'],
@@ -378,5 +481,33 @@ p {
 
   .textarea {
     min-height: 110px;
+  }
+}
+
+@media (max-width: 640px) {
+  .brand__logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .brand__text strong {
+    font-size: 13px;
+  }
+
+  .brand__text span {
+    font-size: 9px;
+  }
+
+  .el-dialog {
+    width: calc(100vw - 16px) !important;
+    margin: 8px auto !important;
+  }
+
+  .el-dialog__body,
+  .el-dialog__header,
+  .el-dialog__footer {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
   }
 }

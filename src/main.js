@@ -7,12 +7,11 @@ import router from './router'
 import './styles/global.css'
 import '@/styles/forms.css'
 
-
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
 app.use(ElementPlus)
-
+  
 app.mount('#app')

@@ -1,8 +1,11 @@
 <template>
-  <div class="td-page" v-if="track">
-    <button class="td-back" @click="router.back()">← Back</button>
+  <div class="td" v-if="track">
+    <button class="td-back" @click="router.back()">
+      <ArrowLeftIcon class="td-back-ico" />
+      <span>Back</span>
+    </button>
 
-    <div class="td-hero">
+    <section class="td-hero">
       <div class="td-cover-shell">
         <img :src="resolveCover(track)" class="td-cover" alt="cover" @error="imgErr" />
       </div>
@@ -10,8 +13,11 @@
       <div class="td-info">
         <p class="td-kicker">Track</p>
         <h1 class="td-title">{{ track.title }}</h1>
+
         <p class="td-artist">
-          <span class="td-artist-link" @click="openArtist(track.artist)">{{ track.artist || 'Unknown artist' }}</span>
+          <span class="td-artist-link" @click="openArtist(track.artist)">
+            {{ track.artist || 'Unknown artist' }}
+          </span>
           <template v-if="track.album">
             <span class="td-dot">·</span>
             <span>{{ track.album }}</span>
@@ -23,10 +29,25 @@
         </div>
 
         <div class="td-actions">
-          <button class="btn btn-primary" @click="playTrack">Play</button>
-          <button class="btn btn-ghost" @click="toggleLike">{{ track.liked ? '♥ Liked' : '♡ Like' }}</button>
-          <button class="btn btn-ghost" @click="addToPlaylist">Playlist</button>
-          <button class="btn btn-ghost" @click="addToQueue">Queue</button>
+          <el-button type="primary" round @click="playTrack">
+            <PlayIcon class="td-btn-ico td-btn-ico--shift" />
+            Play
+          </el-button>
+
+          <el-button round @click="toggleLike">
+            <HeartIcon class="td-btn-ico" />
+            {{ track.liked ? 'Liked' : 'Like' }}
+          </el-button>
+
+          <el-button round @click="addToPlaylist">
+            <PlusIcon class="td-btn-ico" />
+            Playlist
+          </el-button>
+
+          <el-button round @click="addToQueue">
+            <QueueListIcon class="td-btn-ico" />
+            Queue
+          </el-button>
         </div>
 
         <div class="td-meta" v-if="metaItems.length">
@@ -38,13 +59,14 @@
 
         <p v-if="track.bio" class="td-bio">{{ track.bio }}</p>
       </div>
-    </div>
+    </section>
 
-    <div v-if="track.lyrics" class="td-lyrics">
+    <section v-if="track.lyrics" class="td-lyrics">
       <div class="td-lyrics-head">
         <span>Lyrics</span>
         <span class="td-lyrics-count">{{ lineCount }} lines</span>
       </div>
+
       <div class="td-lyrics-body">
         <p class="td-lyrics-text">{{ displayLyrics }}</p>
         <button v-if="track.lyrics.length > 600 && !lyricsExpanded" class="td-lyrics-more"
@@ -52,7 +74,7 @@
           Show all lyrics
         </button>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -62,6 +84,13 @@ import axios from 'axios'
 import { useRoute, useRouter } from 'vue-router'
 import { usePlayerStore } from '@/stores/player'
 import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
+import {
+  ArrowLeftIcon,
+  PlayIcon,
+  HeartIcon,
+  PlusIcon,
+  QueueListIcon,
+} from '@heroicons/vue/24/outline'
 import '@/styles/track_detail.css'
 
 const route = useRoute()
@@ -111,19 +140,22 @@ const displayLyrics = computed(() => {
 })
 
 const loadTrack = async () => {
-  const { data } = await api.get('/music')
-  const list = Array.isArray(data) ? data : []
-  track.value = list.find((t) => String(t._id) === String(route.params.id)) || null
+  const { data } = await api.get(`/music/${route.params.id}`)
+  track.value = data || null
 }
 
-const playTrack = () => {
+const playTrack = async () => {
   if (!track.value) return
   player.setTrack(track.value, { queue: [track.value], playing: true, resetTime: true })
+  try {
+    await api.patch(`/music/${track.value._id}/play`)
+  } catch { }
 }
 
 const toggleLike = () => {
   if (!track.value) return
   window.dispatchEvent(new CustomEvent('mw:toggle-like', { detail: track.value }))
+  track.value.liked = !track.value.liked
 }
 
 const addToPlaylist = () => {

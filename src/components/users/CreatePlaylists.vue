@@ -61,7 +61,11 @@
 
 <script setup>
 import { computed } from 'vue'
-import { XMarkIcon, MusicalNoteIcon, PlusCircleIcon } from '@heroicons/vue/24/outline'
+import {
+  XMarkIcon,
+  MusicalNoteIcon,
+  PlusCircleIcon,
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   open: Boolean,
@@ -96,6 +100,9 @@ const hexColor = computed(() => {
 
 .cp-modal-card {
   width: min(100%, 540px);
+  max-height: min(90vh, 760px);
+  display: flex;
+  flex-direction: column;
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -129,6 +136,7 @@ const hexColor = computed(() => {
 
 .cp-modal-body {
   padding: 18px 20px;
+  overflow-y: auto;
 }
 
 .cp-form-group {
@@ -160,6 +168,7 @@ const hexColor = computed(() => {
 .cp-btn-icon {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .cp-input-wrap input,
@@ -254,5 +263,43 @@ const hexColor = computed(() => {
   color: #fff;
   border: none;
   background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+}
+
+@media (max-width: 640px) {
+  .cp-modal-backdrop {
+    padding: 10px;
+  }
+
+  .cp-modal-card {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 20px;
+  }
+
+  .cp-modal-head,
+  .cp-modal-actions,
+  .cp-modal-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .cp-color-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .cp-custom-color-row {
+    grid-template-columns: 56px 1fr;
+  }
+
+  .cp-modal-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .cp-secondary-btn,
+  .cp-primary-btn {
+    width: 100%;
+  }
 }
 </style>

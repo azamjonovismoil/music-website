@@ -10,37 +10,44 @@
           </div>
         </router-link>
 
-        <button class="sidebar-close" type="button" @click="sidebarOpen = false">✕</button>
+        <button class="sidebar-close" type="button" @click="sidebarOpen = false">
+          <XMarkIcon class="ui-ico" />
+        </button>
       </div>
 
       <div class="sidebar-search-mobile">
         <div class="topbar__search">
+          <MagnifyingGlassIcon class="search-ico" />
           <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
-          <button v-if="search" type="button" @click="search = ''">✕</button>
+          <button v-if="search" type="button" @click="search = ''">
+            <XMarkIcon class="ui-ico" />
+          </button>
         </div>
       </div>
 
-      <div class="side-playlists">
-        <div class="side-head-row">
-          <h4>Your playlists</h4>
-          <button class="side-create-btn" type="button" @click="showCreatePlaylist = true">+</button>
-        </div>
-
-        <div v-if="!playlists.length" class="side-empty">
-          <p>No playlists yet</p>
-        </div>
-
-        <button v-for="pl in playlists" :key="pl._id" type="button" class="side-playlist"
-          :class="{ active: selectedPlaylist?._id === pl._id }" @click="selectPlaylist(pl)">
-          <span class="side-playlist__color" :style="{ background: pl.color || playlistColors[0] }" />
-          <div class="side-playlist__body">
-            <strong>{{ pl.name }}</strong>
-            <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
+      <div class="music-sidebar__scroll">
+        <div class="side-playlists">
+          <div class="side-head-row">
+            <h4>Your playlists</h4>
+            <button class="side-create-btn" type="button" @click="showCreatePlaylist = true">
+              <PlusIcon class="ui-ico" />
+            </button>
           </div>
-        </button>
-      </div>
 
-      <div class="sidebar-spacer"></div>
+          <div v-if="!playlists.length" class="side-empty">
+            <p>No playlists yet</p>
+          </div>
+
+          <button v-for="pl in playlists" :key="pl._id" type="button" class="side-playlist"
+            :class="{ active: selectedPlaylist?._id === pl._id }" @click="selectPlaylist(pl)">
+            <span class="side-playlist__color" :style="{ background: pl.color || playlistColors[0] }" />
+            <div class="side-playlist__body">
+              <strong>{{ pl.name }}</strong>
+              <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
+            </div>
+          </button>
+        </div>
+      </div>
 
       <div class="profile-box">
         <button class="profile-chip" type="button" @click="profileMenu = !profileMenu">
@@ -49,7 +56,7 @@
             <strong>{{ authStore.user?.name || 'User' }}</strong>
             <span>{{ authStore.user?.email || '' }}</span>
           </div>
-          <span class="profile-chip__arrow">▾</span>
+          <ChevronDownIcon class="ui-ico dim" />
         </button>
 
         <div v-if="profileMenu" class="profile-dropdown">
@@ -66,7 +73,10 @@
       <header class="topbar">
         <div class="topbar__row topbar__row--main">
           <div class="topbar__left">
-            <button class="menu-btn" type="button" @click="sidebarOpen = true">☰</button>
+            <button class="menu-btn" type="button" @click="sidebarOpen = true">
+              <Bars3Icon class="ui-ico" />
+            </button>
+
             <div class="topbar__heading">
               <h1>{{ sectionTitle }}</h1>
               <p>{{ sectionKicker }}</p>
@@ -77,15 +87,18 @@
         </div>
 
         <div class="topbar__row topbar__row--search">
-          <div class="topbar__search">
-            <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
-            <button v-if="search" type="button" @click="search = ''">✕</button>
-          </div>
-
           <div class="topbar__tabs">
             <button v-for="item in navItems" :key="item.id" type="button" class="topbar__tab"
               :class="{ active: tab === item.id }" @click="setTab(item.id)">
               {{ item.label }}
+            </button>
+          </div>
+
+          <div class="topbar__search">
+            <MagnifyingGlassIcon class="search-ico" />
+            <input v-model="search" type="text" placeholder="Search songs, artists, genres..." />
+            <button v-if="search" type="button" @click="search = ''">
+              <XMarkIcon class="ui-ico" />
             </button>
           </div>
         </div>
@@ -97,10 +110,15 @@
         </div>
 
         <div class="hero__content">
-          <div class="hero__cover" @click="toggleTrack(featuredTrack)">
-            <img :src="resolveCover(featuredTrack)" :alt="featuredTrack.title" @error="imgErr" />
-            <button type="button" class="hero__play">
-              {{ playerStore.currentTrack?._id === featuredTrack._id && playerStore.isPlaying ? '❚❚' : '▶' }}
+          <div class="hero__cover-wrap">
+            <div class="hero__cover" @click="openTrackDetail(featuredTrack)">
+              <img :src="resolveCover(featuredTrack)" :alt="featuredTrack.title" @error="imgErr" />
+            </div>
+
+            <button type="button" class="hero__play" @click.stop="toggleTrack(featuredTrack)">
+              <PauseIcon v-if="playerStore.currentTrack?._id === featuredTrack._id && playerStore.isPlaying"
+                class="hero__play-ico" />
+              <PlayIcon v-else class="hero__play-ico hero__play-ico--shift" />
             </button>
           </div>
 
@@ -116,9 +134,20 @@
             </div>
 
             <div class="hero__actions">
-              <button class="btn btn-primary" type="button" @click="toggleTrack(featuredTrack)">Play now</button>
-              <button class="btn btn-ghost icon-btn" type="button" @click="like(featuredTrack)">♥</button>
-              <button class="btn btn-ghost" type="button" @click="openAddToPlaylist(featuredTrack)">Playlist</button>
+              <button class="btn btn-primary" type="button" @click="toggleTrack(featuredTrack)">
+                <PlayIcon class="btn-ico btn-ico--shift" />
+                <span>Play now</span>
+              </button>
+
+              <button class="btn btn-ghost" type="button" @click="like(featuredTrack)">
+                <HeartIcon class="btn-ico" />
+                <span>{{ featuredTrack.liked ? 'Liked' : 'Like' }}</span>
+              </button>
+
+              <button class="btn btn-ghost" type="button" @click="openAddToPlaylist(featuredTrack)">
+                <PlusIcon class="btn-ico" />
+                <span>Playlist</span>
+              </button>
             </div>
           </div>
         </div>
@@ -157,22 +186,27 @@
         </div>
 
         <div v-else class="track-grid">
-          <button v-for="t in list" :key="t._id" type="button" class="track-card track-card--cover"
-            :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
+          <article v-for="t in list" :key="t._id" class="track-card track-card--cover"
+            :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="openTrackDetail(t)">
             <img class="track-card__img" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
 
             <div class="track-card__overlay">
               <div class="track-card__top">
                 <button class="track-card__icon like" type="button" @click.stop="like(t)">
-                  <span>{{ t.liked ? '♥' : '♡' }}</span>
+                  <HeartIcon v-if="!t.liked" class="card-ico" />
+                  <HeartSolid v-else class="card-ico liked" />
                 </button>
               </div>
 
               <div class="track-card__center">
-                <button class="track-card__icon add" type="button" @click.stop="openAddToPlaylist(t)">+</button>
+                <button class="track-card__icon add" type="button" @click.stop="openAddToPlaylist(t)">
+                  <PlusIcon class="card-ico" />
+                </button>
+
                 <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
-                  <span v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying">❚❚</span>
-                  <span v-else>▶</span>
+                  <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
+                    class="card-play-ico" />
+                  <PlayIcon v-else class="card-play-ico card-play-ico--shift" />
                 </button>
               </div>
 
@@ -181,16 +215,18 @@
                 <span @click.stop="openArtist(t.artist)">{{ t.artist }}</span>
               </div>
             </div>
-          </button>
+          </article>
         </div>
       </section>
     </main>
 
     <aside class="music-rightbar">
-      <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
-        :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
-        @remove-from-queue="playerStore.removeFromQueue" @clear-queue="playerStore.clearQueue"
-        @add-to-queue="addToQueue" />
+      <div class="music-rightbar__scroll">
+        <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
+          :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
+          @remove-from-queue="playerStore.removeFromQueue" @clear-queue="playerStore.clearQueue"
+          @add-to-queue="addToQueue" />
+      </div>
     </aside>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
@@ -204,7 +240,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
@@ -215,6 +251,18 @@ import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import brandIcon from '@/assets/header_icon.png'
 import '@/styles/user_page.css'
+
+import {
+  XMarkIcon,
+  PlusIcon,
+  Bars3Icon,
+  MagnifyingGlassIcon,
+  ChevronDownIcon,
+  PlayIcon,
+  PauseIcon,
+  HeartIcon,
+} from '@heroicons/vue/24/outline'
+import { HeartIcon as HeartSolid } from '@heroicons/vue/24/solid'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -356,6 +404,12 @@ const selectPlaylist = (pl) => {
   sidebarOpen.value = false
 }
 
+const trackPlay = async (track) => {
+  try {
+    await api.patch(`/music/${track._id}/play`)
+  } catch { }
+}
+
 const toggleTrack = (track) => {
   const sameTrack = String(playerStore.currentTrack?._id || '') === String(track._id || '')
   if (sameTrack) {
@@ -368,6 +422,13 @@ const toggleTrack = (track) => {
     playing: true,
     resetTime: true,
   })
+
+  trackPlay(track)
+}
+
+const openTrackDetail = (track) => {
+  if (!track?._id) return
+  router.push({ name: 'TrackDetail', params: { id: track._id } })
 }
 
 const addToQueue = (track) => {
@@ -410,7 +471,7 @@ const addTrackToPlaylist = async (playlist) => {
     const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
       musicId: selectedTrack.value._id,
     })
-    playlists.value = playlists.value.map((pl) => pl._id === data._id ? data : pl)
+    playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     showAddToPlaylist.value = false
   } catch { }
@@ -419,7 +480,9 @@ const addTrackToPlaylist = async (playlist) => {
 const like = async (track) => {
   if (likeInFlight.value.has(track._id)) return
   likeInFlight.value = new Set([...likeInFlight.value, track._id])
+
   const idx = tracks.value.findIndex((t) => t._id === track._id)
+  const prev = idx !== -1 ? { ...tracks.value[idx] } : null
 
   if (idx !== -1) {
     const current = tracks.value[idx]
@@ -436,13 +499,7 @@ const like = async (track) => {
     const { data } = await api.patch(`/music/${track._id}/like`)
     if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...data }
   } catch {
-    if (idx !== -1) {
-      tracks.value[idx] = {
-        ...tracks.value[idx],
-        liked: track.liked,
-        likeCount: track.likeCount,
-      }
-    }
+    if (idx !== -1 && prev) tracks.value[idx] = prev
   } finally {
     const set = new Set(likeInFlight.value)
     set.delete(track._id)
@@ -464,11 +521,23 @@ const logout = async () => {
   router.push('/')
 }
 
+const handleToggleLike = (e) => {
+  const incoming = e.detail
+  const idx = tracks.value.findIndex((t) => String(t._id) === String(incoming?._id))
+  if (idx !== -1) tracks.value[idx] = { ...tracks.value[idx], ...incoming }
+}
+
+const handleAddToPlaylist = (e) => openAddToPlaylist(e.detail)
+
 onMounted(async () => {
   await fetchTracks()
   await fetchPlaylists()
+  window.addEventListener('mw:toggle-like', handleToggleLike)
+  window.addEventListener('mw:add-to-playlist', handleAddToPlaylist)
+})
 
-  window.addEventListener('mw:toggle-like', (e) => like(e.detail))
-  window.addEventListener('mw:add-to-playlist', (e) => openAddToPlaylist(e.detail))
+onBeforeUnmount(() => {
+  window.removeEventListener('mw:toggle-like', handleToggleLike)
+  window.removeEventListener('mw:add-to-playlist', handleAddToPlaylist)
 })
 </script>
