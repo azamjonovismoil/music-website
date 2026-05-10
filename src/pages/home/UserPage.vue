@@ -56,7 +56,7 @@
 
           <div v-else-if="filteredTracks.length === 0" class="empty-box">
             <h3>No tracks found</h3>
-            <p>Try another search.</p>
+            <p>Try another search or playlist.</p>
           </div>
 
           <div v-else class="track-grid">
@@ -156,10 +156,9 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { useAuthStore } from '@/stores/auth'
 import { usePlayerStore } from '@/stores/player'
+import { useAuthStore } from '@/stores/auth'
 import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
 import HeaderPage from '@/components/layout/HeaderPage.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
@@ -178,7 +177,6 @@ import {
   MicrophoneIcon,
 } from '@heroicons/vue/24/outline'
 
-const router = useRouter()
 const authStore = useAuthStore()
 const playerStore = usePlayerStore()
 
@@ -202,10 +200,8 @@ const showDeletePlaylist = ref(false)
 const playlistToDelete = ref(null)
 const recentlyPlayed = ref([])
 const mobileSidebarOpen = ref(false)
-
 const trackModalOpen = ref(false)
 const modalTrack = ref(null)
-
 const editingPlaylistId = ref(null)
 
 const playlistForm = reactive({
@@ -247,7 +243,7 @@ const filteredTracks = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (q) {
     arr = arr.filter((t) => {
-      const haystack = [
+      const pool = [
         t.title,
         t.artist,
         t.album,
@@ -256,8 +252,9 @@ const filteredTracks = computed(() => {
         ...(t.genre || []),
         ...(t.mood || []),
         ...(t.tags || []),
-      ]
-      return haystack.some((item) => String(item || '').toLowerCase().includes(q))
+      ].filter(Boolean).join(' ').toLowerCase()
+
+      return pool.includes(q)
     })
   }
 
@@ -271,7 +268,12 @@ const modalMetaItems = computed(() => {
   if (t.album) items.push({ label: 'Album', value: t.album })
   if (t.language) items.push({ label: 'Language', value: t.language })
   if (t.releaseType) items.push({ label: 'Type', value: t.releaseType })
-  if (t.duration) items.push({ label: 'Duration', value: `${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` })
+  if (t.duration) {
+    items.push({
+      label: 'Duration',
+      value: `${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}`,
+    })
+  }
   return items
 })
 

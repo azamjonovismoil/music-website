@@ -126,11 +126,11 @@
 
 .us-playlist-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 0;
 }
 
 .us-playlist-list::-webkit-scrollbar {
@@ -146,7 +146,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 50px;
+  min-height: 52px;
   padding: 6px 8px;
   border-radius: 12px;
   border: 1px solid transparent;
