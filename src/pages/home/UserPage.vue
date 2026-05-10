@@ -1,186 +1,144 @@
 <template>
-  <div class="music-page">
-    <aside class="music-sidebar" :class="{ open: sidebarOpen }">
-      <div class="music-sidebar__top">
-        <router-link to="/user" class="brand">
-          <img class="brand__logo" :src="brandIcon" alt="brand icon" />
-          <div class="brand__text">
-            <strong>ExclusiveMusics</strong>
-            <span>Premium listening</span>
-          </div>
-        </router-link>
+  <div class="user-layout">
+    <HeaderPage :search="search" :showSearch="true" @update:search="search = $event"
+      @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
 
-        <button class="sidebar-close" type="button" @click="sidebarOpen = false">
-          <XMarkIcon class="ui-ico" />
-        </button>
+    <div class="user-shell">
+      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false"></div>
+
+      <div class="user-shell__left" :class="{ open: mobileSidebarOpen }">
+        <UserSidebar :playlists="playlists" :activePlaylistId="selectedPlaylist?._id || ''"
+          @create-playlist="openCreatePlaylist" @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist"
+          @delete-playlist="openDeletePlaylist" />
       </div>
 
-      <div class="sidebar-search">
-        <div class="sidebar-search__box">
-          <MagnifyingGlassIcon class="search-ico" />
-          <input v-model="search" type="text" placeholder="Search songs, artists, albums, genres..." />
-          <button v-if="search" type="button" @click="search = ''">
-            <XMarkIcon class="ui-ico" />
-          </button>
-        </div>
-      </div>
-
-      <div class="music-sidebar__scroll">
-        <div class="side-playlists">
-          <div class="side-head-row">
-            <h4>Your playlists</h4>
-            <button class="side-create-btn" type="button" @click="openCreatePlaylist">
-              <PlusIcon class="ui-ico" />
-            </button>
+      <main class="user-main">
+        <section v-if="recentlyPlayed.length" class="recent-section">
+          <div class="recent-section__head">
+            <ClockIcon class="recent-icon" />
+            <h3>Recently played</h3>
           </div>
 
-          <div v-if="!playlists.length" class="side-empty">
-            <p>No playlists yet</p>
-          </div>
-
-          <div v-for="pl in playlists" :key="pl._id" class="side-playlist-wrap">
-            <button type="button" class="side-playlist" :class="{ active: selectedPlaylist?._id === pl._id }"
-              @click="selectPlaylist(pl)">
-              <span class="side-playlist__color" :style="{ background: pl.color || playlistColors[0] }" />
-              <div class="side-playlist__body">
-                <strong>{{ pl.name }}</strong>
-                <span>{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
-              </div>
-            </button>
-
-            <div v-if="selectedPlaylist?._id === pl._id" class="side-playlist__actions">
-              <button class="side-action-btn" type="button" @click.stop="openEditPlaylist(pl)">
-                <PencilSquareIcon class="side-action-icon" />
-                <span>Edit</span>
-              </button>
-              <button class="side-action-btn danger" type="button" @click.stop="deletePlaylist(pl)">
-                <TrashIcon class="side-action-icon" />
-                <span>Delete</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="profile-box">
-        <div v-if="profileMenu" class="profile-dropdown profile-dropdown--up">
-          <router-link to="/profile" class="profile-dropdown__item" @click="profileMenu = false">
-            <UserIcon class="profile-dropdown__icon" />
-            Profile
-          </router-link>
-          <router-link to="/settings" class="profile-dropdown__item" @click="profileMenu = false">
-            <Cog6ToothIcon class="profile-dropdown__icon" />
-            Settings
-          </router-link>
-          <button type="button" class="profile-dropdown__item danger" @click="logout">
-            <ArrowLeftOnRectangleIcon class="profile-dropdown__icon" />
-            Logout
-          </button>
-        </div>
-
-        <button class="profile-chip" type="button" @click="profileMenu = !profileMenu">
-          <span class="profile-chip__avatar">{{ initial }}</span>
-          <div class="profile-chip__info">
-            <strong>{{ authStore.user?.name || 'User' }}</strong>
-            <span>{{ authStore.user?.email || '' }}</span>
-          </div>
-          <ChevronDownIcon class="ui-ico dim" :class="{ 'rotate-180': profileMenu }" />
-        </button>
-      </div>
-    </aside>
-
-    <div class="page-overlay" :class="{ show: sidebarOpen }" @click="sidebarOpen = false"></div>
-
-    <main class="music-main">
-      <header class="topbar">
-        <div class="topbar__left">
-          <button class="menu-btn" type="button" @click="sidebarOpen = true">
-            <Bars3Icon class="ui-ico" />
-          </button>
-
-          <div class="topbar__heading">
-            <h1>{{ activeSectionTitle }}</h1>
-            <p>{{ sectionKicker }}</p>
-          </div>
-        </div>
-      </header>
-
-      <section v-if="recentlyPlayed.length" class="recent-section">
-        <div class="recent-section__head">
-          <ClockIcon class="recent-icon" />
-          <h3>Recently played</h3>
-        </div>
-
-        <div class="recent-list">
-          <button v-for="t in recentlyPlayed" :key="t._id" type="button" class="recent-item"
-            :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
-            <img class="recent-item__cover" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
-            <div class="recent-item__meta">
-              <strong>{{ t.title }}</strong>
-              <span>{{ t.artist }}</span>
-            </div>
-            <div class="recent-item__play">
-              <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
-                class="recent-play-ico" />
-              <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
-            </div>
-          </button>
-        </div>
-      </section>
-
-      <section class="content-section">
-        <div class="content-section__head">
-          <div>
-            <p class="section-kicker">{{ sectionKicker }}</p>
-            <h2>{{ activeSectionTitle }}</h2>
-          </div>
-        </div>
-
-        <div v-if="loading" class="track-grid">
-          <div v-for="n in 12" :key="n" class="track-skeleton"></div>
-        </div>
-
-        <div v-else-if="errMsg" class="empty-box">
-          <h3>Could not load music</h3>
-          <p>{{ errMsg }}</p>
-          <button class="btn btn-primary" type="button" @click="fetchTracks">Try again</button>
-        </div>
-
-        <div v-else-if="list.length === 0" class="empty-box">
-          <h3>No tracks found</h3>
-          <p>Try a different search or playlist.</p>
-        </div>
-
-        <div v-else class="track-grid">
-          <article v-for="t in list" :key="t._id" class="track-card track-card--cover"
-            :class="{ playing: playerStore.currentTrack?._id === t._id }">
-            <img class="track-card__img" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
-
-            <div class="track-card__overlay">
-              <div class="track-card__meta">
+          <div class="recent-list">
+            <button v-for="t in recentlyPlayed" :key="t._id" type="button" class="recent-item"
+              :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
+              <img class="recent-item__cover" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
+              <div class="recent-item__meta">
                 <strong>{{ t.title }}</strong>
                 <span>{{ t.artist }}</span>
               </div>
-
-              <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
+              <div class="recent-item__play">
                 <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
-                  class="card-play-ico" />
-                <PlayIcon v-else class="card-play-ico card-play-ico--shift" />
-              </button>
-            </div>
-          </article>
-        </div>
-      </section>
-    </main>
+                  class="recent-play-ico" />
+                <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
+              </div>
+            </button>
+          </div>
+        </section>
 
-    <aside class="music-rightbar">
-      <div class="music-rightbar__scroll">
-        <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
-          :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
-          @remove-from-queue="playerStore.removeFromQueue" @clear-queue="playerStore.clearQueue"
-          @add-to-queue="addToQueue" />
-      </div>
-    </aside>
+        <section class="content-section">
+          <div class="content-section__head">
+            <div>
+              <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Explore your premium library' }}</p>
+              <h2>{{ selectedPlaylist?.name || 'Discover music' }}</h2>
+            </div>
+          </div>
+
+          <div v-if="loading" class="track-grid">
+            <div v-for="n in 12" :key="n" class="track-skeleton"></div>
+          </div>
+
+          <div v-else-if="errMsg" class="empty-box">
+            <h3>Could not load music</h3>
+            <p>{{ errMsg }}</p>
+            <button class="btn btn-primary" type="button" @click="fetchTracks">Try again</button>
+          </div>
+
+          <div v-else-if="filteredTracks.length === 0" class="empty-box">
+            <h3>No tracks found</h3>
+            <p>Try another search.</p>
+          </div>
+
+          <div v-else class="track-grid">
+            <article v-for="t in filteredTracks" :key="t._id" class="track-card"
+              :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="openTrackModal(t)">
+              <img class="track-card__img" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
+
+              <div class="track-card__overlay">
+                <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
+                  <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
+                    class="card-play-ico" />
+                  <PlayIcon v-else class="card-play-ico card-play-ico--shift" />
+                </button>
+
+                <div class="track-card__meta">
+                  <strong>{{ t.title }}</strong>
+                  <span>{{ t.artist }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <aside class="user-shell__right">
+        <div class="user-shell__right-scroll">
+          <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
+            :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
+            @remove-from-queue="playerStore.removeFromQueue" @clear-queue="playerStore.clearQueue"
+            @add-to-queue="addToQueue" />
+        </div>
+      </aside>
+    </div>
+
+    <Teleport to="body">
+      <Transition name="track-modal">
+        <div v-if="trackModalOpen && modalTrack" class="track-modal-overlay" @click.self="trackModalOpen = false">
+          <div class="track-modal-card">
+            <button class="track-modal-close" type="button" @click="trackModalOpen = false">
+              <XMarkIcon class="ui-ico" />
+            </button>
+
+            <div class="track-modal-hero">
+              <img class="track-modal-cover" :src="resolveCover(modalTrack)" :alt="modalTrack.title" @error="imgErr" />
+
+              <div class="track-modal-info">
+                <p class="track-modal-kicker">Track</p>
+                <h2 class="track-modal-title">{{ modalTrack.title }}</h2>
+                <p class="track-modal-artist">{{ modalTrack.artist || 'Unknown' }}</p>
+
+                <div class="track-modal-actions">
+                  <button class="btn btn-primary" type="button" @click="toggleTrack(modalTrack)">
+                    <PlayIcon class="btn-ico btn-ico--shift" />
+                    <span>Play</span>
+                  </button>
+
+                  <button class="btn btn-ghost" type="button" @click="openAddToPlaylist(modalTrack)">
+                    <PlusIcon class="btn-ico" />
+                    <span>Playlist</span>
+                  </button>
+                </div>
+
+                <div class="track-modal-meta" v-if="modalMetaItems.length">
+                  <div v-for="m in modalMetaItems" :key="m.label" class="track-modal-meta-item">
+                    <span class="track-modal-meta-label">{{ m.label }}</span>
+                    <span class="track-modal-meta-val">{{ m.value }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="modalTrack.lyrics" class="track-modal-lyrics">
+              <div class="track-modal-lyrics-head">
+                <MicrophoneIcon class="track-modal-lyrics-ico" />
+                <span>Lyrics</span>
+              </div>
+              <p class="track-modal-lyrics-text">{{ modalTrack.lyrics }}</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
       @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
@@ -190,36 +148,34 @@
       :colors="playlistColors" @close="closePlaylistModal" @submit="submitPlaylistForm"
       @update:name="playlistForm.name = $event" @update:description="playlistForm.description = $event"
       @update:color="playlistForm.color = $event" />
+
+    <DeletePlaylistModal :open="showDeletePlaylist" :loading="deleteLoading" :playlist="playlistToDelete"
+      @close="closeDeletePlaylist" @confirm="confirmDeletePlaylist" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, reactive } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import { usePlayerStore } from '@/stores/player'
 import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
+import HeaderPage from '@/components/layout/HeaderPage.vue'
+import UserSidebar from '@/components/users/UserSidebar.vue'
 import RightPanel from '@/components/users/RightPanel.vue'
 import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
-import brandIcon from '@/assets/header_icon.png'
+import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
 import '@/styles/user_page.css'
 
 import {
   XMarkIcon,
   PlusIcon,
-  Bars3Icon,
-  MagnifyingGlassIcon,
-  ChevronDownIcon,
   PlayIcon,
   PauseIcon,
   ClockIcon,
-  UserIcon,
-  Cog6ToothIcon,
-  ArrowLeftOnRectangleIcon,
-  PencilSquareIcon,
-  TrashIcon,
+  MicrophoneIcon,
 } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
@@ -231,19 +187,25 @@ const api = axios.create({
   withCredentials: true,
 })
 
-const sidebarOpen = ref(false)
-const profileMenu = ref(false)
 const loading = ref(false)
 const errMsg = ref('')
 const tracks = ref([])
 const playlists = ref([])
+const search = ref('')
 const selectedTrack = ref(null)
 const selectedPlaylist = ref(null)
 const showAddToPlaylist = ref(false)
 const showCreatePlaylist = ref(false)
 const playlistLoading = ref(false)
+const deleteLoading = ref(false)
+const showDeletePlaylist = ref(false)
+const playlistToDelete = ref(null)
 const recentlyPlayed = ref([])
-const search = ref('')
+const mobileSidebarOpen = ref(false)
+
+const trackModalOpen = ref(false)
+const modalTrack = ref(null)
+
 const editingPlaylistId = ref(null)
 
 const playlistForm = reactive({
@@ -264,9 +226,7 @@ const playlistColors = [
 ]
 
 const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
-const MAX_RECENT = 6
-
-const initial = computed(() => (authStore.user?.name || 'U')[0].toUpperCase())
+const MAX_RECENT = 3
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 
 const recommendations = computed(() =>
@@ -276,15 +236,7 @@ const recommendations = computed(() =>
     .slice(0, 8)
 )
 
-const sectionKicker = computed(() =>
-  selectedPlaylist.value ? 'Playlist tracks' : 'Explore your premium library'
-)
-
-const activeSectionTitle = computed(() =>
-  selectedPlaylist.value?.name || 'Discover music'
-)
-
-const list = computed(() => {
+const filteredTracks = computed(() => {
   let arr = [...tracks.value]
 
   if (selectedPlaylist.value?._id) {
@@ -295,7 +247,7 @@ const list = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (q) {
     arr = arr.filter((t) => {
-      const fields = [
+      const haystack = [
         t.title,
         t.artist,
         t.album,
@@ -305,11 +257,22 @@ const list = computed(() => {
         ...(t.mood || []),
         ...(t.tags || []),
       ]
-      return fields.some((item) => String(item || '').toLowerCase().includes(q))
+      return haystack.some((item) => String(item || '').toLowerCase().includes(q))
     })
   }
 
   return arr.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+})
+
+const modalMetaItems = computed(() => {
+  if (!modalTrack.value) return []
+  const t = modalTrack.value
+  const items = []
+  if (t.album) items.push({ label: 'Album', value: t.album })
+  if (t.language) items.push({ label: 'Language', value: t.language })
+  if (t.releaseType) items.push({ label: 'Type', value: t.releaseType })
+  if (t.duration) items.push({ label: 'Duration', value: `${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}` })
+  return items
 })
 
 const fetchTracks = async () => {
@@ -344,21 +307,19 @@ const loadRecentlyPlayed = () => {
 }
 
 const saveRecentlyPlayed = (track) => {
-  const prev = recentlyPlayed.value.filter((t) => t._id !== track._id)
+  const prev = recentlyPlayed.value.filter((t) => String(t._id) !== String(track._id))
   recentlyPlayed.value = [track, ...prev].slice(0, MAX_RECENT)
-  try {
-    localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
-  } catch { }
+  localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
 }
 
 const selectPlaylist = (pl) => {
-  if (selectedPlaylist.value?._id === pl._id) {
-    selectedPlaylist.value = null
-  } else {
-    selectedPlaylist.value = pl
-  }
-  sidebarOpen.value = false
-  profileMenu.value = false
+  selectedPlaylist.value = selectedPlaylist.value?._id === pl._id ? null : pl
+  mobileSidebarOpen.value = false
+}
+
+const openTrackModal = (track) => {
+  modalTrack.value = track
+  trackModalOpen.value = true
 }
 
 const trackPlay = async (track) => {
@@ -375,7 +336,7 @@ const toggleTrack = (track) => {
   }
 
   playerStore.setTrack(track, {
-    queue: list.value.length ? list.value : tracks.value,
+    queue: filteredTracks.value.length ? filteredTracks.value : tracks.value,
     playing: true,
     resetTime: true,
   })
@@ -386,6 +347,29 @@ const toggleTrack = (track) => {
 
 const addToQueue = (track) => {
   playerStore.addToQueue(track)
+}
+
+const openAddToPlaylist = async (track) => {
+  selectedTrack.value = track
+  await fetchPlaylists()
+  showAddToPlaylist.value = true
+}
+
+const openCreateFromAdd = () => {
+  showAddToPlaylist.value = false
+  openCreatePlaylist()
+}
+
+const addTrackToPlaylist = async (playlist) => {
+  if (!selectedTrack.value?._id || !playlist?._id) return
+  try {
+    const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
+      musicId: selectedTrack.value._id,
+    })
+    playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
+    if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
+    showAddToPlaylist.value = false
+  } catch { }
 }
 
 const openCreatePlaylist = () => {
@@ -420,9 +404,6 @@ const createPlaylist = async () => {
     })
     playlists.value.unshift(data)
     closePlaylistModal()
-    playlistForm.name = ''
-    playlistForm.description = ''
-    playlistForm.color = 'linear-gradient(135deg,#2563eb,#60a5fa)'
   } finally {
     playlistLoading.value = false
   }
@@ -440,7 +421,6 @@ const updatePlaylist = async () => {
 
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
-
     closePlaylistModal()
   } finally {
     playlistLoading.value = false
@@ -448,74 +428,40 @@ const updatePlaylist = async () => {
 }
 
 const submitPlaylistForm = async () => {
-  if (isEditingPlaylist.value) {
-    await updatePlaylist()
-  } else {
-    await createPlaylist()
-  }
+  if (isEditingPlaylist.value) await updatePlaylist()
+  else await createPlaylist()
 }
 
-const deletePlaylist = async (playlist) => {
-  const ok = window.confirm(`Delete "${playlist.name}" playlist?`)
-  if (!ok) return
+const openDeletePlaylist = (playlist) => {
+  playlistToDelete.value = playlist
+  showDeletePlaylist.value = true
+}
 
+const closeDeletePlaylist = () => {
+  showDeletePlaylist.value = false
+  playlistToDelete.value = null
+}
+
+const confirmDeletePlaylist = async () => {
+  if (!playlistToDelete.value?._id) return
+  deleteLoading.value = true
   try {
-    await api.delete(`/playlists/${playlist._id}`)
-    playlists.value = playlists.value.filter((pl) => pl._id !== playlist._id)
-    if (selectedPlaylist.value?._id === playlist._id) {
-      selectedPlaylist.value = null
-    }
-  } catch (err) {
-    alert(err?.response?.data?.message || 'Playlist could not be deleted')
+    await api.delete(`/playlists/${playlistToDelete.value._id}`)
+    playlists.value = playlists.value.filter((pl) => pl._id !== playlistToDelete.value._id)
+    if (selectedPlaylist.value?._id === playlistToDelete.value._id) selectedPlaylist.value = null
+    closeDeletePlaylist()
+  } finally {
+    deleteLoading.value = false
   }
-}
-
-const openAddToPlaylist = async (track) => {
-  selectedTrack.value = track
-  await fetchPlaylists()
-  showAddToPlaylist.value = true
-}
-
-const openCreateFromAdd = () => {
-  showAddToPlaylist.value = false
-  openCreatePlaylist()
-}
-
-const addTrackToPlaylist = async (playlist) => {
-  if (!selectedTrack.value?._id || !playlist?._id) return
-  try {
-    const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
-      musicId: selectedTrack.value._id,
-    })
-    playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
-    if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
-    showAddToPlaylist.value = false
-  } catch { }
 }
 
 const imgErr = (e) => {
   e.target.src = fallbackCover
 }
 
-const logout = async () => {
-  await authStore.logout()
-  router.push('/')
-}
-
-const handleKeyDown = (e) => {
-  if (e.key === 'Escape') {
-    profileMenu.value = false
-  }
-}
-
 onMounted(async () => {
   await fetchTracks()
   await fetchPlaylists()
   loadRecentlyPlayed()
-  window.addEventListener('keydown', handleKeyDown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeyDown)
 })
 </script>

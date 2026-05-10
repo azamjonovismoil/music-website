@@ -2,7 +2,7 @@
   <header class="app-header" :class="{ 'app-header--mobile-min': isMobile && authStore.user }">
     <div class="header-inner">
       <div class="header-left">
-        <button v-if="isMobile && authStore.user" class="hdr-btn icon-btn mobile-only" @click="mobileMenuOpen = true"
+        <button v-if="isMobile && authStore.user" class="hdr-btn icon-btn mobile-only" @click="$emit('toggle-sidebar')"
           aria-label="Open menu">
           <Bars3Icon class="hdr-icon" />
         </button>
@@ -21,7 +21,7 @@
           <MagnifyingGlassIcon class="search-icon-el" />
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="emitClearSearch" type="text"
-            placeholder="Search title, artist, album, tags..." class="search-input" />
+            placeholder="Search title, artist, album, tags, genre..." class="search-input" />
           <transition name="fade">
             <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="emitClearSearch">
               <XMarkIcon class="search-clear-icon" />
@@ -51,7 +51,7 @@
         </template>
 
         <template v-else>
-          <div v-if="!isMobile" class="notif-wrap" ref="notifRef">
+          <div v-if="isAdminPage && !isMobile" class="notif-wrap" ref="notifRef">
             <button class="hdr-btn icon-btn notif-btn" @click="toggleNotif" aria-label="Notifications">
               <BellIcon class="hdr-icon" />
               <span v-if="notificationCount > 0" class="notif-badge">
@@ -79,21 +79,19 @@
                   </button>
                 </div>
 
-                <div v-else class="notif-empty">
-                  Nothing urgent right now.
-                </div>
+                <div v-else class="notif-empty">Nothing urgent right now.</div>
               </div>
             </transition>
           </div>
 
-          <button v-if="authStore.isAdmin && !isXs && !isMobile" class="hdr-btn accent-btn add-btn"
+          <button v-if="isAdminPage && !isXs && !isMobile" class="hdr-btn accent-btn add-btn"
             @click="router.push('/admin/add-music')">
             <PlusIcon class="hdr-icon" />
             <span>Add track</span>
           </button>
 
-          <button v-if="!isXs && !isMobile" class="hdr-btn icon-btn" @click="router.push('/library/downloaded')"
-            title="Downloads">
+          <button v-if="showDownloads && !isXs && !isMobile" class="hdr-btn icon-btn"
+            @click="router.push('/library/downloaded')" title="Downloads">
             <ArrowDownTrayIcon class="hdr-icon" />
           </button>
 
@@ -109,22 +107,25 @@
                   <div class="dropdown-avatar">{{ firstLetter }}</div>
                   <div>
                     <p class="dropdown-name">{{ authStore.userName }}</p>
-                    <p class="dropdown-role">{{ authStore.isAdmin ? 'Administrator' : 'Member' }}</p>
+                    <p class="dropdown-role">{{ isAdminPage ? 'Administrator' : 'Member' }}</p>
                   </div>
                 </div>
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item" @click="nav(authStore.isAdmin ? '/admin/profile' : '/profile')">
+                <button class="dropdown-item" @click="nav(isAdminPage ? '/admin/profile' : '/profile')">
                   <UserIcon class="di-icon" />Profile
                 </button>
-                <button v-if="authStore.isAdmin" class="dropdown-item" @click="nav('/admin')">
+
+                <button v-if="isAdminPage" class="dropdown-item" @click="nav('/admin')">
                   <Squares2X2Icon class="di-icon" />Admin panel
                 </button>
-                <button class="dropdown-item" @click="nav('/library/downloaded')">
+
+                <button v-if="showDownloads" class="dropdown-item" @click="nav('/library/downloaded')">
                   <ArrowDownTrayIcon class="di-icon" />Downloads
                 </button>
-                <button v-if="authStore.isAdmin" class="dropdown-item" @click="nav('/admin/add-music')">
+
+                <button v-if="isAdminPage" class="dropdown-item" @click="nav('/admin/add-music')">
                   <PlusIcon class="di-icon" />Add track
                 </button>
 
@@ -150,7 +151,7 @@
         <div class="mobile-search-bar">
           <MagnifyingGlassIcon class="mobile-search-icon" />
           <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
-            placeholder="Search title, artist, album, tags..." class="mobile-search-input" />
+            placeholder="Search title, artist, album, tags, genre..." class="mobile-search-input" />
           <button v-if="search" class="mobile-search-clear" @click="clearMobileSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
@@ -177,29 +178,28 @@
             <div class="mobile-avatar">{{ firstLetter }}</div>
             <div>
               <p class="mobile-user-name">{{ authStore.userName }}</p>
-              <p class="mobile-user-role">{{ authStore.isAdmin ? 'Administrator' : 'Member' }}</p>
+              <p class="mobile-user-role">{{ isAdminPage ? 'Administrator' : 'Member' }}</p>
             </div>
           </div>
 
           <div class="mobile-menu-links">
-            <button class="mobile-link" @click="navMobile(authStore.isAdmin ? '/admin' : '/user')">
+            <button class="mobile-link" @click="navMobile(isAdminPage ? '/admin' : '/user')">
               <HomeIcon class="di-icon" />Home
             </button>
 
-            <button v-if="authStore.isAdmin" class="mobile-link mobile-link--admin" @click="navMobile('/admin')">
+            <button v-if="isAdminPage" class="mobile-link mobile-link--admin" @click="navMobile('/admin')">
               <Squares2X2Icon class="di-icon" />Admin panel
             </button>
 
-            <button v-if="authStore.isAdmin" class="mobile-link mobile-link--admin"
-              @click="navMobile('/admin/add-music')">
+            <button v-if="isAdminPage" class="mobile-link mobile-link--admin" @click="navMobile('/admin/add-music')">
               <PlusIcon class="di-icon" />Add track
             </button>
 
-            <button class="mobile-link" @click="navMobile(authStore.isAdmin ? '/admin/profile' : '/profile')">
+            <button class="mobile-link" @click="navMobile(isAdminPage ? '/admin/profile' : '/profile')">
               <UserIcon class="di-icon" />Profile
             </button>
 
-            <button class="mobile-link" @click="navMobile('/library/downloaded')">
+            <button v-if="showDownloads" class="mobile-link" @click="navMobile('/library/downloaded')">
               <ArrowDownTrayIcon class="di-icon" />Downloads
             </button>
 
@@ -220,7 +220,7 @@
       <button class="mq-btn" @click="openMobileSearch">
         <MagnifyingGlassIcon class="hdr-icon" />
       </button>
-      <button v-if="authStore.isAdmin" class="mq-btn mq-btn--accent" @click="router.push('/admin/add-music')">
+      <button v-if="isAdminPage" class="mq-btn mq-btn--accent" @click="router.push('/admin/add-music')">
         <PlusIcon class="hdr-icon" />
       </button>
       <button class="mq-btn" @click="mobileMenuOpen = true">
@@ -257,9 +257,11 @@ import '@/styles/header_page.css'
 const props = defineProps({
   search: { type: String, default: '' },
   showSearch: { type: Boolean, default: true },
+  pageType: { type: String, default: 'user' },
+  showDownloads: { type: Boolean, default: true },
 })
 
-const emit = defineEmits(['update:search'])
+const emit = defineEmits(['update:search', 'toggle-sidebar'])
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -288,16 +290,15 @@ const notifSeen = ref(false)
 
 const isMobile = computed(() => viewport.value <= 860)
 const isXs = computed(() => viewport.value <= 540)
+const isAdminPage = computed(() => props.pageType === 'admin')
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
 const notificationCount = computed(() => notifSeen.value ? 0 : notifications.value.length)
 
-const emitClearSearch = () => {
-  emit('update:search', '')
-}
+const emitClearSearch = () => emit('update:search', '')
 
 const goHome = () => {
   if (!authStore.user) return router.push('/')
-  router.push(authStore.isAdmin ? '/admin' : '/user')
+  router.push(isAdminPage.value ? '/admin' : '/user')
 }
 
 const clearMobileSearch = async () => {
@@ -418,7 +419,7 @@ const buildNotifications = (summary) => {
 }
 
 const loadNotifications = async () => {
-  if (!authStore.user || !authStore.isAdmin || isMobile.value) {
+  if (!authStore.user || !isAdminPage.value || isMobile.value) {
     notifications.value = []
     return
   }
@@ -465,6 +466,10 @@ const handleResize = () => {
 }
 
 watch(isMobile, () => {
+  loadNotifications()
+})
+
+watch(() => props.pageType, () => {
   loadNotifications()
 })
 
