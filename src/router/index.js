@@ -8,7 +8,6 @@ const routes = [
     path: '/',
     name: 'Landing',
     component: () => import('../pages/home/LandingPage.vue'),
-    // NOTE: no guestOnly here — landing is public, but we redirect logged-in users below
     meta: { title: 'Welcome', hidePlayerBar: true },
   },
   {
@@ -117,10 +116,6 @@ router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
 
   if (!auth.initialized) await auth.fetchMe()
-
-  if (to.name === 'Landing' && auth.isLoggedIn) {
-    return next(auth.isAdmin ? '/admin' : '/user')
-  }
 
   if (to.meta?.guestOnly && auth.isLoggedIn) {
     return next(auth.isAdmin ? '/admin' : '/user')
