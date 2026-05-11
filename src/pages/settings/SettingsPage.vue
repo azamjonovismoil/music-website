@@ -6,39 +6,12 @@
           <p class="page-label">Preferences</p>
           <h1>Settings</h1>
           <p class="settings-hero__text">
-            Theme, playback, and interface preferences.
+            Playback and interface preferences.
           </p>
         </div>
       </section>
 
       <section class="settings-grid">
-        <div class="settings-card surface-card">
-          <div class="settings-card__head">
-            <div>
-              <p class="settings-kicker">Appearance</p>
-              <h2>Theme mode</h2>
-            </div>
-          </div>
-
-          <div class="theme-switch">
-            <button class="theme-option" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-              <span class="theme-option__icon">🌙</span>
-              <div>
-                <strong>Dark</strong>
-                <span>Premium dark interface</span>
-              </div>
-            </button>
-
-            <button class="theme-option" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-              <span class="theme-option__icon">☀️</span>
-              <div>
-                <strong>Light</strong>
-                <span>Clean bright interface</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
         <div class="settings-card surface-card">
           <div class="settings-card__head">
             <div>
@@ -83,10 +56,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive, onMounted } from 'vue'
 import '@/styles/settings_page.css'
-
-const theme = ref(localStorage.getItem('mw-theme') || 'dark')
 
 const prefs = reactive({
   showLyrics: false,
@@ -94,19 +65,11 @@ const prefs = reactive({
   compactCards: true,
 })
 
-const setTheme = (nextTheme) => {
-  theme.value = nextTheme
-  localStorage.setItem('mw-theme', nextTheme)
-  document.documentElement.setAttribute('data-theme', nextTheme)
-}
-
 const savePrefs = () => {
   localStorage.setItem('mw-prefs', JSON.stringify(prefs))
 }
 
 onMounted(() => {
-  document.documentElement.setAttribute('data-theme', theme.value)
-
   const savedPrefs = localStorage.getItem('mw-prefs')
   if (savedPrefs) {
     try {

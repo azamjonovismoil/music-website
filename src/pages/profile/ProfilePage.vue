@@ -8,8 +8,8 @@
 
           <div class="pf-hero-info">
             <p class="pf-kicker">Your profile</p>
-            <h1 class="pf-name">{{ authStore.userName || 'Unknown User' }}</h1>
-            <p class="pf-email">{{ authStore.user?.email }}</p>
+            <h1 class="pf-name">{{ form.name || 'Unknown User' }}</h1>
+            <p class="pf-email">{{ form.email || 'No email' }}</p>
           </div>
 
           <span class="pf-role-badge" :class="authStore.isAdmin ? 'admin' : 'member'">
@@ -101,11 +101,28 @@ const api = axios.create({
 
 const saving = ref(false)
 const isDirty = ref(false)
-const stats = reactive({ total: 0, liked: 0, downloaded: 0, recent: 0 })
-const form = reactive({ name: '', email: '', bio: '' })
-const saved = reactive({ name: '', email: '', bio: '' })
+
+const stats = reactive({
+  total: 0,
+  liked: 0,
+  downloaded: 0,
+  recent: 0,
+})
+
+const form = reactive({
+  name: '',
+  email: '',
+  bio: '',
+})
+
+const saved = reactive({
+  name: '',
+  email: '',
+  bio: '',
+})
 
 const firstLetter = computed(() => form.name?.charAt(0)?.toUpperCase() || 'U')
+const recentKey = computed(() => `rp_${authStore.user?.id || authStore.user?._id || 'u'}`)
 
 const trackChange = () => {
   isDirty.value =
@@ -125,12 +142,16 @@ const loadProfile = async () => {
   try {
     const { data } = await api.get('/auth/me')
     const u = data.user || data
+
     form.name = u.name || ''
     form.email = u.email || ''
     form.bio = u.bio || ''
+
     saved.name = form.name
     saved.email = form.email
     saved.bio = form.bio
+
+    authStore.setUser?.(u)
   } catch { }
 }
 
@@ -145,40 +166,46 @@ const loadStats = async () => {
     if (all.status === 'fulfilled') {
       stats.total = Array.isArray(all.value.data) ? all.value.data.length : 0
     }
+
     if (liked.status === 'fulfilled') {
       stats.liked = Array.isArray(liked.value.data) ? liked.value.data.length : 0
     }
+
     if (downloaded.status === 'fulfilled') {
       stats.downloaded = Array.isArray(downloaded.value.data) ? downloaded.value.data.length : 0
     }
 
-    const recentLocal = JSON.parse(localStorage.getItem('recentTracks') || '[]')
+    const recentLocal = JSON.parse(localStorage.getItem(recentKey.value) || '[]')
     stats.recent = Array.isArray(recentLocal) ? recentLocal.length : 0
   } catch { }
 }
 
 const saveProfile = async () => {
   if (!isDirty.value) return
+
   saving.value = true
   try {
-    const { data } = await api.put('/auth/profile', {
+    const payload = {
       name: form.name.trim(),
       email: form.email.trim(),
       bio: form.bio.trim(),
-    })
+    }
 
+    const { data } = await api.put('/auth/profile', payload)
     const u = data.user || data
-    form.name = u.name || form.name
-    form.email = u.email || form.email
-    form.bio = u.bio !== undefined ? u.bio : form.bio
+
+    form.name = u.name || payload.name
+    form.email = u.email || payload.email
+    form.bio = u.bio ?? payload.bio
 
     saved.name = form.name
     saved.email = form.email
     saved.bio = form.bio
     isDirty.value = false
 
-    authStore.setUser({
+    authStore.setUser?.({
       ...authStore.user,
+      ...u,
       name: form.name,
       email: form.email,
       bio: form.bio,
