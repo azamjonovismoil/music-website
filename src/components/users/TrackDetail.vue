@@ -1,181 +1,176 @@
 <template>
-  <div class="td" v-if="track">
-    <button class="td-back" @click="router.back()">
-      <ArrowLeftIcon class="td-back-ico" />
-      <span>Back</span>
-    </button>
+  <section v-if="track" class="td">
+    <div class="td-hero">
+      <div class="td-visual">
+        <div class="td-cover-shell">
+          <img :src="getCover(track)" class="td-cover" :alt="track.title || 'Track cover'" @error="imgErr" />
+        </div>
 
-    <section class="td-hero">
-      <div class="td-cover-shell">
-        <img :src="resolveCover(track)" class="td-cover" alt="cover" @error="imgErr" />
+        <div class="td-visual-badges">
+          <span v-if="track.releaseType" class="chip">{{ track.releaseType }}</span>
+          <span v-if="track.language" class="chip">{{ track.language }}</span>
+        </div>
       </div>
 
       <div class="td-info">
-        <p class="td-kicker">Track</p>
-        <h1 class="td-title">{{ track.title }}</h1>
+        <div class="td-topbar">
+          <button class="td-back" type="button" @click="$emit('back')">
+            <ArrowLeftIcon class="td-back-ico" />
+            <span>Back to library</span>
+          </button>
 
-        <p class="td-artist">
-          <span class="td-artist-link" @click="openArtist(track.artist)">
-            {{ track.artist || 'Unknown artist' }}
-          </span>
-          <template v-if="track.album">
-            <span class="td-dot">·</span>
-            <span>{{ track.album }}</span>
-          </template>
-        </p>
-
-        <div class="td-tags" v-if="allTags.length">
-          <span v-for="t in allTags.slice(0, 8)" :key="t" class="td-tag">{{ t }}</span>
-        </div>
-
-        <div class="td-actions">
-          <el-button type="primary" round @click="playTrack">
-            <PlayIcon class="td-btn-ico td-btn-ico--shift" />
-            Play
-          </el-button>
-
-          <el-button round @click="toggleLike">
-            <HeartIcon class="td-btn-ico" />
-            {{ track.liked ? 'Liked' : 'Like' }}
-          </el-button>
-
-          <el-button round @click="addToPlaylist">
-            <PlusIcon class="td-btn-ico" />
-            Playlist
-          </el-button>
-
-          <el-button round @click="addToQueue">
-            <QueueListIcon class="td-btn-ico" />
-            Queue
-          </el-button>
-        </div>
-
-        <div class="td-meta" v-if="metaItems.length">
-          <div v-for="m in metaItems" :key="m.label" class="td-meta-item">
-            <span class="td-meta-label">{{ m.label }}</span>
-            <span class="td-meta-val">{{ m.value }}</span>
+          <div v-if="currentTrack?._id === track._id" class="td-state" :class="{ active: isPlaying }">
+            <span class="td-state-dot"></span>
+            <span>{{ isPlaying ? 'Now playing' : 'Selected' }}</span>
           </div>
         </div>
 
-        <p v-if="track.bio" class="td-bio">{{ track.bio }}</p>
-      </div>
-    </section>
+        <p class="page-label">Featured track</p>
 
-    <section v-if="track.lyrics" class="td-lyrics">
-      <div class="td-lyrics-head">
-        <span>Lyrics</span>
-        <span class="td-lyrics-count">{{ lineCount }} lines</span>
+        <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
+
+        <div class="td-artist-row">
+          <button class="td-artist" type="button" @click="$emit('open-artist', track.artist)">
+            {{ track.artist || 'Unknown artist' }}
+          </button>
+
+          <span v-if="track.album" class="td-sep">•</span>
+          <span v-if="track.album" class="td-album">{{ track.album }}</span>
+        </div>
+
+        <div v-if="heroTags.length" class="td-tags">
+          <span v-for="tag in heroTags" :key="tag" class="td-tag">{{ tag }}</span>
+        </div>
+
+        <div class="td-actions">
+          <button class="btn btn-primary td-btn-primary" type="button" @click="$emit('play', track)">
+            <PauseIcon v-if="currentTrack?._id === track._id && isPlaying" class="td-btn-ico" />
+            <PlayIcon v-else class="td-btn-ico td-btn-ico--shift" />
+            <span>{{ currentTrack?._id === track._id && isPlaying ? 'Pause' : 'Play now' }}</span>
+          </button>
+
+          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('toggle-like', track)">
+            <HeartSolidIcon v-if="track.liked" class="td-btn-ico td-btn-ico--liked" />
+            <HeartIcon v-else class="td-btn-ico" />
+            <span>{{ track.liked ? 'Liked' : 'Like' }}</span>
+          </button>
+
+          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-playlist', track)">
+            <PlusIcon class="td-btn-ico" />
+            <span>Playlist</span>
+          </button>
+
+          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-queue', track)">
+            <QueueListIcon class="td-btn-ico" />
+            <span>Queue</span>
+          </button>
+        </div>
+
+        <div v-if="metaItems.length" class="td-stats">
+          <div v-for="item in metaItems" :key="item.label" class="td-stat">
+            <span class="td-stat__label">{{ item.label }}</span>
+            <strong class="td-stat__value">{{ item.value }}</strong>
+          </div>
+        </div>
+
+        <p v-if="track.bio" class="td-bio">
+          {{ track.bio }}
+        </p>
+      </div>
+    </div>
+
+    <div v-if="recommendations.length" class="td-more surface-card">
+      <div class="td-more__head">
+        <div>
+          <p class="section-kicker">Continue listening</p>
+          <h3>More in this vibe</h3>
+        </div>
       </div>
 
-      <div class="td-lyrics-body">
-        <p class="td-lyrics-text">{{ displayLyrics }}</p>
-        <button v-if="track.lyrics.length > 600 && !lyricsExpanded" class="td-lyrics-more"
-          @click="lyricsExpanded = true">
-          Show all lyrics
-        </button>
+      <div class="td-more__grid">
+        <article v-for="item in recommendations" :key="item._id" class="td-more-card"
+          @click="$emit('select-track', item)">
+          <img :src="getCover(item)" class="td-more-card__cover" :alt="item.title || 'Track cover'" @error="imgErr" />
+
+          <div class="td-more-card__body">
+            <strong>{{ item.title || 'Untitled' }}</strong>
+            <span>{{ item.artist || 'Unknown artist' }}</span>
+          </div>
+
+          <button class="td-more-card__play" type="button" @click.stop="$emit('play', item)">
+            <PlayIcon class="td-more-card__play-ico td-btn-ico--shift" />
+          </button>
+        </article>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
-import { useRoute, useRouter } from 'vue-router'
-import { usePlayerStore } from '@/stores/player'
-import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
+import { computed } from 'vue'
+import { fallbackCover } from '@/utils/media'
 import {
   ArrowLeftIcon,
   PlayIcon,
+  PauseIcon,
   HeartIcon,
   PlusIcon,
   QueueListIcon,
 } from '@heroicons/vue/24/outline'
+import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 import '@/styles/track_detail.css'
 
-const route = useRoute()
-const router = useRouter()
-const player = usePlayerStore()
-
-const api = axios.create({
-  baseURL: `${API_ROOT}/api`,
-  withCredentials: true,
+const props = defineProps({
+  track: { type: Object, required: true },
+  currentTrack: { type: Object, default: null },
+  isPlaying: { type: Boolean, default: false },
+  recommendations: { type: Array, default: () => [] },
+  getCover: { type: Function, required: true },
 })
 
-const track = ref(null)
-const lyricsExpanded = ref(false)
+defineEmits([
+  'back',
+  'play',
+  'toggle-like',
+  'add-to-playlist',
+  'add-to-queue',
+  'open-artist',
+  'select-track',
+])
 
 const fmtDur = (s) => {
   const t = Number(s || 0)
-  if (!t) return ''
+  if (!t) return '—'
   return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
 }
 
-const allTags = computed(() => [
-  ...((track.value?.genre || []).map((g) => g)),
-  ...((track.value?.mood || []).map((m) => m)),
-  ...((track.value?.tags || []).map((t) => `#${t}`)),
-])
+const heroTags = computed(() => {
+  const raw = [
+    ...(Array.isArray(props.track?.genre) ? props.track.genre : []),
+    ...(Array.isArray(props.track?.mood) ? props.track.mood : []),
+    ...(Array.isArray(props.track?.tags)
+      ? props.track.tags.slice(0, 3).map((t) => `#${t}`)
+      : []),
+  ]
+  return raw.slice(0, 6)
+})
 
 const metaItems = computed(() => {
-  if (!track.value) return []
+  const t = props.track
+  if (!t) return []
+
   const items = []
-  if (track.value.duration) items.push({ label: 'Duration', value: fmtDur(track.value.duration) })
-  if (track.value.releaseDate) items.push({ label: 'Released', value: String(track.value.releaseDate).slice(0, 10) })
-  if (track.value.language) items.push({ label: 'Language', value: track.value.language })
-  if (track.value.country) items.push({ label: 'Country', value: track.value.country })
-  if (track.value.playCount) items.push({ label: 'Plays', value: track.value.playCount.toLocaleString() })
-  if (track.value.likeCount) items.push({ label: 'Likes', value: track.value.likeCount.toLocaleString() })
-  return items
+  if (t.album) items.push({ label: 'Album', value: t.album })
+  items.push({ label: 'Duration', value: fmtDur(t.duration) })
+  items.push({ label: 'Language', value: t.language || '—' })
+  items.push({ label: 'Type', value: t.releaseType || 'single' })
+  items.push({ label: 'Likes', value: Number(t.likeCount || 0).toLocaleString() })
+  items.push({ label: 'Plays', value: Number(t.playCount || 0).toLocaleString() })
+
+  return items.slice(0, 6)
 })
-
-const lineCount = computed(() =>
-  track.value?.lyrics ? track.value.lyrics.split('\n').filter(Boolean).length : 0
-)
-
-const displayLyrics = computed(() => {
-  if (!track.value?.lyrics) return ''
-  if (lyricsExpanded.value || track.value.lyrics.length <= 600) return track.value.lyrics
-  return track.value.lyrics.slice(0, 600) + '…'
-})
-
-const loadTrack = async () => {
-  const { data } = await api.get(`/music/${route.params.id}`)
-  track.value = data || null
-}
-
-const playTrack = async () => {
-  if (!track.value) return
-  player.setTrack(track.value, { queue: [track.value], playing: true, resetTime: true })
-  try {
-    await api.patch(`/music/${track.value._id}/play`)
-  } catch { }
-}
-
-const toggleLike = () => {
-  if (!track.value) return
-  window.dispatchEvent(new CustomEvent('mw:toggle-like', { detail: track.value }))
-  track.value.liked = !track.value.liked
-}
-
-const addToPlaylist = () => {
-  if (!track.value) return
-  window.dispatchEvent(new CustomEvent('mw:add-to-playlist', { detail: track.value }))
-}
-
-const addToQueue = () => {
-  if (!track.value) return
-  player.addToQueue(track.value)
-}
-
-const openArtist = (artist) => {
-  if (!artist) return
-  router.push({ name: 'Artist', params: { slug: encodeURIComponent(String(artist).trim()) } })
-}
 
 const imgErr = (e) => {
   e.target.src = fallbackCover
 }
-
-onMounted(loadTrack)
 </script>

@@ -13,10 +13,12 @@
       </div>
 
       <main class="user-main">
-        <section v-if="recentlyPlayed.length" class="recent-section">
+        <section v-if="recentlyPlayed.length" class="recent-section surface-card">
           <div class="recent-section__head">
-            <ClockIcon class="recent-icon" />
-            <h3>Recently played</h3>
+            <div>
+              <p class="section-kicker">Quick access</p>
+              <h3>Recently played</h3>
+            </div>
           </div>
 
           <div class="recent-list">
@@ -39,45 +41,44 @@
         <section class="content-section">
           <div class="content-section__head">
             <div>
-              <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Explore your premium library' }}</p>
+              <p class="section-kicker">
+                {{ selectedPlaylist ? 'Playlist view' : 'Explore your premium library' }}
+              </p>
               <h2>{{ selectedPlaylist?.name || 'Discover music' }}</h2>
+            </div>
+
+            <div class="content-section__meta" v-if="!loading && !errMsg && filteredTracks.length">
+              <span class="result-badge">{{ filteredTracks.length }}</span>
             </div>
           </div>
 
           <div v-if="loading" class="track-grid">
-            <div v-for="n in 12" :key="n" class="track-skeleton"></div>
+            <div v-for="n in 8" :key="n" class="track-skeleton"></div>
           </div>
 
-          <div v-else-if="errMsg" class="empty-box">
+          <div v-else-if="errMsg" class="empty-box surface-card">
             <h3>Could not load music</h3>
             <p>{{ errMsg }}</p>
             <button class="btn btn-primary" type="button" @click="fetchTracks">Try again</button>
           </div>
 
-          <div v-else-if="filteredTracks.length === 0" class="empty-box">
+          <div v-else-if="filteredTracks.length === 0" class="empty-box surface-card">
             <h3>No tracks found</h3>
             <p>Try another search or playlist.</p>
           </div>
 
-          <div v-else class="track-grid">
-            <article v-for="t in filteredTracks" :key="t._id" class="track-card"
-              :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="openTrackModal(t)">
-              <img class="track-card__img" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
+          <template v-else>
+            <TrackDetail v-if="selectedDetailTrack" class="user-main-detail" :track="selectedDetailTrack"
+              :current-track="playerStore.currentTrack" :is-playing="playerStore.isPlaying"
+              :recommendations="detailRecommendations" :get-cover="resolveCover" @back="clearDetailTrack"
+              @play="toggleTrack" @toggle-like="toggleLikeTrack" @add-to-playlist="openAddToPlaylist"
+              @add-to-queue="addToQueue" @open-artist="openArtist" @select-track="openTrackDetail" />
 
-              <div class="track-card__overlay">
-                <button class="track-card__play" type="button" @click.stop="toggleTrack(t)">
-                  <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
-                    class="card-play-ico" />
-                  <PlayIcon v-else class="card-play-ico card-play-ico--shift" />
-                </button>
-
-                <div class="track-card__meta">
-                  <strong>{{ t.title }}</strong>
-                  <span>{{ t.artist }}</span>
-                </div>
-              </div>
-            </article>
-          </div>
+            <TrackGrid title="More tracks" :tracks="gridTracks" :current-music="playerStore.currentTrack"
+              :selected-music="selectedDetailTrack" :is-playing="playerStore.isPlaying" :get-cover="resolveCover"
+              :fallback="fallbackCover" @select-track="openTrackDetail" @play-track="toggleTrack"
+              @add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue" />
+          </template>
         </section>
       </main>
 
@@ -90,55 +91,6 @@
         </div>
       </aside>
     </div>
-
-    <Teleport to="body">
-      <Transition name="track-modal">
-        <div v-if="trackModalOpen && modalTrack" class="track-modal-overlay" @click.self="trackModalOpen = false">
-          <div class="track-modal-card">
-            <button class="track-modal-close" type="button" @click="trackModalOpen = false">
-              <XMarkIcon class="ui-ico" />
-            </button>
-
-            <div class="track-modal-hero">
-              <img class="track-modal-cover" :src="resolveCover(modalTrack)" :alt="modalTrack.title" @error="imgErr" />
-
-              <div class="track-modal-info">
-                <p class="track-modal-kicker">Track</p>
-                <h2 class="track-modal-title">{{ modalTrack.title }}</h2>
-                <p class="track-modal-artist">{{ modalTrack.artist || 'Unknown' }}</p>
-
-                <div class="track-modal-actions">
-                  <button class="btn btn-primary" type="button" @click="toggleTrack(modalTrack)">
-                    <PlayIcon class="btn-ico btn-ico--shift" />
-                    <span>Play</span>
-                  </button>
-
-                  <button class="btn btn-ghost" type="button" @click="openAddToPlaylist(modalTrack)">
-                    <PlusIcon class="btn-ico" />
-                    <span>Playlist</span>
-                  </button>
-                </div>
-
-                <div class="track-modal-meta" v-if="modalMetaItems.length">
-                  <div v-for="m in modalMetaItems" :key="m.label" class="track-modal-meta-item">
-                    <span class="track-modal-meta-label">{{ m.label }}</span>
-                    <span class="track-modal-meta-val">{{ m.value }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="modalTrack.lyrics" class="track-modal-lyrics">
-              <div class="track-modal-lyrics-head">
-                <MicrophoneIcon class="track-modal-lyrics-ico" />
-                <span>Lyrics</span>
-              </div>
-              <p class="track-modal-lyrics-text">{{ modalTrack.lyrics }}</p>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
       @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
@@ -163,18 +115,16 @@ import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
 import HeaderPage from '@/components/layout/HeaderPage.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
 import RightPanel from '@/components/users/RightPanel.vue'
+import TrackDetail from '@/components/users/TrackDetail.vue'
+import TrackGrid from '@/components/users/TrackGrid.vue'
 import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
 import '@/styles/user_page.css'
 
 import {
-  XMarkIcon,
-  PlusIcon,
   PlayIcon,
   PauseIcon,
-  ClockIcon,
-  MicrophoneIcon,
 } from '@heroicons/vue/24/outline'
 
 const authStore = useAuthStore()
@@ -192,6 +142,7 @@ const playlists = ref([])
 const search = ref('')
 const selectedTrack = ref(null)
 const selectedPlaylist = ref(null)
+const selectedDetailTrack = ref(null)
 const showAddToPlaylist = ref(false)
 const showCreatePlaylist = ref(false)
 const playlistLoading = ref(false)
@@ -200,8 +151,6 @@ const showDeletePlaylist = ref(false)
 const playlistToDelete = ref(null)
 const recentlyPlayed = ref([])
 const mobileSidebarOpen = ref(false)
-const trackModalOpen = ref(false)
-const modalTrack = ref(null)
 const editingPlaylistId = ref(null)
 
 const playlistForm = reactive({
@@ -261,20 +210,15 @@ const filteredTracks = computed(() => {
   return arr.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 })
 
-const modalMetaItems = computed(() => {
-  if (!modalTrack.value) return []
-  const t = modalTrack.value
-  const items = []
-  if (t.album) items.push({ label: 'Album', value: t.album })
-  if (t.language) items.push({ label: 'Language', value: t.language })
-  if (t.releaseType) items.push({ label: 'Type', value: t.releaseType })
-  if (t.duration) {
-    items.push({
-      label: 'Duration',
-      value: `${Math.floor(t.duration / 60)}:${String(Math.floor(t.duration % 60)).padStart(2, '0')}`,
-    })
-  }
-  return items
+const detailRecommendations = computed(() =>
+  filteredTracks.value
+    .filter((t) => String(t._id) !== String(selectedDetailTrack.value?._id || ''))
+    .slice(0, 6)
+)
+
+const gridTracks = computed(() => {
+  if (!selectedDetailTrack.value) return filteredTracks.value
+  return filteredTracks.value.filter((t) => String(t._id) !== String(selectedDetailTrack.value._id))
 })
 
 const fetchTracks = async () => {
@@ -283,6 +227,13 @@ const fetchTracks = async () => {
   try {
     const { data } = await api.get('/music')
     tracks.value = Array.isArray(data) ? data : []
+
+    if (!selectedDetailTrack.value && tracks.value.length) {
+      selectedDetailTrack.value = tracks.value[0]
+    } else if (selectedDetailTrack.value?._id) {
+      const updated = tracks.value.find((t) => String(t._id) === String(selectedDetailTrack.value._id))
+      if (updated) selectedDetailTrack.value = updated
+    }
   } catch (err) {
     errMsg.value = err?.response?.data?.message || 'Could not load music.'
   } finally {
@@ -317,11 +268,26 @@ const saveRecentlyPlayed = (track) => {
 const selectPlaylist = (pl) => {
   selectedPlaylist.value = selectedPlaylist.value?._id === pl._id ? null : pl
   mobileSidebarOpen.value = false
+
+  const source = selectedPlaylist.value?._id
+    ? tracks.value.filter((t) =>
+      new Set((selectedPlaylist.value.tracks || []).map((x) => String(x._id || x))).has(String(t._id))
+    )
+    : tracks.value
+
+  selectedDetailTrack.value = source[0] || null
 }
 
-const openTrackModal = (track) => {
-  modalTrack.value = track
-  trackModalOpen.value = true
+const openTrackDetail = (track) => {
+  selectedDetailTrack.value = track
+  requestAnimationFrame(() => {
+    const el = document.querySelector('.user-main-detail')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
+
+const clearDetailTrack = () => {
+  selectedDetailTrack.value = filteredTracks.value[0] || null
 }
 
 const trackPlay = async (track) => {
@@ -343,8 +309,29 @@ const toggleTrack = (track) => {
     resetTime: true,
   })
 
+  selectedDetailTrack.value = track
   saveRecentlyPlayed(track)
   trackPlay(track)
+}
+
+const toggleLikeTrack = async (track) => {
+  if (!track?._id) return
+
+  try {
+    const { data } = await api.patch(`/music/${track._id}/like`)
+
+    tracks.value = tracks.value.map((t) =>
+      String(t._id) === String(data._id) ? data : t
+    )
+
+    recentlyPlayed.value = recentlyPlayed.value.map((t) =>
+      String(t._id) === String(data._id) ? data : t
+    )
+
+    if (selectedDetailTrack.value?._id === data._id) {
+      selectedDetailTrack.value = data
+    }
+  } catch { }
 }
 
 const addToQueue = (track) => {
@@ -455,6 +442,12 @@ const confirmDeletePlaylist = async () => {
   } finally {
     deleteLoading.value = false
   }
+}
+
+const openArtist = (artist) => {
+  if (!artist) return
+  search.value = String(artist).trim()
+  selectedPlaylist.value = null
 }
 
 const imgErr = (e) => {
