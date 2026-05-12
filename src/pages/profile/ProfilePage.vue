@@ -1,8 +1,9 @@
 <template>
   <div class="profile-pg">
     <main class="profile-main">
-      <div class="pf-hero">
-        <div class="pf-hero-bg" />
+      <section class="pf-hero surface-card">
+        <div class="pf-hero-bg"></div>
+
         <div class="pf-hero-inner">
           <div class="pf-avatar">{{ firstLetter }}</div>
 
@@ -16,34 +17,34 @@
             {{ authStore.isAdmin ? 'Admin' : 'Member' }}
           </span>
         </div>
-      </div>
+      </section>
 
-      <div class="pf-stats">
-        <div class="pf-stat">
+      <section class="pf-stats">
+        <div class="pf-stat surface-card">
           <strong>{{ stats.total }}</strong>
           <span>Total tracks</span>
         </div>
-        <div class="pf-stat">
+        <div class="pf-stat surface-card">
           <strong>{{ stats.liked }}</strong>
           <span>Favourites</span>
         </div>
-        <div class="pf-stat">
+        <div class="pf-stat surface-card">
           <strong>{{ stats.downloaded }}</strong>
           <span>Downloaded</span>
         </div>
-        <div class="pf-stat">
+        <div class="pf-stat surface-card">
           <strong>{{ stats.recent }}</strong>
           <span>Recently played</span>
         </div>
-      </div>
+      </section>
 
-      <div class="pf-card">
+      <section class="pf-card surface-card">
         <div class="pf-card-head">
           <div>
-            <p class="pf-kicker">Settings</p>
+            <p class="pf-kicker">Account</p>
             <h2 class="pf-card-title">Edit profile</h2>
           </div>
-          <p class="pf-card-desc">Update your personal information.</p>
+          <p class="pf-card-desc">Update your personal information and keep your account up to date.</p>
         </div>
 
         <div class="pf-form">
@@ -64,21 +65,35 @@
           </div>
         </div>
 
+        <div v-if="errorMsg" class="pf-feedback pf-feedback--error">
+          {{ errorMsg }}
+        </div>
+
+        <div v-if="successMsg" class="pf-feedback pf-feedback--success">
+          {{ successMsg }}
+        </div>
+
         <div v-if="isDirty" class="pf-actions">
-          <button class="pf-cancel-btn" @click="resetForm" :disabled="saving">Discard</button>
-          <button class="pf-save-btn" :disabled="saving" @click="saveProfile">
+          <button class="pf-cancel-btn" type="button" @click="resetForm" :disabled="saving">
+            Discard
+          </button>
+
+          <button class="pf-save-btn" type="button" :disabled="saving" @click="saveProfile">
             {{ saving ? 'Saving…' : 'Save changes' }}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div class="pf-danger-card">
+      <section class="pf-danger-card surface-card">
         <div>
-          <h3>Danger zone</h3>
-          <p>These actions are irreversible.</p>
+          <h3>Session</h3>
+          <p>End your current session on this device.</p>
         </div>
-        <button class="pf-logout-btn" @click="handleLogout">Log out</button>
-      </div>
+
+        <button class="pf-logout-btn" type="button" @click="handleLogout">
+          Log out
+        </button>
+      </section>
     </main>
   </div>
 </template>
@@ -101,6 +116,8 @@ const api = axios.create({
 
 const saving = ref(false)
 const isDirty = ref(false)
+const errorMsg = ref('')
+const successMsg = ref('')
 
 const stats = reactive({
   total: 0,
@@ -125,6 +142,8 @@ const firstLetter = computed(() => form.name?.charAt(0)?.toUpperCase() || 'U')
 const recentKey = computed(() => `rp_${authStore.user?.id || authStore.user?._id || 'u'}`)
 
 const trackChange = () => {
+  successMsg.value = ''
+  errorMsg.value = ''
   isDirty.value =
     form.name !== saved.name ||
     form.email !== saved.email ||
@@ -135,6 +154,8 @@ const resetForm = () => {
   form.name = saved.name
   form.email = saved.email
   form.bio = saved.bio
+  errorMsg.value = ''
+  successMsg.value = ''
   isDirty.value = false
 }
 
@@ -152,7 +173,9 @@ const loadProfile = async () => {
     saved.bio = form.bio
 
     authStore.setUser?.(u)
-  } catch { }
+  } catch {
+    errorMsg.value = 'Failed to load profile.'
+  }
 }
 
 const loadStats = async () => {
@@ -184,6 +207,9 @@ const saveProfile = async () => {
   if (!isDirty.value) return
 
   saving.value = true
+  errorMsg.value = ''
+  successMsg.value = ''
+
   try {
     const payload = {
       name: form.name.trim(),
@@ -202,6 +228,7 @@ const saveProfile = async () => {
     saved.email = form.email
     saved.bio = form.bio
     isDirty.value = false
+    successMsg.value = 'Profile updated successfully.'
 
     authStore.setUser?.({
       ...authStore.user,
@@ -211,7 +238,7 @@ const saveProfile = async () => {
       bio: form.bio,
     })
   } catch (e) {
-    console.error(e?.response?.data?.message || 'Failed to save profile')
+    errorMsg.value = e?.response?.data?.message || 'Failed to save profile.'
   } finally {
     saving.value = false
   }
