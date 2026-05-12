@@ -1,45 +1,44 @@
 <template>
   <section v-if="track" class="td">
     <div class="td-hero">
-      <div class="td-visual">
+      <div class="td-media">
         <div class="td-cover-shell">
           <img :src="getCover(track)" class="td-cover" :alt="track.title || 'Track cover'" @error="imgErr" />
         </div>
 
-        <div class="td-visual-badges">
-          <span v-if="track.releaseType" class="chip">{{ track.releaseType }}</span>
-          <span v-if="track.language" class="chip">{{ track.language }}</span>
+        <div v-if="currentTrack?._id === track._id" class="td-now" :class="{ active: isPlaying }">
+          <span class="td-now__dot"></span>
+          <span>{{ isPlaying ? 'Now playing' : 'Selected track' }}</span>
         </div>
       </div>
 
-      <div class="td-info">
+      <div class="td-main">
         <div class="td-topbar">
           <button class="td-back" type="button" @click="$emit('back')">
             <ArrowLeftIcon class="td-back-ico" />
             <span>Back to library</span>
           </button>
+        </div>
 
-          <div v-if="currentTrack?._id === track._id" class="td-state" :class="{ active: isPlaying }">
-            <span class="td-state-dot"></span>
-            <span>{{ isPlaying ? 'Now playing' : 'Selected' }}</span>
+        <div class="td-copy">
+          <p class="page-label">Featured track</p>
+
+          <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
+
+          <div class="td-artist-row">
+            <button class="td-artist" type="button" @click="$emit('open-artist', track.artist)">
+              {{ track.artist || 'Unknown artist' }}
+            </button>
+
+            <template v-if="track.album">
+              <span class="td-sep">•</span>
+              <span class="td-album">{{ track.album }}</span>
+            </template>
           </div>
-        </div>
 
-        <p class="page-label">Featured track</p>
-
-        <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
-
-        <div class="td-artist-row">
-          <button class="td-artist" type="button" @click="$emit('open-artist', track.artist)">
-            {{ track.artist || 'Unknown artist' }}
-          </button>
-
-          <span v-if="track.album" class="td-sep">•</span>
-          <span v-if="track.album" class="td-album">{{ track.album }}</span>
-        </div>
-
-        <div v-if="heroTags.length" class="td-tags">
-          <span v-for="tag in heroTags" :key="tag" class="td-tag">{{ tag }}</span>
+          <div v-if="heroTags.length" class="td-tags">
+            <span v-for="tag in heroTags" :key="tag" class="td-tag">{{ tag }}</span>
+          </div>
         </div>
 
         <div class="td-actions">
@@ -73,9 +72,10 @@
           </div>
         </div>
 
-        <p v-if="track.bio" class="td-bio">
-          {{ track.bio }}
-        </p>
+        <div v-if="track.bio" class="td-about">
+          <p class="td-about__label">About this track</p>
+          <p class="td-bio">{{ track.bio }}</p>
+        </div>
       </div>
     </div>
 
@@ -149,10 +149,10 @@ const heroTags = computed(() => {
     ...(Array.isArray(props.track?.genre) ? props.track.genre : []),
     ...(Array.isArray(props.track?.mood) ? props.track.mood : []),
     ...(Array.isArray(props.track?.tags)
-      ? props.track.tags.slice(0, 3).map((t) => `#${t}`)
+      ? props.track.tags.slice(0, 2).map((t) => `#${t}`)
       : []),
   ]
-  return raw.slice(0, 6)
+  return raw.slice(0, 5)
 })
 
 const metaItems = computed(() => {
@@ -160,12 +160,13 @@ const metaItems = computed(() => {
   if (!t) return []
 
   const items = []
-  if (t.album) items.push({ label: 'Album', value: t.album })
   items.push({ label: 'Duration', value: fmtDur(t.duration) })
-  items.push({ label: 'Language', value: t.language || '—' })
-  items.push({ label: 'Type', value: t.releaseType || 'single' })
   items.push({ label: 'Likes', value: Number(t.likeCount || 0).toLocaleString() })
   items.push({ label: 'Plays', value: Number(t.playCount || 0).toLocaleString() })
+  items.push({ label: 'Type', value: t.releaseType || 'single' })
+
+  if (t.language) items.push({ label: 'Language', value: t.language })
+  if (t.album) items.push({ label: 'Album', value: t.album })
 
   return items.slice(0, 6)
 })

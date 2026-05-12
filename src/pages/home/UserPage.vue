@@ -25,10 +25,12 @@
             <button v-for="t in recentlyPlayed" :key="t._id" type="button" class="recent-item"
               :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
               <img class="recent-item__cover" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
+
               <div class="recent-item__meta">
                 <strong>{{ t.title }}</strong>
                 <span>{{ t.artist }}</span>
               </div>
+
               <div class="recent-item__play">
                 <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
                   class="recent-play-ico" />
@@ -45,6 +47,13 @@
                 {{ selectedPlaylist ? 'Playlist view' : 'Explore your premium library' }}
               </p>
               <h2>{{ selectedPlaylist?.name || 'Discover music' }}</h2>
+              <p class="content-section__sub">
+                {{
+                  selectedPlaylist
+                    ? (selectedPlaylist.description || 'Tracks collected for this playlist.')
+                    : 'Fresh picks, featured tracks, and a cleaner listening experience.'
+                }}
+              </p>
             </div>
 
             <div class="content-section__meta" v-if="!loading && !errMsg && filteredTracks.length">
@@ -52,7 +61,7 @@
             </div>
           </div>
 
-          <div v-if="loading" class="track-grid">
+          <div v-if="loading" class="track-grid track-grid--skeleton">
             <div v-for="n in 8" :key="n" class="track-skeleton"></div>
           </div>
 
@@ -122,10 +131,7 @@ import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
 import '@/styles/user_page.css'
 
-import {
-  PlayIcon,
-  PauseIcon,
-} from '@heroicons/vue/24/outline'
+import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
 
 const authStore = useAuthStore()
 const playerStore = usePlayerStore()
@@ -201,7 +207,10 @@ const filteredTracks = computed(() => {
         ...(t.genre || []),
         ...(t.mood || []),
         ...(t.tags || []),
-      ].filter(Boolean).join(' ').toLowerCase()
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
 
       return pool.includes(q)
     })
@@ -320,17 +329,12 @@ const toggleLikeTrack = async (track) => {
   try {
     const { data } = await api.patch(`/music/${track._id}/like`)
 
-    tracks.value = tracks.value.map((t) =>
-      String(t._id) === String(data._id) ? data : t
-    )
-
+    tracks.value = tracks.value.map((t) => (String(t._id) === String(data._id) ? data : t))
     recentlyPlayed.value = recentlyPlayed.value.map((t) =>
       String(t._id) === String(data._id) ? data : t
     )
 
-    if (selectedDetailTrack.value?._id === data._id) {
-      selectedDetailTrack.value = data
-    }
+    if (selectedDetailTrack.value?._id === data._id) selectedDetailTrack.value = data
   } catch { }
 }
 

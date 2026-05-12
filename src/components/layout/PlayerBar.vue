@@ -100,7 +100,12 @@
             <ArrowsPointingOutIcon class="ctrl-icon" />
           </button>
 
-          <div class="vol-wrap">
+          <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" @click="toggleMute">
+            <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
+            <SpeakerWaveIcon v-else class="ctrl-icon" />
+          </button>
+
+          <div class="vol-wrap" @mouseenter="showVolHint" @mouseleave="hideVolHint">
             <transition name="vol-pop">
               <div v-if="showVolTip" class="vol-tooltip">
                 <span class="vol-tooltip-val">{{ Math.round(effectiveVol) }}%</span>
@@ -109,11 +114,6 @@
                 </div>
               </div>
             </transition>
-
-            <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" @click="toggleMute">
-              <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
-              <SpeakerWaveIcon v-else class="ctrl-icon" />
-            </button>
 
             <div class="vol-slider-wrap">
               <div class="vol-track"></div>
@@ -179,11 +179,11 @@ const isLoading = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 const progress = ref(0)
-const volume = ref(0.7)
+const volume = ref(0.72)
 const isMuted = ref(false)
 const buffered = ref(0)
 const showVolTip = ref(false)
-const lastVol = ref(0.7)
+const lastVol = ref(0.72)
 const shouldScrollTitle = ref(false)
 
 let volTimer = null
@@ -316,13 +316,13 @@ const toggleMute = () => {
   if (!audioRef.value) return
 
   if (isMuted.value || Number(volume.value) === 0) {
-    const restored = lastVol.value > 0 ? lastVol.value : 0.7
+    const restored = lastVol.value > 0 ? lastVol.value : 0.72
     volume.value = restored
     audioRef.value.volume = restored
     audioRef.value.muted = false
     isMuted.value = false
   } else {
-    lastVol.value = Number(volume.value) || 0.7
+    lastVol.value = Number(volume.value) || 0.72
     volume.value = 0
     audioRef.value.volume = 0
     audioRef.value.muted = true
@@ -337,7 +337,14 @@ const showVolHint = () => {
   clearTimeout(volTimer)
   volTimer = setTimeout(() => {
     showVolTip.value = false
-  }, 1400)
+  }, 1500)
+}
+
+const hideVolHint = () => {
+  clearTimeout(volTimer)
+  volTimer = setTimeout(() => {
+    showVolTip.value = false
+  }, 120)
 }
 
 const onPlaying = () => {

@@ -35,21 +35,10 @@
           </div>
 
           <div class="tc-overlay">
-            <div class="tc-overlay__actions">
-              <button class="tc-icon-btn" type="button" title="Add to playlist"
-                @click.stop="$emit('add-to-playlist', track)">
-                <PlusIcon class="tc-icon" />
-              </button>
-
-              <button class="tc-play" type="button" title="Play" @click.stop="$emit('play-track', track)">
-                <PauseIcon v-if="currentMusic?._id === track._id && isPlaying" class="tc-play-ico" />
-                <PlayIcon v-else class="tc-play-ico tc-play-ico--shift" />
-              </button>
-
-              <button class="tc-icon-btn" type="button" title="Queue" @click.stop="$emit('add-to-queue', track)">
-                <QueueListIcon class="tc-icon" />
-              </button>
-            </div>
+            <button class="tc-play" type="button" title="Play" @click.stop="$emit('play-track', track)">
+              <PauseIcon v-if="currentMusic?._id === track._id && isPlaying" class="tc-play-ico" />
+              <PlayIcon v-else class="tc-play-ico tc-play-ico--shift" />
+            </button>
           </div>
 
           <div v-if="currentMusic?._id === track._id" class="tc-eq">
