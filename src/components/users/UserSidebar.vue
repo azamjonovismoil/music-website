@@ -6,7 +6,7 @@
         <span class="us-brand-text">Playlists</span>
       </div>
 
-      <button class="us-collapse-btn" @click="toggle" :title="collapsed ? 'Expand' : 'Collapse'">
+      <button class="us-collapse-btn" type="button" @click="toggle" :title="collapsed ? 'Expand' : 'Collapse'">
         <ChevronLeftIcon class="us-collapse-ico" :class="{ 'is-rotated': collapsed }" />
       </button>
     </div>
@@ -15,13 +15,14 @@
       <div class="us-playlists-top">
         <template v-if="!collapsed">
           <span class="us-playlists-label">Your playlists</span>
-          <button class="us-create-btn" @click="$emit('create-playlist')" title="New playlist">
+          <button class="us-create-btn" type="button" @click="$emit('create-playlist')" title="New playlist">
             <PlusIcon class="us-create-ico" />
           </button>
         </template>
 
         <template v-else>
-          <button class="us-create-btn us-create-btn--center" @click="$emit('create-playlist')" title="New playlist">
+          <button class="us-create-btn us-create-btn--center" type="button" @click="$emit('create-playlist')"
+            title="New playlist">
             <PlusIcon class="us-create-ico" />
           </button>
         </template>
@@ -37,14 +38,16 @@
           <template v-if="!collapsed">
             <div class="us-pl-meta">
               <span class="us-pl-name">{{ pl.name }}</span>
-              <span class="us-pl-count">{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
+              <span class="us-pl-count">{{ pl.count || pl.tracks?.length || 0 }}</span>
             </div>
 
             <div class="us-pl-actions" @click.stop>
-              <button class="us-pl-btn" @click="$emit('rename-playlist', pl)" title="Edit">
+              <button class="us-pl-btn" type="button" @click="$emit('rename-playlist', pl)" title="Edit">
                 <PencilSquareIcon class="us-pl-btn-ico" />
               </button>
-              <button class="us-pl-btn us-pl-btn--del" @click="$emit('delete-playlist', pl)" title="Delete">
+
+              <button class="us-pl-btn us-pl-btn--del" type="button" @click="$emit('delete-playlist', pl)"
+                title="Delete">
                 <TrashIcon class="us-pl-btn-ico" />
               </button>
             </div>
@@ -53,7 +56,9 @@
 
         <div v-if="!playlists.length && !collapsed" class="us-pl-empty">
           <p>No playlists yet</p>
-          <button class="us-pl-empty-btn" @click="$emit('create-playlist')">Create one</button>
+          <button class="us-pl-empty-btn" type="button" @click="$emit('create-playlist')">
+            Create
+          </button>
         </div>
       </div>
     </div>
@@ -75,7 +80,10 @@ import '@/styles/user_sidebar.css'
 defineProps({
   playlists: { type: Array, default: () => [] },
   activePlaylistId: { type: String, default: '' },
-  defaultPlaylistColor: { type: String, default: 'linear-gradient(135deg,#4f7cff,#7c5cff)' },
+  defaultPlaylistColor: {
+    type: String,
+    default: 'linear-gradient(135deg,#4f7cff,#7c5cff)',
+  },
 })
 
 const emit = defineEmits([

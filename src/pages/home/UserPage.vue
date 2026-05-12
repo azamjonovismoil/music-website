@@ -46,12 +46,16 @@
               <p class="section-kicker">
                 {{ selectedPlaylist ? 'Playlist view' : 'Explore your premium library' }}
               </p>
+
               <h2>{{ selectedPlaylist?.name || 'Discover music' }}</h2>
+
               <p class="content-section__sub">
                 {{
                   selectedPlaylist
-                    ? (selectedPlaylist.description || 'Tracks collected for this playlist.')
-                    : 'Fresh picks, featured tracks, and a cleaner listening experience.'
+                    ? selectedPlaylist.description || 'Tracks collected for this playlist.'
+                    : activeRecommendationMode === 'related'
+                      ? 'Related tracks picked from your current listening context.'
+                      : 'Featured picks, fresh additions, and cleaner listening.'
                 }}
               </p>
             </div>
@@ -95,7 +99,7 @@
         <div class="user-shell__right-scroll">
           <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
             :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
-            @remove-from-queue="playerStore.removeFromQueue" @clear-queue="playerStore.clearQueue"
+            @remove-from-queue="playerStore.removeFromQueue" @clear-queue="clearQueueKeepingCurrent"
             @add-to-queue="addToQueue" />
         </div>
       </aside>
@@ -180,13 +184,6 @@ const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
 const MAX_RECENT = 3
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 
-const recommendations = computed(() =>
-  [...tracks.value]
-    .filter((t) => String(t._id) !== String(playerStore.currentTrack?._id || ''))
-    .filter((t) => !playerStore.queue.find((q) => String(q._id) === String(t._id)))
-    .slice(0, 8)
-)
-
 const filteredTracks = computed(() => {
   let arr = [...tracks.value]
 
@@ -204,6 +201,7 @@ const filteredTracks = computed(() => {
         t.album,
         t.releaseType,
         t.language,
+        t.country,
         ...(t.genre || []),
         ...(t.mood || []),
         ...(t.tags || []),
@@ -219,8 +217,59 @@ const filteredTracks = computed(() => {
   return arr.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 })
 
+const currentReferenceTrack = computed(() => playerStore.currentTrack || selectedDetailTrack.value || null)
+
+const activeRecommendationMode = computed(() => (currentReferenceTrack.value ? 'related' : 'discover'))
+
+const recommendations = computed(() => {
+  const current = currentReferenceTrack.value
+  const all = [...tracks.value]
+
+  return all
+    .filter((t) => String(t._id) !== String(current?._id || ''))
+    .filter((t) => !playerStore.queue.find((q) => String(q._id) === String(t._id)))
+    .map((t) => {
+      let score = 0
+
+      if (!current) {
+        score += t.isFeatured ? 24 : 0
+        score += t.isRecommended ? 18 : 0
+        score += Math.min(Number(t.playCount || 0), 500) / 20
+        score += Math.min(Number(t.likeCount || 0), 300) / 18
+      } else {
+        if (t.artist && current.artist && t.artist === current.artist) score += 50
+
+        const sharedGenre = (t.genre || []).filter((g) => (current.genre || []).includes(g)).length
+        const sharedMood = (t.mood || []).filter((m) => (current.mood || []).includes(m)).length
+        const sharedTags = (t.tags || []).filter((tag) => (current.tags || []).includes(tag)).length
+
+        score += sharedGenre * 18
+        score += sharedMood * 12
+        score += sharedTags * 6
+
+        if (t.language && current.language && t.language === current.language) score += 12
+        if (t.country && current.country && t.country === current.country) score += 8
+        if (t.releaseType && current.releaseType && t.releaseType === current.releaseType) score += 6
+        if (t.isFeatured) score += 5
+        if (t.isRecommended) score += 5
+        score += Math.min(Number(t.playCount || 0), 500) / 45
+        score += Math.min(Number(t.likeCount || 0), 300) / 35
+      }
+
+      return { ...t, __score: score }
+    })
+    .sort(
+      (a, b) =>
+        b.__score - a.__score ||
+        Number(b.likeCount || 0) - Number(a.likeCount || 0) ||
+        Number(b.playCount || 0) - Number(a.playCount || 0) ||
+        new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    )
+    .slice(0, 8)
+})
+
 const detailRecommendations = computed(() =>
-  filteredTracks.value
+  recommendations.value
     .filter((t) => String(t._id) !== String(selectedDetailTrack.value?._id || ''))
     .slice(0, 6)
 )
@@ -233,6 +282,7 @@ const gridTracks = computed(() => {
 const fetchTracks = async () => {
   loading.value = true
   errMsg.value = ''
+
   try {
     const { data } = await api.get('/music')
     tracks.value = Array.isArray(data) ? data : []
@@ -307,6 +357,7 @@ const trackPlay = async (track) => {
 
 const toggleTrack = (track) => {
   const sameTrack = String(playerStore.currentTrack?._id || '') === String(track._id || '')
+
   if (sameTrack) {
     playerStore.setPlaying(!playerStore.isPlaying)
     return
@@ -334,12 +385,18 @@ const toggleLikeTrack = async (track) => {
       String(t._id) === String(data._id) ? data : t
     )
 
-    if (selectedDetailTrack.value?._id === data._id) selectedDetailTrack.value = data
+    if (selectedDetailTrack.value?._id === data._id) {
+      selectedDetailTrack.value = data
+    }
   } catch { }
 }
 
 const addToQueue = (track) => {
   playerStore.addToQueue(track)
+}
+
+const clearQueueKeepingCurrent = () => {
+  playerStore.clearQueue({ keepCurrent: true })
 }
 
 const openAddToPlaylist = async (track) => {
@@ -355,10 +412,12 @@ const openCreateFromAdd = () => {
 
 const addTrackToPlaylist = async (playlist) => {
   if (!selectedTrack.value?._id || !playlist?._id) return
+
   try {
     const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
       musicId: selectedTrack.value._id,
     })
+
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     showAddToPlaylist.value = false
@@ -389,6 +448,7 @@ const closePlaylistModal = () => {
 const createPlaylist = async () => {
   if (!playlistForm.name.trim()) return
   playlistLoading.value = true
+
   try {
     const { data } = await api.post('/playlists', {
       name: playlistForm.name.trim(),
@@ -405,6 +465,7 @@ const createPlaylist = async () => {
 const updatePlaylist = async () => {
   if (!editingPlaylistId.value || !playlistForm.name.trim()) return
   playlistLoading.value = true
+
   try {
     const { data } = await api.patch(`/playlists/${editingPlaylistId.value}`, {
       name: playlistForm.name.trim(),
@@ -438,6 +499,7 @@ const closeDeletePlaylist = () => {
 const confirmDeletePlaylist = async () => {
   if (!playlistToDelete.value?._id) return
   deleteLoading.value = true
+
   try {
     await api.delete(`/playlists/${playlistToDelete.value._id}`)
     playlists.value = playlists.value.filter((pl) => pl._id !== playlistToDelete.value._id)

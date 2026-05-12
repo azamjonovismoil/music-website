@@ -46,7 +46,6 @@
   display: none;
 }
 
-/* shared */
 .section-kicker {
   color: var(--text-hint);
   font-size: 11px;
@@ -203,7 +202,6 @@
   margin-bottom: 4px;
 }
 
-/* states */
 .track-grid--skeleton {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
@@ -253,7 +251,6 @@
   }
 }
 
-/* responsive */
 @media (max-width: 1280px) {
   .user-shell__right {
     display: none;
