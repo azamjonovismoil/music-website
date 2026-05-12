@@ -2,17 +2,18 @@
   <header class="app-header" :class="{ 'app-header--mobile-min': isMobile && authStore.user }">
     <div class="header-inner">
       <div class="header-left">
-        <button v-if="isMobile && authStore.user" class="hdr-btn icon-btn mobile-only" @click="$emit('toggle-sidebar')"
-          aria-label="Open menu">
+        <button v-if="isMobile && authStore.user" class="hdr-btn icon-btn mobile-only" type="button"
+          @click="$emit('toggle-sidebar')" aria-label="Open menu">
           <Bars3Icon class="hdr-icon" />
         </button>
 
-        <div class="brand" @click="goHome">
+        <button class="brand brand-btn" type="button" @click="goHome">
           <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo" @error="logoErr = true" />
           <span v-if="!isMobile" class="brand-name">Music<span class="brand-dot">.</span></span>
-        </div>
+        </button>
 
-        <button v-if="authStore.user && !isMobile" class="hdr-btn icon-btn" @click="goHome" aria-label="Home">
+        <button v-if="authStore.user && !isMobile" class="hdr-btn icon-btn" type="button" @click="goHome"
+          aria-label="Home" title="Home">
           <HomeIcon class="hdr-icon" />
         </button>
 
@@ -22,29 +23,29 @@
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="emitClearSearch" type="text"
             placeholder="Search title, artist, album, tags, genre..." class="search-input" />
+
           <transition name="fade">
-            <button v-if="search" class="search-clear" @mousedown.prevent @click.stop="emitClearSearch">
+            <button v-if="search" class="search-clear" type="button" @mousedown.prevent @click.stop="emitClearSearch">
               <XMarkIcon class="search-clear-icon" />
             </button>
           </transition>
+
           <kbd v-if="!searchFocused && !search" class="search-kbd">/</kbd>
         </div>
       </div>
 
       <div class="header-right">
-        <button v-if="showSearch && authStore.user && isMobile" class="hdr-btn icon-btn" @click="openMobileSearch"
-          aria-label="Search">
+        <button v-if="showSearch && authStore.user && isMobile" class="hdr-btn icon-btn" type="button"
+          @click="openMobileSearch" aria-label="Search">
           <MagnifyingGlassIcon class="hdr-icon" />
         </button>
 
-        <button class="hdr-btn icon-btn" @click="toggleTheme" :title="isDark ? 'Light mode' : 'Dark mode'">
-          <SunIcon v-if="isDark" class="hdr-icon" />
-          <MoonIcon v-else class="hdr-icon" />
-        </button>
-
         <template v-if="!authStore.user">
-          <button v-if="!isMobile" class="hdr-btn ghost-btn" @click="router.push('/login')">Login</button>
-          <button class="hdr-btn accent-btn" @click="router.push('/register')">
+          <button v-if="!isMobile" class="hdr-btn ghost-btn" type="button" @click="router.push('/login')">
+            Login
+          </button>
+
+          <button class="hdr-btn accent-btn" type="button" @click="router.push('/register')">
             <span v-if="!isXs">Sign up</span>
             <UserPlusIcon v-else class="hdr-icon" />
           </button>
@@ -52,7 +53,7 @@
 
         <template v-else>
           <div v-if="isAdminPage && !isMobile" class="notif-wrap" ref="notifRef">
-            <button class="hdr-btn icon-btn notif-btn" @click="toggleNotif" aria-label="Notifications">
+            <button class="hdr-btn icon-btn notif-btn" type="button" @click="toggleNotif" aria-label="Notifications">
               <BellIcon class="hdr-icon" />
               <span v-if="notificationCount > 0" class="notif-badge">
                 {{ notificationCount > 9 ? '9+' : notificationCount }}
@@ -63,13 +64,14 @@
               <div v-if="notifOpen" class="notif-dropdown">
                 <div class="notif-head">
                   <h4>Notifications</h4>
-                  <button v-if="notifications.length" class="notif-clear-btn" @click="markNotificationsSeen">
+                  <button v-if="notifications.length" class="notif-clear-btn" type="button"
+                    @click="markNotificationsSeen">
                     Mark read
                   </button>
                 </div>
 
                 <div v-if="notifications.length" class="notif-list">
-                  <button v-for="item in notifications" :key="item.key" class="notif-item"
+                  <button v-for="item in notifications" :key="item.key" class="notif-item" type="button"
                     @click="handleNotification(item)">
                     <span class="notif-dot" :class="item.tone" />
                     <div class="notif-body">
@@ -84,20 +86,24 @@
             </transition>
           </div>
 
-          <button v-if="isAdminPage && !isXs && !isMobile" class="hdr-btn accent-btn add-btn"
+          <button v-if="isAdminPage && !isXs && !isMobile" class="hdr-btn accent-btn add-btn" type="button"
             @click="router.push('/admin/add-music')">
             <PlusIcon class="hdr-icon" />
             <span>Add track</span>
           </button>
 
-          <button v-if="showDownloads && !isXs && !isMobile" class="hdr-btn icon-btn"
+          <button v-if="showDownloads && !isXs && !isMobile && !isAdminPage" class="hdr-btn icon-btn" type="button"
             @click="router.push('/library/downloaded')" title="Downloads">
             <ArrowDownTrayIcon class="hdr-icon" />
           </button>
 
           <div v-if="!isMobile" class="profile-wrap" ref="profileRef">
-            <button class="profile-btn" :class="{ open: menuOpen }" @click="menuOpen = !menuOpen">
+            <button class="profile-btn" :class="{ open: menuOpen }" type="button" @click="menuOpen = !menuOpen">
               <div class="avatar">{{ firstLetter }}</div>
+              <div class="profile-mini" v-if="!isXs">
+                <span class="profile-mini__name">{{ authStore.userName || 'User' }}</span>
+                <span class="profile-mini__role">{{ isAdminPage ? 'Admin' : 'Member' }}</span>
+              </div>
               <ChevronDownIcon class="chevron" />
             </button>
 
@@ -113,33 +119,28 @@
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item" @click="nav(isAdminPage ? '/admin/profile' : '/profile')">
-                  <UserIcon class="di-icon" />Profile
+                <button class="dropdown-item" type="button" @click="nav(isAdminPage ? '/admin/profile' : '/profile')">
+                  <UserIcon class="di-icon" />
+                  <span>Profile</span>
                 </button>
 
-                <button v-if="isAdminPage" class="dropdown-item" @click="nav('/admin')">
-                  <Squares2X2Icon class="di-icon" />Admin panel
-                </button>
-
-                <button v-if="showDownloads" class="dropdown-item" @click="nav('/library/downloaded')">
-                  <ArrowDownTrayIcon class="di-icon" />Downloads
-                </button>
-
-                <button v-if="isAdminPage" class="dropdown-item" @click="nav('/admin/add-music')">
-                  <PlusIcon class="di-icon" />Add track
+                <button class="dropdown-item" type="button" @click="nav(isAdminPage ? '/admin/settings' : '/settings')">
+                  <Cog6ToothIcon class="di-icon" />
+                  <span>Settings</span>
                 </button>
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item danger" :disabled="loggingOut" @click="logout">
+                <button class="dropdown-item danger" type="button" :disabled="loggingOut" @click="logout">
                   <ArrowRightOnRectangleIcon class="di-icon" />
-                  {{ loggingOut ? 'Logging out…' : 'Log out' }}
+                  <span>{{ loggingOut ? 'Logging out…' : 'Log out' }}</span>
                 </button>
               </div>
             </transition>
           </div>
 
-          <button v-else class="hdr-btn icon-btn" @click="mobileMenuOpen = true" aria-label="Profile menu">
+          <button v-else class="hdr-btn icon-btn" type="button" @click="mobileMenuOpen = true"
+            aria-label="Profile menu">
             <UserIcon class="hdr-icon" />
           </button>
         </template>
@@ -152,10 +153,12 @@
           <MagnifyingGlassIcon class="mobile-search-icon" />
           <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
             placeholder="Search title, artist, album, tags, genre..." class="mobile-search-input" />
-          <button v-if="search" class="mobile-search-clear" @click="clearMobileSearch">
+          <button v-if="search" class="mobile-search-clear" type="button" @click="clearMobileSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
-          <button class="mobile-search-close" @click="closeMobileSearch">Done</button>
+          <button class="mobile-search-close" type="button" @click="closeMobileSearch">
+            Done
+          </button>
         </div>
       </div>
     </transition>
@@ -169,7 +172,8 @@
                 @error="logoErr = true" />
               <span class="brand-name">Music<span class="brand-dot">.</span></span>
             </div>
-            <button class="hdr-btn icon-btn" @click="mobileMenuOpen = false">
+
+            <button class="hdr-btn icon-btn" type="button" @click="mobileMenuOpen = false">
               <XMarkIcon class="hdr-icon" />
             </button>
           </div>
@@ -183,30 +187,38 @@
           </div>
 
           <div class="mobile-menu-links">
-            <button class="mobile-link" @click="navMobile(isAdminPage ? '/admin' : '/user')">
-              <HomeIcon class="di-icon" />Home
+            <button class="mobile-link" type="button" @click="navMobile(isAdminPage ? '/admin' : '/user')">
+              <HomeIcon class="di-icon" />
+              <span>Home</span>
             </button>
 
-            <button v-if="isAdminPage" class="mobile-link mobile-link--admin" @click="navMobile('/admin')">
-              <Squares2X2Icon class="di-icon" />Admin panel
+            <button class="mobile-link" type="button" @click="navMobile(isAdminPage ? '/admin/profile' : '/profile')">
+              <UserIcon class="di-icon" />
+              <span>Profile</span>
             </button>
 
-            <button v-if="isAdminPage" class="mobile-link mobile-link--admin" @click="navMobile('/admin/add-music')">
-              <PlusIcon class="di-icon" />Add track
+            <button class="mobile-link" type="button" @click="navMobile(isAdminPage ? '/admin/settings' : '/settings')">
+              <Cog6ToothIcon class="di-icon" />
+              <span>Settings</span>
             </button>
 
-            <button class="mobile-link" @click="navMobile(isAdminPage ? '/admin/profile' : '/profile')">
-              <UserIcon class="di-icon" />Profile
+            <button v-if="isAdminPage" class="mobile-link mobile-link--admin" type="button"
+              @click="navMobile('/admin/add-music')">
+              <PlusIcon class="di-icon" />
+              <span>Add track</span>
             </button>
 
-            <button v-if="showDownloads" class="mobile-link" @click="navMobile('/library/downloaded')">
-              <ArrowDownTrayIcon class="di-icon" />Downloads
+            <button v-if="showDownloads && !isAdminPage" class="mobile-link" type="button"
+              @click="navMobile('/library/downloaded')">
+              <ArrowDownTrayIcon class="di-icon" />
+              <span>Downloads</span>
             </button>
 
             <div class="mobile-divider" />
-            <button class="mobile-link mobile-link--danger" :disabled="loggingOut" @click="logoutMobile">
+
+            <button class="mobile-link mobile-link--danger" type="button" :disabled="loggingOut" @click="logoutMobile">
               <ArrowRightOnRectangleIcon class="di-icon" />
-              {{ loggingOut ? 'Logging out…' : 'Log out' }}
+              <span>{{ loggingOut ? 'Logging out…' : 'Log out' }}</span>
             </button>
           </div>
         </aside>
@@ -214,16 +226,19 @@
     </transition>
 
     <div v-if="authStore.user && isMobile" class="mobile-quickbar">
-      <button class="mq-btn" @click="goHome">
+      <button class="mq-btn" type="button" @click="goHome">
         <HomeIcon class="hdr-icon" />
       </button>
-      <button class="mq-btn" @click="openMobileSearch">
+
+      <button class="mq-btn" type="button" @click="openMobileSearch">
         <MagnifyingGlassIcon class="hdr-icon" />
       </button>
-      <button v-if="isAdminPage" class="mq-btn mq-btn--accent" @click="router.push('/admin/add-music')">
+
+      <button v-if="isAdminPage" class="mq-btn mq-btn--accent" type="button" @click="router.push('/admin/add-music')">
         <PlusIcon class="hdr-icon" />
       </button>
-      <button class="mq-btn" @click="mobileMenuOpen = true">
+
+      <button class="mq-btn" type="button" @click="mobileMenuOpen = true">
         <UserIcon class="hdr-icon" />
       </button>
     </div>
@@ -240,15 +255,13 @@ import {
   XMarkIcon,
   PlusIcon,
   ArrowDownTrayIcon,
-  SunIcon,
-  MoonIcon,
   ChevronDownIcon,
   UserIcon,
-  Squares2X2Icon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   UserPlusIcon,
   BellIcon,
+  Cog6ToothIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { API_ROOT } from '@/utils/media'
@@ -282,7 +295,6 @@ const notifOpen = ref(false)
 const mobileMenuOpen = ref(false)
 const mobileSearchOpen = ref(false)
 const loggingOut = ref(false)
-const isDark = ref(true)
 const logoErr = ref(false)
 const viewport = ref(window.innerWidth)
 const notifications = ref([])
@@ -292,7 +304,7 @@ const isMobile = computed(() => viewport.value <= 860)
 const isXs = computed(() => viewport.value <= 540)
 const isAdminPage = computed(() => props.pageType === 'admin')
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
-const notificationCount = computed(() => notifSeen.value ? 0 : notifications.value.length)
+const notificationCount = computed(() => (notifSeen.value ? 0 : notifications.value.length))
 
 const emitClearSearch = () => emit('update:search', '')
 
@@ -349,13 +361,6 @@ const logoutMobile = async () => {
   }
 }
 
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  const theme = isDark.value ? 'dark' : 'light'
-  document.documentElement.setAttribute('data-theme', theme)
-  localStorage.setItem('mw-theme', theme)
-}
-
 const toggleNotif = () => {
   notifOpen.value = !notifOpen.value
   menuOpen.value = false
@@ -379,7 +384,7 @@ const buildNotifications = (summary) => {
     list.push({
       key: 'attention',
       title: 'Needs attention',
-      text: `${summary.attentionCount} tracks need fixes or metadata updates.`,
+      text: `${summary.attentionCount} tracks need updates.`,
       path: '/admin',
       tone: 'rose',
     })
@@ -389,7 +394,7 @@ const buildNotifications = (summary) => {
     list.push({
       key: 'drafts',
       title: 'Drafts waiting',
-      text: `${summary.draft} drafts are still not published.`,
+      text: `${summary.draft} drafts are not published yet.`,
       path: '/admin',
       tone: 'amber',
     })
@@ -409,7 +414,7 @@ const buildNotifications = (summary) => {
     list.push({
       key: 'health',
       title: 'Metadata quality',
-      text: `Average health is ${summary.avgHealth}%. There’s room to improve.`,
+      text: `Average health is ${summary.avgHealth}%.`,
       path: '/admin',
       tone: 'blue',
     })
@@ -469,19 +474,17 @@ watch(isMobile, () => {
   loadNotifications()
 })
 
-watch(() => props.pageType, () => {
-  loadNotifications()
-})
+watch(
+  () => props.pageType,
+  () => {
+    loadNotifications()
+  }
+)
 
 onMounted(async () => {
-  const saved = localStorage.getItem('mw-theme') || 'dark'
-  isDark.value = saved === 'dark'
-  document.documentElement.setAttribute('data-theme', saved)
-
   document.addEventListener('click', handleOut)
   window.addEventListener('keydown', handleKey)
   window.addEventListener('resize', handleResize)
-
   await loadNotifications()
 })
 
