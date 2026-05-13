@@ -8,8 +8,15 @@
         </button>
 
         <button class="brand brand-btn" type="button" @click="goHome">
-          <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo" @error="logoErr = true" />
-          <span v-if="!isMobile" class="brand-name">Music<span class="brand-dot">.</span></span>
+          <span class="brand-logo-wrap">
+            <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo"
+              @error="logoErr = true" />
+          </span>
+
+          <span v-if="!isMobile" class="brand-copy">
+            <span class="brand-name">Music<span class="brand-dot">.</span></span>
+            <span class="brand-sub">{{ isAdminPage ? 'Admin workspace' : 'Premium listening' }}</span>
+          </span>
         </button>
 
         <button v-if="authStore.user && !isMobile" class="hdr-btn icon-btn" type="button" @click="goHome"
@@ -20,6 +27,7 @@
         <div v-if="showSearch && authStore.user && !isMobile" class="search-wrap"
           :class="{ expanded: searchFocused || search }">
           <MagnifyingGlassIcon class="search-icon-el" />
+
           <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
             @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="emitClearSearch" type="text"
             placeholder="Search title, artist, album, tags, genre..." class="search-input" />
@@ -64,6 +72,7 @@
               <div v-if="notifOpen" class="notif-dropdown">
                 <div class="notif-head">
                   <h4>Notifications</h4>
+
                   <button v-if="notifications.length" class="notif-clear-btn" type="button"
                     @click="markNotificationsSeen">
                     Mark read
@@ -74,6 +83,7 @@
                   <button v-for="item in notifications" :key="item.key" class="notif-item" type="button"
                     @click="handleNotification(item)">
                     <span class="notif-dot" :class="item.tone" />
+
                     <div class="notif-body">
                       <strong>{{ item.title }}</strong>
                       <p>{{ item.text }}</p>
@@ -100,10 +110,12 @@
           <div v-if="!isMobile" class="profile-wrap" ref="profileRef">
             <button class="profile-btn" :class="{ open: menuOpen }" type="button" @click="menuOpen = !menuOpen">
               <div class="avatar">{{ firstLetter }}</div>
+
               <div class="profile-mini" v-if="!isXs">
                 <span class="profile-mini__name">{{ authStore.userName || 'User' }}</span>
                 <span class="profile-mini__role">{{ isAdminPage ? 'Admin' : 'Member' }}</span>
               </div>
+
               <ChevronDownIcon class="chevron" />
             </button>
 
@@ -111,6 +123,7 @@
               <div v-if="menuOpen" class="profile-dropdown">
                 <div class="dropdown-user">
                   <div class="dropdown-avatar">{{ firstLetter }}</div>
+
                   <div>
                     <p class="dropdown-name">{{ authStore.userName }}</p>
                     <p class="dropdown-role">{{ isAdminPage ? 'Administrator' : 'Member' }}</p>
@@ -151,12 +164,17 @@
       <div v-if="mobileSearchOpen" class="mobile-search-overlay" @click.self="closeMobileSearch">
         <div class="mobile-search-bar">
           <MagnifyingGlassIcon class="mobile-search-icon" />
+
           <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
             placeholder="Search title, artist, album, tags, genre..." class="mobile-search-input" />
+
           <button v-if="search" class="mobile-search-clear" type="button" @click="clearMobileSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
-          <button class="mobile-search-close" type="button" @click="closeMobileSearch">Done</button>
+
+          <button class="mobile-search-close" type="button" @click="closeMobileSearch">
+            Done
+          </button>
         </div>
       </div>
     </transition>
@@ -166,9 +184,15 @@
         <aside class="mobile-menu">
           <div class="mobile-menu-head">
             <div class="mobile-menu-brand">
-              <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo"
-                @error="logoErr = true" />
-              <span class="brand-name">Music<span class="brand-dot">.</span></span>
+              <span class="brand-logo-wrap">
+                <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Music" class="brand-logo"
+                  @error="logoErr = true" />
+              </span>
+
+              <div class="mobile-menu-brand__copy">
+                <span class="brand-name">Music<span class="brand-dot">.</span></span>
+                <span class="brand-sub">{{ isAdminPage ? 'Admin workspace' : 'Premium listening' }}</span>
+              </div>
             </div>
 
             <button class="hdr-btn icon-btn" type="button" @click="mobileMenuOpen = false">
@@ -178,6 +202,7 @@
 
           <div v-if="authStore.user" class="mobile-user-card">
             <div class="mobile-avatar">{{ firstLetter }}</div>
+
             <div>
               <p class="mobile-user-name">{{ authStore.userName }}</p>
               <p class="mobile-user-role">{{ isAdminPage ? 'Administrator' : 'Member' }}</p>
