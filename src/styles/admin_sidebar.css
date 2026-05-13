@@ -333,9 +333,3 @@
     --sidebar-collapsed: 84px;
   }
 }
-
-@media (max-width: 860px) {
-  .admin-sidebar {
-    display: none;
-  }
-}

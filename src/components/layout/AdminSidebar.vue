@@ -2,7 +2,7 @@
   <aside class="admin-sidebar" :class="{ 'is-collapsed': isCollapsed }">
     <div class="admin-sidebar__top">
       <div class="admin-sidebar__topbar">
-        <button class="admin-sidebar__brand" type="button" @click="router.push('/admin')">
+        <button class="admin-sidebar__brand" type="button" @click="go('/admin')">
           <span class="admin-sidebar__brand-icon">
             <img :src="brandIcon" alt="Logo" class="admin-sidebar__brand-img" />
           </span>
@@ -25,8 +25,7 @@
       <span v-show="!isCollapsed" class="admin-sidebar__nav-label">Workspace</span>
 
       <button v-for="item in navItems" :key="item.key" type="button" class="admin-sidebar__nav-item"
-        :class="{ 'is-active': active === item.key }" :title="isCollapsed ? item.label : ''"
-        @click="router.push(item.path)">
+        :class="{ 'is-active': active === item.key }" :title="isCollapsed ? item.label : ''" @click="go(item.path)">
         <span class="admin-sidebar__nav-icon-wrap">
           <component :is="item.icon" class="admin-sidebar__nav-icon" />
         </span>
@@ -69,7 +68,7 @@ import {
 import brandIcon from '@/assets/header_icon.png'
 import '@/styles/admin_sidebar.css'
 
-const emit = defineEmits(['collapse-change'])
+const emit = defineEmits(['collapse-change', 'navigate'])
 
 const router = useRouter()
 const route = useRoute()
@@ -95,6 +94,11 @@ const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
   localStorage.setItem(STORAGE_KEY, String(isCollapsed.value))
   emit('collapse-change', isCollapsed.value)
+}
+
+const go = (path) => {
+  emit('navigate')
+  router.push(path)
 }
 
 onMounted(() => {

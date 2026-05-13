@@ -156,9 +156,7 @@
           <button v-if="search" class="mobile-search-clear" type="button" @click="clearMobileSearch">
             <XMarkIcon class="search-clear-icon" />
           </button>
-          <button class="mobile-search-close" type="button" @click="closeMobileSearch">
-            Done
-          </button>
+          <button class="mobile-search-close" type="button" @click="closeMobileSearch">Done</button>
         </div>
       </div>
     </transition>
