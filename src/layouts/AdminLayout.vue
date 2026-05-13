@@ -1,10 +1,10 @@
 <template>
-  <div class="admin-app">
+  <div class="admin-app" :class="{ 'is-sidebar-collapsed': isSidebarCollapsed }">
     <HeaderPage />
 
     <div class="admin-app__body">
       <aside class="admin-app__sidebar">
-        <AdminSidebar />
+        <AdminSidebar @collapse-change="handleCollapseChange" />
       </aside>
 
       <main class="admin-app__main">
@@ -17,12 +17,27 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import HeaderPage from '@/components/layout/HeaderPage.vue'
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
+
+const STORAGE_KEY = 'exclusive-admin-sidebar-collapsed'
+const isSidebarCollapsed = ref(false)
+
+const handleCollapseChange = (value) => {
+  isSidebarCollapsed.value = !!value
+}
+
+onMounted(() => {
+  isSidebarCollapsed.value = localStorage.getItem(STORAGE_KEY) === 'true'
+})
 </script>
 
 <style scoped>
 .admin-app {
+  --admin-sidebar-w: 280px;
+  --admin-sidebar-w-collapsed: 92px;
+
   min-height: 100vh;
   background:
     radial-gradient(ellipse 60% 40% at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
@@ -30,11 +45,16 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
     var(--bg-base);
 }
 
+.admin-app.is-sidebar-collapsed {
+  --admin-sidebar-w: var(--admin-sidebar-w-collapsed);
+}
+
 .admin-app__body {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: var(--admin-sidebar-w) minmax(0, 1fr);
   min-height: calc(100vh - var(--header-h));
   align-items: start;
+  transition: grid-template-columns var(--t-slow);
 }
 
 .admin-app__sidebar {
@@ -47,6 +67,7 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   overflow: hidden;
+  transition: width var(--t-slow);
 }
 
 .admin-app__main {
@@ -63,8 +84,9 @@ import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 }
 
 @media (max-width: 1100px) {
-  .admin-app__body {
-    grid-template-columns: 252px minmax(0, 1fr);
+  .admin-app {
+    --admin-sidebar-w: 252px;
+    --admin-sidebar-w-collapsed: 84px;
   }
 }
 

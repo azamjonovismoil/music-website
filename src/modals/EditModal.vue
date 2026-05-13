@@ -20,6 +20,61 @@
     </template>
 
     <div class="edit-shell">
+      <!-- TOP PREVIEW -->
+      <section class="preview-hero">
+        <div class="preview-hero__media">
+          <div class="preview-cover-wrap">
+            <img v-if="coverPreview" :src="coverPreview" class="preview-cover" alt="Cover" />
+            <div v-else class="preview-empty">No cover</div>
+          </div>
+        </div>
+
+        <div class="preview-hero__content">
+          <div class="preview-hero__top">
+            <div>
+              <h3 class="preview-hero__title">{{ form.title || 'Untitled track' }}</h3>
+              <p class="preview-hero__artist">{{ previewArtist }}</p>
+            </div>
+
+            <div class="preview-hero__badges">
+              <span class="badge">{{ healthScore }}%</span>
+              <span class="badge">{{ healthTier }}</span>
+              <span class="preview-status" :class="form.status">
+                <span class="status-dot" />
+                {{ statusLabel }}
+              </span>
+            </div>
+          </div>
+
+          <dl class="preview-meta-grid">
+            <dt>Genre</dt>
+            <dd>{{ genreList.join(', ') || '—' }}</dd>
+
+            <dt>Mood</dt>
+            <dd>{{ moodList.join(', ') || '—' }}</dd>
+
+            <dt>Album</dt>
+            <dd>{{ form.album || '—' }}</dd>
+
+            <dt>Visibility</dt>
+            <dd>{{ form.visibility || 'public' }}</dd>
+          </dl>
+
+          <div class="preview-readiness">
+            <div class="mini-check-list">
+              <div class="mini-check-list__item" :class="{ ok: hasAudio }"><span />Audio</div>
+              <div class="mini-check-list__item" :class="{ ok: hasCover }"><span />Cover</div>
+              <div class="mini-check-list__item" :class="{ ok: genreList.length > 0 }"><span />Genre</div>
+              <div class="mini-check-list__item" :class="{ ok: !!form.lyrics.trim() }"><span />Lyrics</div>
+              <div class="mini-check-list__item" :class="{ ok: !!form.syncedLyricsRaw.trim() }"><span />Synced lyrics
+              </div>
+              <div class="mini-check-list__item" :class="{ ok: hasLinks }"><span />Links</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FORM -->
       <div class="edit-main">
         <section class="edit-section">
           <div class="edit-section-head">
@@ -212,23 +267,19 @@
             <div class="flags-grid">
               <button type="button" class="flag-btn" :class="{ on: form.isExplicit }"
                 @click="form.isExplicit = !form.isExplicit">
-                <span class="flag-pip" />
-                Explicit
+                <span class="flag-pip" />Explicit
               </button>
               <button type="button" class="flag-btn" :class="{ on: form.isFeatured }"
                 @click="form.isFeatured = !form.isFeatured">
-                <span class="flag-pip" />
-                Featured
+                <span class="flag-pip" />Featured
               </button>
               <button type="button" class="flag-btn" :class="{ on: form.isRecommended }"
                 @click="form.isRecommended = !form.isRecommended">
-                <span class="flag-pip" />
-                Recommended
+                <span class="flag-pip" />Recommended
               </button>
               <button type="button" class="flag-btn" :class="{ on: form.isFreeDownload }"
                 @click="form.isFreeDownload = !form.isFreeDownload">
-                <span class="flag-pip" />
-                Free
+                <span class="flag-pip" />Free
               </button>
             </div>
           </div>
@@ -332,87 +383,35 @@
 
         <section class="edit-section">
           <div class="edit-section-head">
-            <h3>Internal note</h3>
-            <p>Private admin note</p>
-          </div>
-          <textarea v-model="form.adminNote" class="edit-input area" />
-        </section>
-      </div>
-
-      <div class="edit-side">
-        <section class="preview-card">
-          <div class="side-head">
-            <h3>Preview</h3>
-            <span class="preview-status" :class="form.status">
-              <span class="status-dot" />
-              {{ statusLabel }}
-            </span>
-          </div>
-
-          <div class="preview-scroll">
-            <div class="preview-cover-wrap">
-              <img v-if="coverPreview" :src="coverPreview" class="preview-cover" alt="Cover" />
-              <div v-else class="preview-empty">No cover</div>
-            </div>
-
-            <div class="preview-copy">
-              <h4>{{ form.title || 'Untitled track' }}</h4>
-              <p>{{ previewArtist }}</p>
-
-              <div class="preview-meta">
-                <span class="badge">{{ healthScore }}%</span>
-                <span class="badge">{{ healthTier }}</span>
-              </div>
-
-              <dl class="preview-meta-grid">
-                <dt>Genre</dt>
-                <dd>{{ genreList.join(', ') || '—' }}</dd>
-                <dt>Mood</dt>
-                <dd>{{ moodList.join(', ') || '—' }}</dd>
-                <dt>Album</dt>
-                <dd>{{ form.album || '—' }}</dd>
-                <dt>Visibility</dt>
-                <dd>{{ form.visibility || 'public' }}</dd>
-              </dl>
-            </div>
-          </div>
-        </section>
-
-        <section class="preview-card">
-          <div class="side-head">
-            <h3>Readiness</h3>
-          </div>
-
-          <ul class="mini-check-list">
-            <li :class="{ ok: hasAudio }"><span />Audio</li>
-            <li :class="{ ok: hasCover }"><span />Cover</li>
-            <li :class="{ ok: genreList.length > 0 }"><span />Genre</li>
-            <li :class="{ ok: !!form.lyrics.trim() }"><span />Lyrics</li>
-            <li :class="{ ok: !!form.syncedLyricsRaw.trim() }"><span />Synced lyrics</li>
-            <li :class="{ ok: hasLinks }"><span />Links</li>
-          </ul>
-        </section>
-
-        <section class="upload-card">
-          <div class="side-head">
             <h3>Replace media</h3>
+            <p>Update cover and audio assets</p>
           </div>
 
-          <label class="upload-box">
-            <input class="hidden-input" type="file" accept="image/*" @change="onCover" />
-            Replace cover
-          </label>
+          <div class="upload-grid">
+            <label class="upload-box">
+              <input class="hidden-input" type="file" accept="image/*" @change="onCover" />
+              Replace cover
+            </label>
 
-          <label class="upload-box">
-            <input class="hidden-input" type="file" accept="audio/*" @change="onAudio" />
-            Replace audio
-          </label>
+            <label class="upload-box">
+              <input class="hidden-input" type="file" accept="audio/*" @change="onAudio" />
+              Replace audio
+            </label>
+          </div>
 
           <div class="field upload-url-field">
             <label class="field-label">Or cover URL</label>
             <input v-model="form.coverUrl" class="edit-input" type="url" placeholder="https://example.com/cover.jpg"
               @blur="applyCoverUrlPreview" />
           </div>
+        </section>
+
+        <section class="edit-section">
+          <div class="edit-section-head">
+            <h3>Internal note</h3>
+            <p>Private admin note</p>
+          </div>
+          <textarea v-model="form.adminNote" class="edit-input area" />
         </section>
       </div>
     </div>
@@ -654,9 +653,7 @@ const lockBodyScroll = () => {
 
   const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
   body.style.overflow = 'hidden'
-  if (scrollbarWidth > 0) {
-    body.style.paddingRight = `${scrollbarWidth}px`
-  }
+  if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`
 }
 
 const unlockBodyScroll = () => {
@@ -900,9 +897,7 @@ const buildFD = () => {
   fd.append('adminNote', form.adminNote.trim())
 
   const coverUrl = form.coverUrl.trim()
-  if (coverUrl) {
-    fd.append('coverUrl', coverUrl)
-  }
+  if (coverUrl) fd.append('coverUrl', coverUrl)
 
   fd.append('externalLinks', JSON.stringify({
     youtube: form.youtube.trim(),

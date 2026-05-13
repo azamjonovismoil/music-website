@@ -48,9 +48,11 @@
         <span v-if="music.healthTier" class="admin-music-card__chip">
           {{ music.healthTier }}
         </span>
+
         <span v-if="music.genre?.length" class="admin-music-card__chip">
           {{ music.genre[0] }}
         </span>
+
         <span v-if="music.needsAttention" class="admin-music-card__chip admin-music-card__chip--warn">
           attention
         </span>
@@ -135,7 +137,11 @@ const imgErr = ref(false)
 const safeCover = computed(() => (imgErr.value ? '' : resolveCover(props.music)))
 const isCurrentTrack = computed(() => String(player.currentTrack?._id || '') === String(props.music?._id || ''))
 
-watch(() => [props.music?._id, props.music?.cover], () => {
-  imgErr.value = false
-}, { immediate: true })
+watch(
+  () => [props.music?._id, props.music?.cover],
+  () => {
+    imgErr.value = false
+  },
+  { immediate: true }
+)
 </script>

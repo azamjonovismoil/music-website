@@ -69,6 +69,8 @@ import {
 import brandIcon from '@/assets/header_icon.png'
 import '@/styles/admin_sidebar.css'
 
+const emit = defineEmits(['collapse-change'])
+
 const router = useRouter()
 const route = useRoute()
 
@@ -92,9 +94,11 @@ const active = computed(() => {
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
   localStorage.setItem(STORAGE_KEY, String(isCollapsed.value))
+  emit('collapse-change', isCollapsed.value)
 }
 
 onMounted(() => {
   isCollapsed.value = localStorage.getItem(STORAGE_KEY) === 'true'
+  emit('collapse-change', isCollapsed.value)
 })
 </script>
