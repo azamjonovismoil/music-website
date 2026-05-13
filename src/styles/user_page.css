@@ -6,50 +6,56 @@
 }
 
 .user-shell {
-  height: calc(100vh - var(--header-h, 62px));
-  display: flex;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: 272px minmax(0, 1fr) 320px;
+  align-items: start;
+  gap: 0;
+  min-height: calc(100vh - var(--header-h, 62px));
 }
 
 .user-shell__left {
-  height: 100%;
-  flex-shrink: 0;
+  min-width: 0;
+  position: sticky;
+  top: var(--header-h, 62px);
+  height: calc(100vh - var(--header-h, 62px));
+  align-self: start;
 }
 
 .user-main {
-  flex: 1;
   min-width: 0;
-  height: 100%;
-  overflow-y: auto;
   padding: 20px 20px calc(var(--player-bar-safe, 92px) + 18px);
   display: flex;
   flex-direction: column;
   gap: 18px;
-  scroll-padding-top: 16px;
-}
-
-.user-main::-webkit-scrollbar {
-  width: 7px;
-}
-
-.user-main::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
-  border-radius: 999px;
 }
 
 .user-shell__right {
   width: 320px;
-  flex: 0 0 320px;
+  min-width: 320px;
   border-left: 1px solid var(--border);
   background: var(--sidebar-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: var(--header-h, 62px);
+  height: calc(100vh - var(--header-h, 62px));
+  align-self: start;
   padding: 16px 12px;
 }
 
 .user-shell__right-scroll {
   height: 100%;
   overflow-y: auto;
+  padding-right: 2px;
+}
+
+.user-shell__right-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-shell__right-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
 }
 
 .mobile-sidebar-overlay {
@@ -422,7 +428,11 @@
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1360px) {
+  .user-shell {
+    grid-template-columns: 272px minmax(0, 1fr);
+  }
+
   .user-shell__right {
     display: none;
   }
@@ -433,6 +443,10 @@
 }
 
 @media (max-width: 980px) {
+  .user-shell {
+    grid-template-columns: 1fr;
+  }
+
   .user-shell__left {
     position: fixed;
     top: var(--header-h, 62px);
@@ -441,6 +455,7 @@
     z-index: 120;
     transform: translateX(-100%);
     transition: transform 0.22s ease;
+    height: calc(100vh - var(--header-h, 62px));
   }
 
   .user-shell__left.open {

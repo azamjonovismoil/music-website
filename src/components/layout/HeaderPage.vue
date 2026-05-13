@@ -24,21 +24,119 @@
           <HomeIcon class="hdr-icon" />
         </button>
 
-        <div v-if="showSearch && authStore.user && !isMobile" class="search-wrap"
-          :class="{ expanded: searchFocused || search }">
+        <div v-if="showSearch && authStore.user && !isMobile" ref="searchWrapRef" class="search-wrap" :class="{
+          expanded: searchFocused || search,
+          active: showSearchDropdown
+        }">
           <MagnifyingGlassIcon class="search-icon-el" />
 
-          <input ref="searchRef" :value="search" @input="$emit('update:search', $event.target.value)"
-            @focus="searchFocused = true" @blur="searchFocused = false" @keydown.esc="emitClearSearch" type="text"
+          <input ref="searchRef" :value="search" @input="handleSearchInput" @focus="handleSearchFocus"
+            @blur="handleSearchBlur" @keydown.esc="handleEscSearch" type="text"
             placeholder="Search title, artist, album, tags, genre..." class="search-input" />
 
           <transition name="fade">
-            <button v-if="search" class="search-clear" type="button" @mousedown.prevent @click.stop="emitClearSearch">
+            <button v-if="search" class="search-clear" type="button" @mousedown.prevent @click.stop="clearSearch">
               <XMarkIcon class="search-clear-icon" />
             </button>
           </transition>
 
           <kbd v-if="!searchFocused && !search" class="search-kbd">/</kbd>
+
+          <transition name="dropdown">
+            <div v-if="showSearchDropdown" class="search-dropdown">
+              <template v-if="search.trim()">
+                <div v-if="topResult" class="search-group">
+                  <div class="search-group__label">Top result</div>
+
+                  <button class="search-result search-result--top" type="button"
+                    @mousedown.prevent="selectSearchResult(topResult)">
+                    <div class="search-result__cover-wrap">
+                      <img v-if="resolveSearchImage(topResult)" :src="resolveSearchImage(topResult)" alt=""
+                        class="search-result__cover" />
+                      <div v-else class="search-result__fallback">
+                        <MusicalNoteIcon class="search-result__fallback-icon" />
+                      </div>
+                    </div>
+
+                    <div class="search-result__body">
+                      <strong>{{ topResult.title || topResult.name || 'Untitled' }}</strong>
+                      <span>{{ getSearchSubtitle(topResult) }}</span>
+                    </div>
+
+                    <span class="search-result__type">{{ getResultTypeLabel(topResult) }}</span>
+                  </button>
+                </div>
+
+                <div v-if="trackResults.length" class="search-group">
+                  <div class="search-group__label">Tracks</div>
+
+                  <button v-for="item in trackResults" :key="`track-${item._id || item.id || item.title}`"
+                    class="search-result" type="button" @mousedown.prevent="selectSearchResult(item)">
+                    <div class="search-result__cover-wrap">
+                      <img v-if="resolveSearchImage(item)" :src="resolveSearchImage(item)" alt=""
+                        class="search-result__cover" />
+                      <div v-else class="search-result__fallback">
+                        <MusicalNoteIcon class="search-result__fallback-icon" />
+                      </div>
+                    </div>
+
+                    <div class="search-result__body">
+                      <strong>{{ item.title || 'Untitled' }}</strong>
+                      <span>{{ getSearchSubtitle(item) }}</span>
+                    </div>
+                  </button>
+                </div>
+
+                <div v-if="artistResults.length" class="search-group">
+                  <div class="search-group__label">Artists</div>
+
+                  <button v-for="item in artistResults" :key="`artist-${item._id || item.id || item.slug || item.name}`"
+                    class="search-result" type="button" @mousedown.prevent="selectSearchResult(item)">
+                    <div class="search-result__cover-wrap search-result__cover-wrap--artist">
+                      <img v-if="resolveSearchImage(item)" :src="resolveSearchImage(item)" alt=""
+                        class="search-result__cover" />
+                      <div v-else class="search-result__fallback search-result__fallback--artist">
+                        <UserIcon class="search-result__fallback-icon" />
+                      </div>
+                    </div>
+
+                    <div class="search-result__body">
+                      <strong>{{ item.artist || item.name || 'Unknown artist' }}</strong>
+                      <span>{{ getResultTypeLabel(item) }}</span>
+                    </div>
+                  </button>
+                </div>
+
+                <div v-if="!topResult && !trackResults.length && !artistResults.length" class="search-empty">
+                  <MagnifyingGlassIcon class="search-empty__icon" />
+                  <p>No matching results</p>
+                </div>
+              </template>
+
+              <template v-else>
+                <div class="search-group" v-if="recentSearches.length">
+                  <div class="search-group__label search-group__label--row">
+                    <span>Recent searches</span>
+
+                    <button class="search-link-btn" type="button" @mousedown.prevent="clearRecentSearches">
+                      Clear
+                    </button>
+                  </div>
+
+                  <button v-for="item in recentSearches" :key="item" class="search-history-item" type="button"
+                    @mousedown.prevent="applyRecentSearch(item)">
+                    <ClockIcon class="search-history-item__icon" />
+                    <span>{{ item }}</span>
+                  </button>
+                </div>
+
+                <div v-else class="search-empty">
+                  <MagnifyingGlassIcon class="search-empty__icon" />
+                  <p>Start typing to search tracks or artists</p>
+                </div>
+              </template>
+            </div>
+          </transition>
         </div>
       </div>
 
@@ -162,19 +260,114 @@
 
     <transition name="fade">
       <div v-if="mobileSearchOpen" class="mobile-search-overlay" @click.self="closeMobileSearch">
-        <div class="mobile-search-bar">
-          <MagnifyingGlassIcon class="mobile-search-icon" />
+        <div class="mobile-search-sheet">
+          <div class="mobile-search-bar">
+            <MagnifyingGlassIcon class="mobile-search-icon" />
 
-          <input ref="mobileSearchRef" :value="search" @input="$emit('update:search', $event.target.value)" type="text"
-            placeholder="Search title, artist, album, tags, genre..." class="mobile-search-input" />
+            <input ref="mobileSearchRef" :value="search" @input="handleSearchInput" type="text"
+              placeholder="Search title, artist, album, tags, genre..." class="mobile-search-input" />
 
-          <button v-if="search" class="mobile-search-clear" type="button" @click="clearMobileSearch">
-            <XMarkIcon class="search-clear-icon" />
-          </button>
+            <button v-if="search" class="mobile-search-clear" type="button" @click="clearMobileSearch">
+              <XMarkIcon class="search-clear-icon" />
+            </button>
 
-          <button class="mobile-search-close" type="button" @click="closeMobileSearch">
-            Done
-          </button>
+            <button class="mobile-search-close" type="button" @click="closeMobileSearch">
+              Done
+            </button>
+          </div>
+
+          <div class="mobile-search-results">
+            <template v-if="search.trim()">
+              <div v-if="topResult" class="search-group">
+                <div class="search-group__label">Top result</div>
+
+                <button class="search-result search-result--top" type="button" @click="selectSearchResult(topResult)">
+                  <div class="search-result__cover-wrap">
+                    <img v-if="resolveSearchImage(topResult)" :src="resolveSearchImage(topResult)" alt=""
+                      class="search-result__cover" />
+                    <div v-else class="search-result__fallback">
+                      <MusicalNoteIcon class="search-result__fallback-icon" />
+                    </div>
+                  </div>
+
+                  <div class="search-result__body">
+                    <strong>{{ topResult.title || topResult.name || 'Untitled' }}</strong>
+                    <span>{{ getSearchSubtitle(topResult) }}</span>
+                  </div>
+
+                  <span class="search-result__type">{{ getResultTypeLabel(topResult) }}</span>
+                </button>
+              </div>
+
+              <div v-if="trackResults.length" class="search-group">
+                <div class="search-group__label">Tracks</div>
+
+                <button v-for="item in trackResults" :key="`m-track-${item._id || item.id || item.title}`"
+                  class="search-result" type="button" @click="selectSearchResult(item)">
+                  <div class="search-result__cover-wrap">
+                    <img v-if="resolveSearchImage(item)" :src="resolveSearchImage(item)" alt=""
+                      class="search-result__cover" />
+                    <div v-else class="search-result__fallback">
+                      <MusicalNoteIcon class="search-result__fallback-icon" />
+                    </div>
+                  </div>
+
+                  <div class="search-result__body">
+                    <strong>{{ item.title || 'Untitled' }}</strong>
+                    <span>{{ getSearchSubtitle(item) }}</span>
+                  </div>
+                </button>
+              </div>
+
+              <div v-if="artistResults.length" class="search-group">
+                <div class="search-group__label">Artists</div>
+
+                <button v-for="item in artistResults" :key="`m-artist-${item._id || item.id || item.slug || item.name}`"
+                  class="search-result" type="button" @click="selectSearchResult(item)">
+                  <div class="search-result__cover-wrap search-result__cover-wrap--artist">
+                    <img v-if="resolveSearchImage(item)" :src="resolveSearchImage(item)" alt=""
+                      class="search-result__cover" />
+                    <div v-else class="search-result__fallback search-result__fallback--artist">
+                      <UserIcon class="search-result__fallback-icon" />
+                    </div>
+                  </div>
+
+                  <div class="search-result__body">
+                    <strong>{{ item.artist || item.name || 'Unknown artist' }}</strong>
+                    <span>{{ getResultTypeLabel(item) }}</span>
+                  </div>
+                </button>
+              </div>
+
+              <div v-if="!topResult && !trackResults.length && !artistResults.length" class="search-empty">
+                <MagnifyingGlassIcon class="search-empty__icon" />
+                <p>No matching results</p>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="search-group" v-if="recentSearches.length">
+                <div class="search-group__label search-group__label--row">
+                  <span>Recent searches</span>
+
+                  <button class="search-link-btn" type="button" @click="clearRecentSearches">
+                    Clear
+                  </button>
+                </div>
+
+                <button v-for="item in recentSearches" :key="`m-recent-${item}`" class="search-history-item"
+                  type="button" @click="applyRecentSearch(item)">
+                  <ClockIcon class="search-history-item__icon" />
+                  <span>{{ item }}</span>
+                </button>
+              </div>
+
+              <div v-else class="search-empty">
+                <MagnifyingGlassIcon class="search-empty__icon" />
+                <p>Start typing to search tracks or artists</p>
+              </div>
+            </template>
+          </div>
         </div>
       </div>
     </transition>
@@ -285,6 +478,8 @@ import {
   UserPlusIcon,
   BellIcon,
   Cog6ToothIcon,
+  MusicalNoteIcon,
+  ClockIcon,
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { API_ROOT } from '@/utils/media'
@@ -295,6 +490,7 @@ const props = defineProps({
   showSearch: { type: Boolean, default: true },
   pageType: { type: String, default: 'user' },
   showDownloads: { type: Boolean, default: true },
+  searchItems: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['update:search', 'toggle-sidebar'])
@@ -307,10 +503,13 @@ const api = axios.create({
   withCredentials: true,
 })
 
+const RECENT_SEARCHES_KEY = 'music-recent-searches'
+
 const searchRef = ref(null)
 const mobileSearchRef = ref(null)
 const profileRef = ref(null)
 const notifRef = ref(null)
+const searchWrapRef = ref(null)
 
 const searchFocused = ref(false)
 const menuOpen = ref(false)
@@ -322,6 +521,7 @@ const logoErr = ref(false)
 const viewport = ref(window.innerWidth)
 const notifications = ref([])
 const notifSeen = ref(false)
+const recentSearches = ref([])
 
 const isMobile = computed(() => viewport.value <= 860)
 const isXs = computed(() => viewport.value <= 540)
@@ -329,7 +529,149 @@ const isAdminPage = computed(() => props.pageType === 'admin')
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
 const notificationCount = computed(() => (notifSeen.value ? 0 : notifications.value.length))
 
+const normalizedSearchItems = computed(() => Array.isArray(props.searchItems) ? props.searchItems : [])
+
+const filteredSearchItems = computed(() => {
+  const q = props.search.trim().toLowerCase()
+  if (!q) return []
+
+  return normalizedSearchItems.value.filter((item) => {
+    const pool = [
+      item.title,
+      item.name,
+      item.artist,
+      item.album,
+      item.type,
+      item.releaseType,
+      ...(Array.isArray(item.genre) ? item.genre : []),
+      ...(Array.isArray(item.tags) ? item.tags : []),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+
+    return pool.includes(q)
+  })
+})
+
+const trackResults = computed(() =>
+  filteredSearchItems.value
+    .filter((item) => isTrackResult(item))
+    .slice(0, 5)
+)
+
+const artistResults = computed(() =>
+  filteredSearchItems.value
+    .filter((item) => isArtistResult(item))
+    .slice(0, 4)
+)
+
+const topResult = computed(() => {
+  const all = filteredSearchItems.value
+  return all.length ? all[0] : null
+})
+
+const showSearchDropdown = computed(() =>
+  authStore.user &&
+  props.showSearch &&
+  !isMobile.value &&
+  (searchFocused.value || !!props.search.trim()) &&
+  (recentSearches.value.length || filteredSearchItems.value.length || !!props.search.trim())
+)
+
+const isTrackResult = (item) => {
+  if (!item || typeof item !== 'object') return false
+  return item.type === 'track' || !!item.title
+}
+
+const isArtistResult = (item) => {
+  if (!item || typeof item !== 'object') return false
+  return item.type === 'artist' || (!item.title && !!(item.artist || item.name))
+}
+
+const resolveSearchImage = (item) => {
+  return item.cover || item.image || item.avatar || ''
+}
+
+const getSearchSubtitle = (item) => {
+  if (isTrackResult(item)) {
+    const parts = [item.artist, item.album].filter(Boolean)
+    return parts.join(' • ') || 'Track'
+  }
+
+  return item.genre?.[0] || item.type || 'Artist'
+}
+
+const getResultTypeLabel = (item) => {
+  return isTrackResult(item) ? 'Track' : 'Artist'
+}
+
+const saveRecentSearch = (value) => {
+  const q = String(value || '').trim()
+  if (!q) return
+
+  const next = [q, ...recentSearches.value.filter((item) => item !== q)].slice(0, 6)
+  recentSearches.value = next
+  localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next))
+}
+
+const clearRecentSearches = () => {
+  recentSearches.value = []
+  localStorage.removeItem(RECENT_SEARCHES_KEY)
+}
+
+const applyRecentSearch = async (value) => {
+  emit('update:search', value)
+  saveRecentSearch(value)
+  await nextTick()
+  searchRef.value?.focus()
+}
+
+const clearSearch = async () => {
+  emit('update:search', '')
+  await nextTick()
+  searchRef.value?.focus()
+}
+
 const emitClearSearch = () => emit('update:search', '')
+
+const handleEscSearch = async () => {
+  emitClearSearch()
+  searchFocused.value = false
+  await nextTick()
+  searchRef.value?.blur()
+}
+
+const handleSearchInput = (e) => {
+  emit('update:search', e.target.value)
+}
+
+const handleSearchFocus = () => {
+  searchFocused.value = true
+}
+
+const handleSearchBlur = () => {
+  requestAnimationFrame(() => {
+    searchFocused.value = false
+  })
+}
+
+const selectSearchResult = (item) => {
+  const searchValue = item.title || item.name || item.artist || ''
+  saveRecentSearch(searchValue)
+  emit('update:search', searchValue)
+  searchFocused.value = false
+  mobileSearchOpen.value = false
+
+  if (item.path) {
+    router.push(item.path)
+    return
+  }
+
+  if (isArtistResult(item) && item.slug) {
+    router.push(`/artist/${item.slug}`)
+  }
+}
 
 const goHome = () => {
   if (!authStore.user) return router.push('/')
@@ -474,12 +816,14 @@ const handleKey = (e) => {
     notifOpen.value = false
     mobileMenuOpen.value = false
     mobileSearchOpen.value = false
+    searchFocused.value = false
   }
 }
 
 const handleOut = (e) => {
   if (profileRef.value && !profileRef.value.contains(e.target)) menuOpen.value = false
   if (notifRef.value && !notifRef.value.contains(e.target)) notifOpen.value = false
+  if (searchWrapRef.value && !searchWrapRef.value.contains(e.target)) searchFocused.value = false
 }
 
 const handleResize = () => {
@@ -493,6 +837,13 @@ const handleResize = () => {
   }
 }
 
+watch(
+  () => props.search,
+  (value) => {
+    if (value?.trim()) saveRecentSearch(value)
+  }
+)
+
 watch(isMobile, () => {
   loadNotifications()
 })
@@ -505,6 +856,13 @@ watch(
 )
 
 onMounted(async () => {
+  try {
+    const raw = localStorage.getItem(RECENT_SEARCHES_KEY)
+    recentSearches.value = raw ? JSON.parse(raw) : []
+  } catch {
+    recentSearches.value = []
+  }
+
   document.addEventListener('click', handleOut)
   window.addEventListener('keydown', handleKey)
   window.addEventListener('resize', handleResize)
