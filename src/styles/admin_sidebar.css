@@ -1,23 +1,55 @@
 .admin-sidebar {
+  --sidebar-expanded: 280px;
+  --sidebar-collapsed: 92px;
+
+  width: var(--sidebar-expanded);
+  min-width: var(--sidebar-expanded);
+  max-width: var(--sidebar-expanded);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   height: 100%;
   padding: 14px 12px;
   overflow: hidden;
+  transition:
+    width var(--t-slow),
+    min-width var(--t-slow),
+    max-width var(--t-slow),
+    padding var(--t-fast);
+}
+
+.admin-sidebar.is-collapsed {
+  width: var(--sidebar-collapsed);
+  min-width: var(--sidebar-collapsed);
+  max-width: var(--sidebar-collapsed);
+}
+
+.admin-sidebar__top {
+  flex-shrink: 0;
+}
+
+.admin-sidebar__topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .admin-sidebar__brand {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 11px;
   padding: 12px;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: var(--surface-1);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-1) 96%, transparent),
+    color-mix(in srgb, var(--surface-2) 96%, transparent)
+  );
   cursor: pointer;
   text-align: left;
-  flex-shrink: 0;
   box-shadow: var(--shadow-xs);
   transition:
     transform var(--t-fast),
@@ -33,16 +65,23 @@
   box-shadow: var(--shadow-sm);
 }
 
+.admin-sidebar.is-collapsed .admin-sidebar__brand {
+  justify-content: center;
+  padding: 12px 10px;
+}
+
 .admin-sidebar__brand-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 14px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
   border: 1px solid var(--border);
   background:
-    radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.14), transparent 60%), var(--surface-2);
+    radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.16), transparent 60%),
+    radial-gradient(circle at 70% 70%, rgba(124, 58, 237, 0.1), transparent 46%), var(--surface-2);
+  box-shadow: var(--shadow-xs);
 }
 
 .admin-sidebar__brand-img {
@@ -68,13 +107,47 @@
   font-size: 10.5px;
   color: var(--text-muted);
   margin-top: 2px;
+  white-space: nowrap;
+}
+
+.admin-sidebar__toggle {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition:
+    transform var(--t-fast),
+    border-color var(--t-fast),
+    background var(--t-fast),
+    color var(--t-fast),
+    box-shadow var(--t-fast);
+}
+
+.admin-sidebar__toggle:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-hover);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-sidebar__toggle-icon {
+  width: 17px;
+  height: 17px;
 }
 
 .admin-sidebar__nav {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -103,7 +176,7 @@
 
 .admin-sidebar__nav-item {
   width: 100%;
-  min-height: 56px;
+  min-height: 58px;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -139,10 +212,15 @@
   box-shadow: var(--shadow-xs);
 }
 
+.admin-sidebar.is-collapsed .admin-sidebar__nav-item {
+  justify-content: center;
+  padding: 10px;
+}
+
 .admin-sidebar__nav-icon-wrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -157,8 +235,8 @@
 }
 
 .admin-sidebar__nav-icon {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
 }
 
 .admin-sidebar__nav-text {
@@ -182,12 +260,17 @@
 
 .admin-sidebar__nav-dot {
   position: absolute;
-  right: 11px;
+  right: 12px;
   width: 6px;
   height: 6px;
   border-radius: 999px;
   background: var(--accent);
   box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar__nav-dot {
+  right: 8px;
+  top: 8px;
 }
 
 .admin-sidebar__bottom {
@@ -205,6 +288,12 @@
   border: 1px solid var(--border);
   background: var(--surface-1);
   box-shadow: var(--shadow-xs);
+  min-height: 64px;
+}
+
+.admin-sidebar.is-collapsed .admin-sidebar__info-card {
+  justify-content: center;
+  padding: 12px 10px;
 }
 
 .admin-sidebar__info-icon {

@@ -1,8 +1,9 @@
 <template>
-  <el-dialog v-model="openState" class="edit-dialog" append-to-body destroy-on-close :close-on-click-modal="false">
+  <el-dialog v-model="openState" class="edit-dialog" append-to-body destroy-on-close :close-on-click-modal="false"
+    :lock-scroll="true" align-center>
     <template #header>
       <div class="edit-head">
-        <div>
+        <div class="edit-head__copy">
           <h2>Edit track</h2>
           <p>Update metadata, media, publishing settings, and synced lyrics.</p>
         </div>
@@ -203,26 +204,31 @@
             <div class="publish-status-seg">
               <button v-for="s in statusOpts" :key="s.value" type="button" class="seg-btn"
                 :class="[s.value, { active: form.status === s.value }]" @click="form.status = s.value">
-                <span class="seg-dot" />{{ s.label }}
+                <span class="seg-dot" />
+                {{ s.label }}
               </button>
             </div>
 
             <div class="flags-grid">
               <button type="button" class="flag-btn" :class="{ on: form.isExplicit }"
                 @click="form.isExplicit = !form.isExplicit">
-                <span class="flag-pip" />Explicit
+                <span class="flag-pip" />
+                Explicit
               </button>
               <button type="button" class="flag-btn" :class="{ on: form.isFeatured }"
                 @click="form.isFeatured = !form.isFeatured">
-                <span class="flag-pip" />Featured
+                <span class="flag-pip" />
+                Featured
               </button>
               <button type="button" class="flag-btn" :class="{ on: form.isRecommended }"
                 @click="form.isRecommended = !form.isRecommended">
-                <span class="flag-pip" />Recommended
+                <span class="flag-pip" />
+                Recommended
               </button>
               <button type="button" class="flag-btn" :class="{ on: form.isFreeDownload }"
                 @click="form.isFreeDownload = !form.isFreeDownload">
-                <span class="flag-pip" />Free
+                <span class="flag-pip" />
+                Free
               </button>
             </div>
           </div>
@@ -465,6 +471,8 @@ const previewTimer = ref(null)
 const syncPreviewRef = ref(null)
 
 let coverObjectUrl = ''
+let bodyOverflowBeforeLock = ''
+let bodyPaddingRightBeforeLock = ''
 
 const statusOpts = [
   { value: 'draft', label: 'Draft' },
@@ -637,6 +645,28 @@ const resetCoverObjectUrl = () => {
   }
 }
 
+const lockBodyScroll = () => {
+  const body = document.body
+  if (!body) return
+
+  bodyOverflowBeforeLock = body.style.overflow
+  bodyPaddingRightBeforeLock = body.style.paddingRight
+
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+  body.style.overflow = 'hidden'
+  if (scrollbarWidth > 0) {
+    body.style.paddingRight = `${scrollbarWidth}px`
+  }
+}
+
+const unlockBodyScroll = () => {
+  const body = document.body
+  if (!body) return
+
+  body.style.overflow = bodyOverflowBeforeLock
+  body.style.paddingRight = bodyPaddingRightBeforeLock
+}
+
 const onCover = (e) => {
   const f = e.target.files?.[0]
   if (!f) return
@@ -774,6 +804,15 @@ watch(activeSyncedIndex, async (idx) => {
   await nextTick()
   const el = syncPreviewRef.value?.children?.[idx]
   el?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+})
+
+watch(openState, (isOpen) => {
+  if (isOpen) {
+    lockBodyScroll()
+  } else {
+    unlockBodyScroll()
+    stopPreview()
+  }
 })
 
 const transcribeLyrics = async () => {
@@ -928,5 +967,6 @@ const handleCancel = async () => {
 onBeforeUnmount(() => {
   stopPreview()
   resetCoverObjectUrl()
+  unlockBodyScroll()
 })
 </script>
