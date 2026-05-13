@@ -16,7 +16,7 @@
 }
 
 .rp-tab {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -89,26 +89,29 @@
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--text-primary);
 }
 
 .rp-now {
   padding: 12px;
   border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 36%), var(--surface-1);
 }
 
 .rp-now__row {
   width: 100%;
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) 24px;
+  grid-template-columns: 56px minmax(0, 1fr) 24px;
   gap: 10px;
   align-items: center;
   text-align: left;
 }
 
 .rp-now__cover {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
+  width: 56px;
+  height: 56px;
+  border-radius: 15px;
   object-fit: cover;
   background: var(--bg-elevated);
 }
@@ -177,8 +180,8 @@
 }
 
 .rp-clear {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface-1);
@@ -205,7 +208,7 @@
 }
 
 .rp-empty {
-  padding: 22px 14px;
+  padding: 24px 14px;
   border-radius: 18px;
   text-align: center;
   color: var(--text-muted);
@@ -232,11 +235,11 @@
 
 .rp-item--queue,
 .rp-item--rec {
-  min-height: 58px;
-  padding: 8px 10px;
+  min-height: 60px;
+  padding: 9px 10px;
   align-items: center;
   text-align: left;
-  border-radius: 14px;
+  border-radius: 15px;
   background: var(--surface-1);
   border: 1px solid var(--border);
   transition:
@@ -248,13 +251,13 @@
 
 .rp-item--queue {
   display: grid;
-  grid-template-columns: 18px 42px minmax(0, 1fr) 30px;
+  grid-template-columns: 18px 44px minmax(0, 1fr) 32px;
   gap: 9px;
 }
 
 .rp-item--rec {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 30px;
+  grid-template-columns: 44px minmax(0, 1fr) 32px;
   gap: 9px;
 }
 
@@ -274,8 +277,8 @@
 }
 
 .rp-item__cover {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   object-fit: cover;
   background: var(--bg-elevated);
@@ -305,9 +308,9 @@
 }
 
 .rp-icon-btn {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: transparent;
   display: grid;

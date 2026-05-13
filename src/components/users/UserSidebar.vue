@@ -1,12 +1,18 @@
 <template>
   <aside class="user-sidebar" :class="{ 'user-sidebar--collapsed': collapsed }">
     <div class="us-header">
-      <div class="us-brand" v-if="!collapsed">
-        <MusicalNoteIcon class="us-brand-ico" />
-        <span class="us-brand-text">Playlists</span>
+      <div v-if="!collapsed" class="us-brand">
+        <div class="us-brand__icon-wrap">
+          <MusicalNoteIcon class="us-brand-ico" />
+        </div>
+        <div class="us-brand__copy">
+          <span class="us-brand-text">Playlists</span>
+          <span class="us-brand-sub">Your library</span>
+        </div>
       </div>
 
-      <button class="us-collapse-btn" type="button" @click="toggle" :title="collapsed ? 'Expand' : 'Collapse'">
+      <button class="us-collapse-btn" type="button" @click="toggle" :title="collapsed ? 'Expand' : 'Collapse'"
+        :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
         <ChevronLeftIcon class="us-collapse-ico" :class="{ 'is-rotated': collapsed }" />
       </button>
     </div>
@@ -15,6 +21,7 @@
       <div class="us-playlists-top">
         <template v-if="!collapsed">
           <span class="us-playlists-label">Your playlists</span>
+
           <button class="us-create-btn" type="button" @click="$emit('create-playlist')" title="New playlist">
             <PlusIcon class="us-create-ico" />
           </button>
@@ -38,7 +45,7 @@
           <template v-if="!collapsed">
             <div class="us-pl-meta">
               <span class="us-pl-name">{{ pl.name }}</span>
-              <span class="us-pl-count">{{ pl.count || pl.tracks?.length || 0 }}</span>
+              <span class="us-pl-count">{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
             </div>
 
             <div class="us-pl-actions" @click.stop>
@@ -55,9 +62,12 @@
         </button>
 
         <div v-if="!playlists.length && !collapsed" class="us-pl-empty">
+          <div class="us-pl-empty__icon">
+            <QueueListIcon class="us-pl-empty__icon-svg" />
+          </div>
           <p>No playlists yet</p>
           <button class="us-pl-empty-btn" type="button" @click="$emit('create-playlist')">
-            Create
+            Create playlist
           </button>
         </div>
       </div>

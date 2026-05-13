@@ -54,11 +54,6 @@
             <span>{{ track.liked ? 'Liked' : 'Like' }}</span>
           </button>
 
-          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-playlist', track)">
-            <PlusIcon class="td-btn-ico" />
-            <span>Playlist</span>
-          </button>
-
           <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-queue', track)">
             <QueueListIcon class="td-btn-ico" />
             <span>Queue</span>
@@ -114,7 +109,6 @@ import {
   PlayIcon,
   PauseIcon,
   HeartIcon,
-  PlusIcon,
   QueueListIcon,
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
@@ -148,9 +142,7 @@ const heroTags = computed(() => {
   const raw = [
     ...(Array.isArray(props.track?.genre) ? props.track.genre : []),
     ...(Array.isArray(props.track?.mood) ? props.track.mood : []),
-    ...(Array.isArray(props.track?.tags)
-      ? props.track.tags.slice(0, 2).map((t) => `#${t}`)
-      : []),
+    ...(Array.isArray(props.track?.tags) ? props.track.tags.slice(0, 2).map((t) => `#${t}`) : []),
   ]
   return raw.slice(0, 5)
 })

@@ -25,10 +25,12 @@
 
           <button class="rp-now__row" type="button" @click="$emit('play-track', currentMusic)">
             <img :src="getCover(currentMusic)" class="rp-now__cover" alt="" />
+
             <div class="rp-now__meta">
               <strong>{{ currentMusic.title || 'Untitled' }}</strong>
               <span>{{ currentMusic.artist || 'Unknown artist' }}</span>
             </div>
+
             <div class="rp-now__eq" aria-hidden="true">
               <span></span><span></span><span></span>
             </div>
@@ -125,15 +127,11 @@ const upNext = computed(() =>
 const effectiveRecommendations = computed(() =>
   (props.recommendations || [])
     .filter((item) => String(item?._id || '') !== String(props.currentMusic?._id || ''))
-    .filter(
-      (item) => !upNext.value.some((q) => String(q?._id || '') === String(item?._id || ''))
-    )
+    .filter((item) => !upNext.value.some((q) => String(q?._id || '') === String(item?._id || '')))
     .slice(0, 8)
 )
 
-const discoverTitle = computed(() =>
-  props.currentMusic ? 'Related' : 'Discover'
-)
+const discoverTitle = computed(() => (props.currentMusic ? 'Related' : 'Discover'))
 
 watch(
   () => effectiveRecommendations.value.length,

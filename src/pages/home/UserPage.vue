@@ -13,6 +13,63 @@
       </div>
 
       <main class="user-main">
+        <section class="discover-hero surface-card">
+          <div class="discover-hero__copy">
+            <p class="section-kicker">
+              {{ activeRecommendationMode === 'related' ? 'Listening context' : 'Premium listening' }}
+            </p>
+
+            <h1 class="discover-hero__title">
+              {{
+                selectedPlaylist
+                  ? selectedPlaylist.name
+                  : activeRecommendationMode === 'related'
+                    ? 'More like what you are hearing'
+                    : 'Discover your next favorite track'
+              }}
+            </h1>
+
+            <p class="discover-hero__sub">
+              {{
+                selectedPlaylist
+                  ? selectedPlaylist.description || 'Tracks collected for this playlist.'
+                  : activeRecommendationMode === 'related'
+                    ? 'Recommendations adapt to your current track, artist, and mood.'
+                    : 'Featured picks, fresh additions, and cleaner listening in one place.'
+              }}
+            </p>
+
+            <div class="discover-hero__meta">
+              <span class="discover-pill">{{ filteredTracks.length }} tracks</span>
+              <span v-if="selectedPlaylist" class="discover-pill discover-pill--soft">playlist view</span>
+              <span v-else class="discover-pill discover-pill--soft">
+                {{ activeRecommendationMode === 'related' ? 'smart recommendations' : 'featured discovery' }}
+              </span>
+            </div>
+          </div>
+
+          <div v-if="selectedDetailTrack" class="discover-hero__highlight">
+            <button class="discover-highlight" type="button" @click="toggleTrack(selectedDetailTrack)">
+              <img class="discover-highlight__cover" :src="resolveCover(selectedDetailTrack)"
+                :alt="selectedDetailTrack.title" @error="imgErr" />
+
+              <div class="discover-highlight__body">
+                <span class="discover-highlight__label">
+                  {{ playerStore.currentTrack?._id === selectedDetailTrack._id ? 'Current focus' : 'Selected track' }}
+                </span>
+                <strong>{{ selectedDetailTrack.title || 'Untitled track' }}</strong>
+                <p>{{ selectedDetailTrack.artist || 'Unknown artist' }}</p>
+              </div>
+
+              <div class="discover-highlight__play">
+                <PauseIcon v-if="playerStore.currentTrack?._id === selectedDetailTrack._id && playerStore.isPlaying"
+                  class="discover-play-ico" />
+                <PlayIcon v-else class="discover-play-ico discover-play-ico--shift" />
+              </div>
+            </button>
+          </div>
+        </section>
+
         <section v-if="recentlyPlayed.length" class="recent-section surface-card">
           <div class="recent-section__head">
             <div>
@@ -218,7 +275,6 @@ const filteredTracks = computed(() => {
 })
 
 const currentReferenceTrack = computed(() => playerStore.currentTrack || selectedDetailTrack.value || null)
-
 const activeRecommendationMode = computed(() => (currentReferenceTrack.value ? 'related' : 'discover'))
 
 const recommendations = computed(() => {
