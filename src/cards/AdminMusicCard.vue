@@ -75,34 +75,29 @@
       </div>
 
       <div class="admin-music-card__actions">
-        <button class="admin-music-card__action" type="button" title="Edit" @click.stop="$emit('edit', music)">
+        <button class="admin-music-card__action" type="button" @click.stop="$emit('edit', music)">
           <PencilSquareIcon class="admin-music-card__action-icon" />
-          <span>Edit</span>
         </button>
 
         <button v-if="normalizedStatus !== 'published'"
-          class="admin-music-card__action admin-music-card__action--publish" type="button" title="Publish"
+          class="admin-music-card__action admin-music-card__action--publish" type="button"
           @click.stop="$emit('quick-publish', music)">
           <RocketLaunchIcon class="admin-music-card__action-icon" />
-          <span>Publish</span>
         </button>
 
-        <button class="admin-music-card__action" type="button" title="Clone" @click.stop="$emit('clone', music)">
+        <button class="admin-music-card__action" type="button" @click.stop="$emit('clone', music)">
           <DocumentDuplicateIcon class="admin-music-card__action-icon" />
-          <span>Clone</span>
         </button>
 
-        <button class="admin-music-card__action" type="button" title="Like" @click.stop="$emit('toggle-like', music)">
+        <button class="admin-music-card__action" type="button" @click.stop="$emit('toggle-like', music)">
           <HeartSolidIcon v-if="music.liked"
             class="admin-music-card__action-icon admin-music-card__action-icon--liked" />
           <HeartIcon v-else class="admin-music-card__action-icon" />
-          <span>{{ music.liked ? 'Liked' : 'Like' }}</span>
         </button>
 
-        <button class="admin-music-card__action admin-music-card__action--danger" type="button" title="Delete"
+        <button class="admin-music-card__action admin-music-card__action--danger" type="button"
           @click.stop="$emit('delete', music)">
           <TrashIcon class="admin-music-card__action-icon" />
-          <span>Delete</span>
         </button>
       </div>
     </div>

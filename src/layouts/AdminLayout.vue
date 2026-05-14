@@ -39,8 +39,8 @@ onMounted(() => {
 
 <style scoped>
 .admin-app {
-  --admin-sidebar-w: 280px;
-  --admin-sidebar-w-collapsed: 92px;
+  --admin-sidebar-w: 276px;
+  --admin-sidebar-w-collapsed: 94px;
   min-height: 100vh;
   background:
     radial-gradient(ellipse 60% 40% at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
@@ -74,14 +74,14 @@ onMounted(() => {
 
 .admin-app__main {
   min-width: 0;
-  padding: 20px 20px calc(20px + var(--player-bar-safe, 110px));
+  padding: 20px 20px 24px;
   display: flex;
   flex-direction: column;
 }
 
 .admin-app__container {
   width: 100%;
-  max-width: 1540px;
+  max-width: 1560px;
   min-width: 0;
 }
 
@@ -91,7 +91,7 @@ onMounted(() => {
 
 @media (max-width: 1100px) {
   .admin-app {
-    --admin-sidebar-w: 252px;
+    --admin-sidebar-w: 248px;
     --admin-sidebar-w-collapsed: 84px;
   }
 }
@@ -122,7 +122,7 @@ onMounted(() => {
     position: fixed;
     top: var(--header-h);
     left: 0;
-    width: min(290px, calc(100vw - 20px));
+    width: min(294px, calc(100vw - 18px));
     height: calc(100vh - var(--header-h));
     z-index: 1200;
     transform: translateX(-104%);
@@ -135,7 +135,7 @@ onMounted(() => {
   }
 
   .admin-app__main {
-    padding: 12px 12px calc(84px + var(--player-bar-safe, 110px));
+    padding: 12px 12px 18px;
   }
 }
 </style>

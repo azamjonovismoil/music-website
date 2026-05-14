@@ -1,5 +1,6 @@
 <template>
-  <aside class="admin-sidebar" :class="{ 'is-collapsed': isCollapsed }">
+  <aside class="admin-sidebar" :class="{ 'is-collapsed': isCollapsed }"
+    :data-collapsed="isCollapsed ? 'true' : 'false'">
     <div class="admin-sidebar__top">
       <div class="admin-sidebar__topbar">
         <button class="admin-sidebar__brand" type="button" @click="go('/admin')">
@@ -35,17 +36,19 @@
           <span class="admin-sidebar__nav-sub">{{ item.sub }}</span>
         </span>
 
-        <span v-if="active === item.key" class="admin-sidebar__nav-dot" />
+        <span v-if="item.badge && !isCollapsed" class="admin-sidebar__nav-badge">
+          {{ item.badge }}
+        </span>
       </button>
     </nav>
 
     <div class="admin-sidebar__bottom">
-      <div class="admin-sidebar__info-card">
+      <div class="admin-sidebar__info-card" :class="{ 'is-compact': isCollapsed }">
         <span class="admin-sidebar__info-icon">
           <ShieldCheckIcon class="admin-sidebar__info-svg" />
         </span>
 
-        <div v-show="!isCollapsed">
+        <div v-show="!isCollapsed" class="admin-sidebar__info-copy">
           <p class="admin-sidebar__info-title">Admin access</p>
           <p class="admin-sidebar__info-text">Manage publishing, metadata and library ops.</p>
         </div>
@@ -77,9 +80,27 @@ const STORAGE_KEY = 'exclusive-admin-sidebar-collapsed'
 const isCollapsed = ref(false)
 
 const navItems = [
-  { key: 'dashboard', label: 'Dashboard', sub: 'Overview & control', path: '/admin', icon: Squares2X2Icon },
-  { key: 'add-music', label: 'Add track', sub: 'Upload new release', path: '/admin/add-music', icon: PlusCircleIcon },
-  { key: 'profile', label: 'Profile', sub: 'Account & settings', path: '/admin/profile', icon: UserCircleIcon },
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    sub: 'Overview & control',
+    path: '/admin',
+    icon: Squares2X2Icon,
+  },
+  {
+    key: 'add-music',
+    label: 'Add track',
+    sub: 'Upload new release',
+    path: '/admin/add-music',
+    icon: PlusCircleIcon,
+  },
+  {
+    key: 'profile',
+    label: 'Profile',
+    sub: 'Account & settings',
+    path: '/admin/profile',
+    icon: UserCircleIcon,
+  },
 ]
 
 const active = computed(() => {
@@ -90,10 +111,14 @@ const active = computed(() => {
   return 'dashboard'
 })
 
-const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value
+const persistState = () => {
   localStorage.setItem(STORAGE_KEY, String(isCollapsed.value))
   emit('collapse-change', isCollapsed.value)
+}
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value
+  persistState()
 }
 
 const go = (path) => {

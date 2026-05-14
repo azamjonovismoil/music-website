@@ -158,7 +158,7 @@
           <div class="admin-library__head">
             <div>
               <h2 class="admin-library__title">Library</h2>
-              <p class="admin-library__sub">Edit, publish, duplicate, like, or remove tracks.</p>
+              <p class="admin-library__sub">Edit, publish, duplicate, like or remove tracks.</p>
             </div>
 
             <div class="admin-library__head-stats">
@@ -220,37 +220,9 @@
 
           <ul class="side-notes">
             <li>Prioritize tracks under 70% health before publishing.</li>
-            <li>Use quick publish only when audio, cover, and genres are complete.</li>
+            <li>Use quick publish only when audio, cover and genres are complete.</li>
             <li>Review scheduled releases before their publish window.</li>
           </ul>
-        </section>
-
-        <section v-if="attentionList.length" class="side-card">
-          <div class="side-card__head">
-            <h3>Priority fixes</h3>
-          </div>
-
-          <div class="side-priority">
-            <button v-for="item in attentionList.slice(0, 4)" :key="item._id" type="button" class="side-priority__item"
-              @click="openEdit(item)">
-              <strong>{{ item.title || 'Untitled' }}</strong>
-              <span>{{ item.attentionReasons?.[0] || 'Needs update' }}</span>
-            </button>
-          </div>
-        </section>
-
-        <section v-if="scheduledSoon.length" class="side-card">
-          <div class="side-card__head">
-            <h3>Upcoming releases</h3>
-          </div>
-
-          <div class="side-priority">
-            <button v-for="item in scheduledSoon.slice(0, 4)" :key="item._id" type="button" class="side-priority__item"
-              @click="openEdit(item)">
-              <strong>{{ item.title || 'Untitled' }}</strong>
-              <span>{{ formatDateTime(item.publishAt) }}</span>
-            </button>
-          </div>
         </section>
       </aside>
     </div>
