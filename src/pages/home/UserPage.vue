@@ -16,8 +16,7 @@
         <section class="discover-hero surface-card">
           <div class="discover-hero__copy">
             <p class="section-kicker">
-              {{ selectedPlaylist ? 'Playlist' : activeRecommendationMode === 'related' ? 'Listening context' : 'Premium
-              discovery' }}
+              {{ selectedPlaylist ? 'Playlist' : activeRecommendationMode === 'related' ? 'Listening context' : 'Premium' : 'Discovery' }}
             </p>
 
             <h1 class="discover-hero__title">
