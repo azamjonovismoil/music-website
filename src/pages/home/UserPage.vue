@@ -1,10 +1,10 @@
 <template>
   <div class="user-layout">
-    <HeaderPage :search="search" :showSearch="true" @update:search="search = $event"
+    <HeaderPage :search="search" :showSearch="true" :search-items="tracks" @update:search="search = $event"
       @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
 
     <div class="user-shell">
-      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false"></div>
+      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false" />
 
       <div class="user-shell__left" :class="{ open: mobileSidebarOpen }">
         <UserSidebar :playlists="playlists" :activePlaylistId="selectedPlaylist?._id || ''"
@@ -16,7 +16,8 @@
         <section class="discover-hero surface-card">
           <div class="discover-hero__copy">
             <p class="section-kicker">
-              {{ activeRecommendationMode === 'related' ? 'Listening context' : 'Premium listening' }}
+              {{ selectedPlaylist ? 'Playlist' : activeRecommendationMode === 'related' ? 'Listening context' : 'Premium
+              discovery' }}
             </p>
 
             <h1 class="discover-hero__title">
@@ -24,7 +25,7 @@
                 selectedPlaylist
                   ? selectedPlaylist.name
                   : activeRecommendationMode === 'related'
-                    ? 'More like what you are hearing'
+                    ? 'More like your current vibe'
                     : 'Discover your next favorite track'
               }}
             </h1>
@@ -34,16 +35,16 @@
                 selectedPlaylist
                   ? selectedPlaylist.description || 'Tracks collected for this playlist.'
                   : activeRecommendationMode === 'related'
-                    ? 'Recommendations adapt to your current track, artist, and mood.'
-                    : 'Featured picks, fresh additions, and cleaner listening in one place.'
+                    ? 'Recommendations adapt to the artist, mood, and style you are listening to now.'
+                    : 'Featured picks, fresh music, and cleaner listening in one premium flow.'
               }}
             </p>
 
             <div class="discover-hero__meta">
               <span class="discover-pill">{{ filteredTracks.length }} tracks</span>
-              <span v-if="selectedPlaylist" class="discover-pill discover-pill--soft">playlist view</span>
-              <span v-else class="discover-pill discover-pill--soft">
-                {{ activeRecommendationMode === 'related' ? 'smart recommendations' : 'featured discovery' }}
+              <span class="discover-pill discover-pill--soft">
+                {{ selectedPlaylist ? 'playlist view' : activeRecommendationMode === 'related' ? 'smart recommendations'
+                  : 'featured discovery' }}
               </span>
             </div>
           </div>
@@ -101,7 +102,8 @@
           <div class="content-section__head">
             <div>
               <p class="section-kicker">
-                {{ selectedPlaylist ? 'Playlist view' : 'Explore your premium library' }}
+                {{ selectedPlaylist ? 'Playlist view' : activeRecommendationMode === 'related' ? 'Curated for right now'
+                  : 'Explore your library' }}
               </p>
 
               <h2>{{ selectedPlaylist?.name || 'Discover music' }}</h2>
@@ -111,8 +113,8 @@
                   selectedPlaylist
                     ? selectedPlaylist.description || 'Tracks collected for this playlist.'
                     : activeRecommendationMode === 'related'
-                      ? 'Related tracks picked from your current listening context.'
-                      : 'Featured picks, fresh additions, and cleaner listening.'
+                      ? 'Related tracks based on your current listening context.'
+                      : 'Featured picks, fresh additions, and music worth coming back to.'
                 }}
               </p>
             </div>
@@ -177,7 +179,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive } from 'vue'
+import { ref, computed, onMounted, reactive, watch } from 'vue'
 import axios from 'axios'
 import { usePlayerStore } from '@/stores/player'
 import { useAuthStore } from '@/stores/auth'
@@ -238,7 +240,7 @@ const playlistColors = [
 ]
 
 const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
-const MAX_RECENT = 3
+const MAX_RECENT = 4
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 
 const filteredTracks = computed(() => {
@@ -575,6 +577,21 @@ const openArtist = (artist) => {
 const imgErr = (e) => {
   e.target.src = fallbackCover
 }
+
+watch(filteredTracks, (value) => {
+  if (!value.length) {
+    selectedDetailTrack.value = null
+    return
+  }
+
+  if (!selectedDetailTrack.value?._id) {
+    selectedDetailTrack.value = value[0]
+    return
+  }
+
+  const exists = value.find((t) => String(t._id) === String(selectedDetailTrack.value._id))
+  if (!exists) selectedDetailTrack.value = value[0]
+})
 
 onMounted(async () => {
   await fetchTracks()

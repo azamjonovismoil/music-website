@@ -1,38 +1,28 @@
 <template>
   <article class="admin-music-card" :class="{
-    'is-active': isCurrentTrack,
-    'is-playing': isCurrentTrack && player.isPlaying,
     'is-attention': music.needsAttention,
+    'is-published': normalizedStatus === 'published',
+    'is-archived': normalizedStatus === 'archived'
   }" @click="$emit('open-about', music)">
     <div class="admin-music-card__media">
       <img v-if="safeCover && !imgErr" :src="safeCover" :alt="music.title || 'cover'" class="admin-music-card__image"
         loading="lazy" @error="imgErr = true" />
 
-      <div v-else class="admin-music-card__fallback">
+      <div v-else class="admin-music-card__fallback" aria-hidden="true">
         <span>♪</span>
       </div>
 
       <div class="admin-music-card__scrim" />
 
       <div class="admin-music-card__topbar">
-        <span class="admin-music-card__status" :class="`is-${music.status || 'draft'}`">
-          {{ music.status || 'draft' }}
+        <span class="admin-music-card__status" :class="`is-${normalizedStatus}`">
+          {{ normalizedStatus }}
         </span>
 
-        <span class="admin-music-card__health" :class="`is-${music.healthTier || 'basic'}`">
+        <span v-if="music.healthScore !== undefined" class="admin-music-card__health"
+          :class="`is-${music.healthTier || 'basic'}`">
           {{ music.healthScore || 0 }}%
         </span>
-      </div>
-
-      <div class="admin-music-card__overlay">
-        <button class="admin-music-card__play" type="button" @click.stop="$emit('play', music)">
-          <PauseIcon v-if="isCurrentTrack && player.isPlaying" class="admin-music-card__play-icon" />
-          <PlayIcon v-else class="admin-music-card__play-icon admin-music-card__play-icon--shift" />
-        </button>
-      </div>
-
-      <div v-if="isCurrentTrack && player.isPlaying" class="admin-music-card__eq" aria-hidden="true">
-        <span /><span /><span />
       </div>
     </div>
 
@@ -45,12 +35,17 @@
       </div>
 
       <div class="admin-music-card__chips">
+        <span v-if="music.genre?.length" class="admin-music-card__chip">
+          {{ music.genre[0] }}
+        </span>
+
         <span v-if="music.healthTier" class="admin-music-card__chip">
           {{ music.healthTier }}
         </span>
 
-        <span v-if="music.genre?.length" class="admin-music-card__chip">
-          {{ music.genre[0] }}
+        <span v-if="music.publishAt && normalizedStatus !== 'published'"
+          class="admin-music-card__chip admin-music-card__chip--soft">
+          scheduled
         </span>
 
         <span v-if="music.needsAttention" class="admin-music-card__chip admin-music-card__chip--warn">
@@ -82,26 +77,32 @@
       <div class="admin-music-card__actions">
         <button class="admin-music-card__action" type="button" title="Edit" @click.stop="$emit('edit', music)">
           <PencilSquareIcon class="admin-music-card__action-icon" />
+          <span>Edit</span>
         </button>
 
-        <button v-if="music.status !== 'published'" class="admin-music-card__action admin-music-card__action--publish"
-          type="button" title="Publish" @click.stop="$emit('quick-publish', music)">
+        <button v-if="normalizedStatus !== 'published'"
+          class="admin-music-card__action admin-music-card__action--publish" type="button" title="Publish"
+          @click.stop="$emit('quick-publish', music)">
           <RocketLaunchIcon class="admin-music-card__action-icon" />
+          <span>Publish</span>
         </button>
 
         <button class="admin-music-card__action" type="button" title="Clone" @click.stop="$emit('clone', music)">
           <DocumentDuplicateIcon class="admin-music-card__action-icon" />
+          <span>Clone</span>
         </button>
 
         <button class="admin-music-card__action" type="button" title="Like" @click.stop="$emit('toggle-like', music)">
           <HeartSolidIcon v-if="music.liked"
             class="admin-music-card__action-icon admin-music-card__action-icon--liked" />
           <HeartIcon v-else class="admin-music-card__action-icon" />
+          <span>{{ music.liked ? 'Liked' : 'Like' }}</span>
         </button>
 
         <button class="admin-music-card__action admin-music-card__action--danger" type="button" title="Delete"
           @click.stop="$emit('delete', music)">
           <TrashIcon class="admin-music-card__action-icon" />
+          <span>Delete</span>
         </button>
       </div>
     </div>
@@ -112,7 +113,6 @@
 import { ref, computed, watch } from 'vue'
 import {
   PlayIcon,
-  PauseIcon,
   HeartIcon,
   ArrowDownTrayIcon,
   PencilSquareIcon,
@@ -122,23 +122,21 @@ import {
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 import { resolveCover } from '@/utils/media'
-import { usePlayerStore } from '@/stores/player'
 import '@/styles/admin_music_card.css'
 
 const props = defineProps({
   music: { type: Object, required: true },
 })
 
-defineEmits(['play', 'edit', 'clone', 'quick-publish', 'toggle-like', 'delete', 'open-about'])
+defineEmits(['edit', 'clone', 'quick-publish', 'toggle-like', 'delete', 'open-about'])
 
-const player = usePlayerStore()
 const imgErr = ref(false)
 
 const safeCover = computed(() => (imgErr.value ? '' : resolveCover(props.music)))
-const isCurrentTrack = computed(() => String(player.currentTrack?._id || '') === String(props.music?._id || ''))
+const normalizedStatus = computed(() => String(props.music?.status || 'draft').toLowerCase())
 
 watch(
-  () => [props.music?._id, props.music?.cover],
+  () => [props.music?._id, props.music?.cover, props.music?.image],
   () => {
     imgErr.value = false
   },

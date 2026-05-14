@@ -1,15 +1,20 @@
 <template>
   <div class="admin-page">
-    <section class="admin-page__hero">
-      <div class="admin-page__hero-content">
-        <span class="admin-page__eyebrow">Admin workspace</span>
-        <h1 class="admin-page__title">Music library</h1>
-        <p class="admin-page__subtitle">
-          Monitor track quality, manage publishing, and keep your catalog release-ready.
+    <section class="admin-hero">
+      <div class="admin-hero__copy">
+        <span class="admin-hero__eyebrow">Admin workspace</span>
+        <h1 class="admin-hero__title">Music library</h1>
+        <p class="admin-hero__subtitle">
+          Manage releases, clean metadata, and keep the catalog production-ready.
         </p>
+
+        <div class="admin-hero__meta">
+          <span class="admin-hero__pill">{{ summary.total }} total</span>
+          <span class="admin-hero__pill admin-hero__pill--soft">{{ filtered.length }} visible</span>
+        </div>
       </div>
 
-      <div class="admin-page__hero-actions">
+      <div class="admin-hero__actions">
         <button class="btn btn-ghost" type="button" @click="refreshAll" :disabled="loading">
           {{ loading ? 'Refreshing…' : 'Refresh' }}
         </button>
@@ -20,35 +25,35 @@
       </div>
     </section>
 
-    <section class="admin-page__stats">
-      <article class="metric-card metric-card--primary">
-        <span class="metric-card__label">Total tracks</span>
-        <strong class="metric-card__value">{{ summary.total }}</strong>
-        <span class="metric-card__hint">All library items</span>
+    <section class="admin-stats">
+      <article class="admin-stat admin-stat--primary">
+        <span class="admin-stat__label">Total tracks</span>
+        <strong class="admin-stat__value">{{ summary.total }}</strong>
+        <span class="admin-stat__hint">Library size</span>
       </article>
 
-      <article class="metric-card">
-        <span class="metric-card__label">Published</span>
-        <strong class="metric-card__value">{{ summary.published }}</strong>
-        <span class="metric-card__hint">Live right now</span>
+      <article class="admin-stat">
+        <span class="admin-stat__label">Published</span>
+        <strong class="admin-stat__value">{{ summary.published }}</strong>
+        <span class="admin-stat__hint">Live now</span>
       </article>
 
-      <article class="metric-card">
-        <span class="metric-card__label">Ready</span>
-        <strong class="metric-card__value">{{ readyToPublish.length }}</strong>
-        <span class="metric-card__hint">Publish candidates</span>
+      <article class="admin-stat">
+        <span class="admin-stat__label">Ready</span>
+        <strong class="admin-stat__value">{{ readyToPublish.length }}</strong>
+        <span class="admin-stat__hint">Can publish</span>
       </article>
 
-      <article class="metric-card metric-card--warn">
-        <span class="metric-card__label">Needs attention</span>
-        <strong class="metric-card__value">{{ summary.attentionCount }}</strong>
-        <span class="metric-card__hint">Metadata or publishing issues</span>
+      <article class="admin-stat admin-stat--warn">
+        <span class="admin-stat__label">Attention</span>
+        <strong class="admin-stat__value">{{ summary.attentionCount }}</strong>
+        <span class="admin-stat__hint">Needs review</span>
       </article>
 
-      <article class="metric-card">
-        <span class="metric-card__label">Avg health</span>
-        <strong class="metric-card__value">{{ summary.avgHealth }}%</strong>
-        <span class="metric-card__hint">Overall metadata quality</span>
+      <article class="admin-stat">
+        <span class="admin-stat__label">Avg health</span>
+        <strong class="admin-stat__value">{{ summary.avgHealth }}%</strong>
+        <span class="admin-stat__hint">Metadata quality</span>
       </article>
     </section>
 
@@ -83,13 +88,13 @@
             <div class="panel-card__head">
               <div>
                 <h3 class="panel-card__title">Needs attention</h3>
-                <p class="panel-card__sub">Missing assets or publishing blockers</p>
+                <p class="panel-card__sub">Tracks with missing assets or release blockers</p>
               </div>
               <span class="panel-card__count">{{ attentionList.length }}</span>
             </div>
 
             <div v-if="attentionList.length" class="panel-list">
-              <button v-for="item in attentionList.slice(0, 6)" :key="item._id" type="button" class="panel-list__item"
+              <button v-for="item in attentionList.slice(0, 5)" :key="item._id" type="button" class="panel-list__item"
                 @click="openEdit(item)">
                 <div class="panel-list__top">
                   <strong>{{ item.title || 'Untitled' }}</strong>
@@ -106,13 +111,13 @@
             <div class="panel-card__head">
               <div>
                 <h3 class="panel-card__title">Ready to publish</h3>
-                <p class="panel-card__sub">Drafts that meet release requirements</p>
+                <p class="panel-card__sub">Drafts that already meet release requirements</p>
               </div>
               <span class="panel-card__count">{{ readyToPublish.length }}</span>
             </div>
 
             <div v-if="readyToPublish.length" class="panel-list">
-              <button v-for="item in readyToPublish.slice(0, 6)" :key="item._id" type="button" class="panel-list__item"
+              <button v-for="item in readyToPublish.slice(0, 5)" :key="item._id" type="button" class="panel-list__item"
                 @click="quickPublish(item)">
                 <div class="panel-list__top">
                   <strong>{{ item.title || 'Untitled' }}</strong>
@@ -129,13 +134,13 @@
             <div class="panel-card__head">
               <div>
                 <h3 class="panel-card__title">Scheduled soon</h3>
-                <p class="panel-card__sub">Upcoming releases in next 7 days</p>
+                <p class="panel-card__sub">Upcoming releases in the next 7 days</p>
               </div>
               <span class="panel-card__count">{{ scheduledSoon.length }}</span>
             </div>
 
             <div v-if="scheduledSoon.length" class="panel-list">
-              <button v-for="item in scheduledSoon.slice(0, 6)" :key="item._id" type="button" class="panel-list__item"
+              <button v-for="item in scheduledSoon.slice(0, 5)" :key="item._id" type="button" class="panel-list__item"
                 @click="openEdit(item)">
                 <div class="panel-list__top">
                   <strong>{{ item.title || 'Untitled' }}</strong>
@@ -153,7 +158,7 @@
           <div class="admin-library__head">
             <div>
               <h2 class="admin-library__title">Library</h2>
-              <p class="admin-library__sub">Edit, publish, duplicate, or delete tracks.</p>
+              <p class="admin-library__sub">Edit, publish, duplicate, like, or remove tracks.</p>
             </div>
 
             <div class="admin-library__head-stats">
@@ -167,7 +172,7 @@
           </div>
 
           <div v-else-if="filtered.length" class="admin-library__grid">
-            <AdminMusicCard v-for="music in filtered" :key="music._id" :music="music" @play="playMusic" @edit="openEdit"
+            <AdminMusicCard v-for="music in filtered" :key="music._id" :music="music" @edit="openEdit"
               @toggle-like="toggleLike" @delete="deleteMusic" @clone="cloneMusic" @quick-publish="quickPublish"
               @open-about="openEdit" />
           </div>
@@ -188,7 +193,7 @@
           <div class="side-metric-grid">
             <div class="side-stat-tile">
               <strong>{{ summary.avgHealth }}%</strong>
-              <span>Avg metadata quality</span>
+              <span>Average metadata quality</span>
             </div>
 
             <div class="side-stat-tile">
@@ -198,7 +203,7 @@
 
             <div class="side-stat-tile">
               <strong>{{ scheduledSoon.length }}</strong>
-              <span>Scheduled in 7 days</span>
+              <span>Scheduled soon</span>
             </div>
 
             <div class="side-stat-tile">
@@ -210,13 +215,13 @@
 
         <section class="side-card">
           <div class="side-card__head">
-            <h3>Action notes</h3>
+            <h3>Operational notes</h3>
           </div>
 
           <ul class="side-notes">
-            <li>Tracks under 70% health need cover and audio fixes first.</li>
-            <li>Ready drafts can be published directly from card actions.</li>
-            <li>Review scheduled tracks before their release time.</li>
+            <li>Prioritize tracks under 70% health before publishing.</li>
+            <li>Use quick publish only when audio, cover, and genres are complete.</li>
+            <li>Review scheduled releases before their publish window.</li>
           </ul>
         </section>
 
@@ -261,21 +266,27 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import AdminMusicCard from '@/cards/AdminMusicCard.vue'
 import EditModal from '@/modals/EditModal.vue'
-import { API_ROOT, buildMusic } from '@/utils/media'
-import { usePlayerStore } from '@/stores/player'
+import { API_ROOT } from '@/utils/media'
 import '@/styles/admin_page.css'
 
 const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 
 const router = useRouter()
-const player = usePlayerStore()
 
 const musics = ref([])
 const loading = ref(false)
 const showEdit = ref(false)
 const editMusic = ref(null)
 
-const summary = ref({ total: 0, published: 0, draft: 0, archived: 0, attentionCount: 0, avgHealth: 0, attention: [] })
+const summary = ref({
+  total: 0,
+  published: 0,
+  draft: 0,
+  archived: 0,
+  attentionCount: 0,
+  avgHealth: 0,
+  attention: [],
+})
 
 const searchQuery = ref('')
 const sortBy = ref('newest')
@@ -295,11 +306,15 @@ const smartFilters = [
 const attentionList = computed(() => summary.value.attention || [])
 
 const readyToPublish = computed(() =>
-  musics.value.filter(m =>
+  musics.value.filter((m) =>
     m.status === 'draft' &&
     (m.healthScore || 0) >= 60 &&
-    m.title && m.artist && m.url && m.cover &&
-    Array.isArray(m.genre) && m.genre.length
+    m.title &&
+    m.artist &&
+    m.url &&
+    m.cover &&
+    Array.isArray(m.genre) &&
+    m.genre.length
   )
 )
 
@@ -308,8 +323,8 @@ const scheduledSoon = computed(() => {
   const in7d = now + 7 * 86400000
 
   return musics.value
-    .filter(m => m.publishAt)
-    .filter(m => {
+    .filter((m) => m.publishAt)
+    .filter((m) => {
       const t = new Date(m.publishAt).getTime()
       return t >= now && t <= in7d
     })
@@ -318,6 +333,7 @@ const scheduledSoon = computed(() => {
 
 const matchesQuery = (m, q) => {
   if (!q) return true
+
   const pool = [
     m.title,
     m.artist,
@@ -329,7 +345,10 @@ const matchesQuery = (m, q) => {
     ...(m.genre || []),
     ...(m.mood || []),
     ...(m.tags || []),
-  ].filter(Boolean).join(' ').toLowerCase()
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
 
   return pool.includes(q)
 }
@@ -338,14 +357,14 @@ const filtered = computed(() => {
   let r = [...musics.value]
   const q = searchQuery.value.trim().toLowerCase()
 
-  if (q) r = r.filter(m => matchesQuery(m, q))
-  if (filter.value === 'draft') r = r.filter(m => m.status === 'draft')
-  if (filter.value === 'published') r = r.filter(m => m.status === 'published')
-  if (filter.value === 'archived') r = r.filter(m => m.status === 'archived')
-  if (filter.value === 'attention') r = r.filter(m => m.needsAttention)
-  if (filter.value === 'premium') r = r.filter(m => m.healthTier === 'premium')
-  if (filter.value === 'ready') r = r.filter(m => readyToPublish.value.some(x => x._id === m._id))
-  if (filter.value === 'scheduled') r = r.filter(m => scheduledSoon.value.some(x => x._id === m._id))
+  if (q) r = r.filter((m) => matchesQuery(m, q))
+  if (filter.value === 'draft') r = r.filter((m) => m.status === 'draft')
+  if (filter.value === 'published') r = r.filter((m) => m.status === 'published')
+  if (filter.value === 'archived') r = r.filter((m) => m.status === 'archived')
+  if (filter.value === 'attention') r = r.filter((m) => m.needsAttention)
+  if (filter.value === 'premium') r = r.filter((m) => m.healthTier === 'premium')
+  if (filter.value === 'ready') r = r.filter((m) => readyToPublish.value.some((x) => x._id === m._id))
+  if (filter.value === 'scheduled') r = r.filter((m) => scheduledSoon.value.some((x) => x._id === m._id))
 
   r.sort((a, b) => {
     if (sortBy.value === 'oldest') return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
@@ -357,8 +376,6 @@ const filtered = computed(() => {
 
   return r
 })
-
-const buildQueue = (src = filtered.value) => src.map(buildMusic)
 
 const refreshAll = async () => {
   loading.value = true
@@ -377,7 +394,7 @@ const refreshAll = async () => {
 }
 
 const handleSaved = (data) => {
-  const i = musics.value.findIndex(m => m._id === data._id)
+  const i = musics.value.findIndex((m) => m._id === data._id)
   if (i !== -1) musics.value[i] = data
   else musics.value.unshift(data)
   refreshAll()
@@ -397,13 +414,6 @@ const toggleLike = async (music) => {
   }
 }
 
-const playMusic = async (music) => {
-  player.setTrack(buildMusic(music), { queue: buildQueue(), playing: true })
-  try {
-    await api.patch(`/music/${music._id}/play`)
-  } catch { }
-}
-
 const deleteMusic = async (music) => {
   try {
     await ElMessageBox.confirm(`Delete "${music.title}" permanently?`, 'Delete track', {
@@ -411,9 +421,9 @@ const deleteMusic = async (music) => {
       cancelButtonText: 'Cancel',
       type: 'warning',
     })
+
     await api.delete(`/music/${music._id}`)
-    musics.value = musics.value.filter(m => m._id !== music._id)
-    if (player.currentTrack?._id === music._id) player.removeFromQueue(music._id)
+    musics.value = musics.value.filter((m) => m._id !== music._id)
     refreshAll()
     ElMessage.success('Track deleted')
   } catch { }

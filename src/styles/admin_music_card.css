@@ -5,7 +5,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 100%;
-  border-radius: 20px;
+  border-radius: 22px;
   border: 1px solid var(--border);
   background: linear-gradient(
     180deg,
@@ -26,26 +26,23 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%);
-  opacity: 0.7;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 34%);
+  opacity: 0.65;
 }
 
 .admin-music-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   border-color: var(--border-hover);
   box-shadow: var(--shadow-md);
 }
 
-.admin-music-card.is-active {
-  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
-  box-shadow:
-    0 0 0 3px var(--accent-soft),
-    var(--shadow-sm);
+.admin-music-card.is-attention {
+  border-color: color-mix(in srgb, var(--rose) 26%, var(--border));
 }
 
-.admin-music-card.is-playing {
+.admin-music-card.is-published {
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.1), transparent 36%),
+    radial-gradient(circle at top left, rgba(34, 197, 94, 0.06), transparent 34%),
     linear-gradient(
       180deg,
       color-mix(in srgb, var(--surface-1) 96%, transparent),
@@ -53,13 +50,13 @@
     );
 }
 
-.admin-music-card.is-attention {
-  border-color: color-mix(in srgb, var(--rose) 24%, var(--border));
+.admin-music-card.is-archived {
+  opacity: 0.88;
 }
 
 .admin-music-card__media {
   position: relative;
-  aspect-ratio: 1 / 0.8;
+  aspect-ratio: 1 / 0.78;
   overflow: hidden;
   background: var(--bg-elevated);
 }
@@ -70,11 +67,11 @@
   display: block;
   object-fit: cover;
   transform: scale(1.001);
-  transition: transform 0.45s ease;
+  transition: transform 0.42s ease;
 }
 
 .admin-music-card:hover .admin-music-card__image {
-  transform: scale(1.03);
+  transform: scale(1.02);
 }
 
 .admin-music-card__fallback {
@@ -83,13 +80,13 @@
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at top left, rgba(59, 130, 246, 0.12), transparent 34%),
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.1), transparent 34%),
     radial-gradient(circle at bottom right, rgba(124, 58, 237, 0.08), transparent 24%),
     var(--bg-elevated);
 }
 
 .admin-music-card__fallback span {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 900;
   color: var(--text-muted);
 }
@@ -100,60 +97,10 @@
   background: linear-gradient(
     180deg,
     rgba(10, 16, 32, 0.04),
-    rgba(10, 16, 32, 0.22) 55%,
-    rgba(10, 16, 32, 0.32)
+    rgba(10, 16, 32, 0.18) 54%,
+    rgba(10, 16, 32, 0.3)
   );
   pointer-events: none;
-}
-
-.admin-music-card__overlay {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  opacity: 0;
-  transition: opacity var(--t-fast);
-}
-
-.admin-music-card:hover .admin-music-card__overlay,
-.admin-music-card.is-active .admin-music-card__overlay {
-  opacity: 1;
-}
-
-.admin-music-card__play {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
-  box-shadow: 0 14px 28px rgba(53, 109, 255, 0.3);
-  border: none;
-  transform: scale(0.94);
-  transition:
-    transform var(--t-fast),
-    filter var(--t-fast),
-    box-shadow var(--t-fast);
-}
-
-.admin-music-card:hover .admin-music-card__play {
-  transform: scale(1);
-}
-
-.admin-music-card__play:hover {
-  filter: brightness(1.05);
-  box-shadow: 0 18px 34px rgba(53, 109, 255, 0.34);
-}
-
-.admin-music-card__play-icon {
-  width: 15px;
-  height: 15px;
-}
-
-.admin-music-card__play-icon--shift {
-  margin-left: 2px;
 }
 
 .admin-music-card__topbar {
@@ -162,7 +109,7 @@
   left: 10px;
   right: 10px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
 }
@@ -176,7 +123,7 @@
   align-items: center;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  font-size: 8px;
+  font-size: 8.5px;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -208,8 +155,8 @@
 }
 
 .admin-music-card__health {
-  background: color-mix(in srgb, var(--surface-1) 76%, white 24%);
   color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-1) 76%, white 24%);
 }
 
 .admin-music-card__health.is-premium {
@@ -236,46 +183,11 @@
   border-color: transparent;
 }
 
-.admin-music-card__eq {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 5px 7px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-1) 76%, white 24%);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
-}
-
-.admin-music-card__eq span {
-  width: 2px;
-  border-radius: 999px;
-  background: var(--accent);
-  animation: adm-eq 0.9s ease-in-out infinite;
-}
-
-.admin-music-card__eq span:nth-child(1) {
-  height: 6px;
-}
-
-.admin-music-card__eq span:nth-child(2) {
-  height: 10px;
-  animation-delay: 0.14s;
-}
-
-.admin-music-card__eq span:nth-child(3) {
-  height: 7px;
-  animation-delay: 0.28s;
-}
-
 .admin-music-card__body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 13px;
+  gap: 12px;
+  padding: 14px;
 }
 
 .admin-music-card__header,
@@ -296,8 +208,8 @@
 }
 
 .admin-music-card__artist {
-  margin: 3px 0 0;
-  font-size: 11px;
+  margin: 4px 0 0;
+  font-size: 11.5px;
   color: var(--text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -308,19 +220,23 @@
 .admin-music-card__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: 6px;
 }
 
 .admin-music-card__chip {
-  min-height: 20px;
-  padding: 0 7px;
+  min-height: 22px;
+  padding: 0 8px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
-  font-size: 9px;
+  font-size: 9.5px;
   font-weight: 800;
   color: var(--text-secondary);
   text-transform: capitalize;
+}
+
+.admin-music-card__chip--soft {
+  background: var(--surface-2);
 }
 
 .admin-music-card__chip--warn {
@@ -332,15 +248,15 @@
 .admin-music-card__note {
   margin: 0;
   min-height: 30px;
-  font-size: 10.5px;
-  line-height: 1.5;
+  font-size: 10.8px;
+  line-height: 1.55;
   color: var(--text-muted);
 }
 
 .admin-music-card__meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   padding-top: 2px;
 }
 
@@ -348,7 +264,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -360,19 +276,21 @@
 
 .admin-music-card__actions {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   margin-top: 2px;
 }
 
 .admin-music-card__action {
-  height: 32px;
-  border-radius: 11px;
+  min-height: 36px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
   color: var(--text-secondary);
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   cursor: pointer;
   transition:
     transform var(--t-fast),
@@ -380,6 +298,8 @@
     background var(--t-fast),
     color var(--t-fast),
     box-shadow var(--t-fast);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .admin-music-card__action:hover {
@@ -396,7 +316,7 @@
 }
 
 .admin-music-card__action--publish:hover {
-  background: color-mix(in srgb, var(--accent-soft) 78%, var(--surface-2));
+  background: color-mix(in srgb, var(--accent-soft) 76%, var(--surface-2));
 }
 
 .admin-music-card__action--danger {
@@ -407,7 +327,6 @@
 
 .admin-music-card__action--danger:hover {
   color: #fff;
-  border-color: transparent;
   background: linear-gradient(135deg, #e2557d, #d6456f);
 }
 
@@ -420,24 +339,12 @@
   color: var(--rose);
 }
 
-@keyframes adm-eq {
-  0%,
-  100% {
-    transform: scaleY(0.7);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scaleY(1.2);
-    opacity: 1;
-  }
-}
-
 @media (max-width: 540px) {
   .admin-music-card {
     border-radius: 18px;
   }
 
   .admin-music-card__actions {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
   }
 }
