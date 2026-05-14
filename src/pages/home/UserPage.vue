@@ -4,13 +4,13 @@
       @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
 
     <div class="user-shell">
-      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false" />
+      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false"></div>
 
-      <div class="user-shell__left" :class="{ open: mobileSidebarOpen }">
+      <aside class="user-shell__left" :class="{ open: mobileSidebarOpen }">
         <UserSidebar :playlists="playlists" :activePlaylistId="selectedPlaylist?._id || ''"
           @create-playlist="openCreatePlaylist" @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist"
           @delete-playlist="openDeletePlaylist" />
-      </div>
+      </aside>
 
       <main class="user-main">
         <section class="discover-hero surface-card">
