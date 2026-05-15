@@ -4,58 +4,45 @@
       @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
 
     <div class="user-shell">
-      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false"></div>
+      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false" />
 
       <aside class="user-shell__left" :class="{ open: mobileSidebarOpen }">
-        <UserSidebar :playlists="playlists" :activePlaylistId="selectedPlaylist?._id || ''"
-          @create-playlist="openCreatePlaylist" @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist"
-          @delete-playlist="openDeletePlaylist" />
+        <div class="user-shell__left-scroll">
+          <UserSidebar :playlists="playlists" :activePlaylistId="selectedPlaylist?._id || ''"
+            @create-playlist="openCreatePlaylist" @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist"
+            @delete-playlist="openDeletePlaylist" />
+        </div>
       </aside>
 
       <main class="user-main">
         <section class="discover-hero surface-card">
           <div class="discover-hero__copy">
             <p class="section-kicker">
-              {{ selectedPlaylist ? 'Playlist' : activeRecommendationMode === 'related' ? 'Listening context' : 'Premiumdiscovery' }}
+              {{ heroKicker }}
             </p>
 
             <h1 class="discover-hero__title">
-              {{
-                selectedPlaylist
-                  ? selectedPlaylist.name
-                  : activeRecommendationMode === 'related'
-                    ? 'More like your current vibe'
-                    : 'Discover your next favorite track'
-              }}
+              {{ heroTitle }}
             </h1>
 
             <p class="discover-hero__sub">
-              {{
-                selectedPlaylist
-                  ? selectedPlaylist.description || 'Tracks collected for this playlist.'
-                  : activeRecommendationMode === 'related'
-                    ? 'Recommendations adapt to the artist, mood, and style you are listening to now.'
-                    : 'Featured picks, fresh music, and cleaner listening in one premium flow.'
-              }}
+              {{ heroSubtitle }}
             </p>
 
             <div class="discover-hero__meta">
               <span class="discover-pill">{{ filteredTracks.length }} tracks</span>
-              <span class="discover-pill discover-pill--soft">
-                {{ selectedPlaylist ? 'playlist view' : activeRecommendationMode === 'related' ? 'smart recommendations'
-                  : 'featured discovery' }}
-              </span>
+              <span class="discover-pill discover-pill--soft">{{ heroMeta }}</span>
             </div>
           </div>
 
           <div v-if="selectedDetailTrack" class="discover-hero__highlight">
             <button class="discover-highlight" type="button" @click="toggleTrack(selectedDetailTrack)">
               <img class="discover-highlight__cover" :src="resolveCover(selectedDetailTrack)"
-                :alt="selectedDetailTrack.title" @error="imgErr" />
+                :alt="selectedDetailTrack.title || 'Track cover'" @error="imgErr" />
 
               <div class="discover-highlight__body">
                 <span class="discover-highlight__label">
-                  {{ playerStore.currentTrack?._id === selectedDetailTrack._id ? 'Current focus' : 'Selected track' }}
+                  {{ playerStore.currentTrack?._id === selectedDetailTrack._id ? 'Now playing' : 'Selected track' }}
                 </span>
                 <strong>{{ selectedDetailTrack.title || 'Untitled track' }}</strong>
                 <p>{{ selectedDetailTrack.artist || 'Unknown artist' }}</p>
@@ -74,22 +61,23 @@
           <div class="recent-section__head">
             <div>
               <p class="section-kicker">Quick access</p>
-              <h3>Recently played</h3>
+              <h3>Continue listening</h3>
             </div>
           </div>
 
           <div class="recent-list">
-            <button v-for="t in recentlyPlayed" :key="t._id" type="button" class="recent-item"
-              :class="{ playing: playerStore.currentTrack?._id === t._id }" @click="toggleTrack(t)">
-              <img class="recent-item__cover" :src="resolveCover(t)" :alt="t.title" @error="imgErr" />
+            <button v-for="track in recentlyPlayed" :key="track._id" type="button" class="recent-item"
+              :class="{ playing: playerStore.currentTrack?._id === track._id }" @click="toggleTrack(track)">
+              <img class="recent-item__cover" :src="resolveCover(track)" :alt="track.title || 'Track cover'"
+                @error="imgErr" />
 
               <div class="recent-item__meta">
-                <strong>{{ t.title }}</strong>
-                <span>{{ t.artist }}</span>
+                <strong>{{ track.title || 'Untitled' }}</strong>
+                <span>{{ track.artist || 'Unknown artist' }}</span>
               </div>
 
               <div class="recent-item__play">
-                <PauseIcon v-if="playerStore.currentTrack?._id === t._id && playerStore.isPlaying"
+                <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
                   class="recent-play-ico" />
                 <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
               </div>
@@ -97,60 +85,51 @@
           </div>
         </section>
 
-        <section class="content-section">
+        <TrackDetail v-if="selectedDetailTrack" class="user-main-detail" :track="selectedDetailTrack"
+          :current-track="playerStore.currentTrack" :is-playing="playerStore.isPlaying"
+          :recommendations="detailRecommendations" :get-cover="resolveCover" @back="clearDetailTrack"
+          @play="toggleTrack" @toggle-like="toggleLikeTrack" @add-to-playlist="openAddToPlaylist"
+          @add-to-queue="addToQueue" @open-artist="openArtist" @select-track="openTrackDetail" />
+
+        <section class="content-section" v-if="!loading && !errMsg && visibleSections.length">
           <div class="content-section__head">
             <div>
-              <p class="section-kicker">
-                {{ selectedPlaylist ? 'Playlist view' : activeRecommendationMode === 'related' ? 'Curated for right now'
-                  : 'Explore your library' }}
-              </p>
-
-              <h2>{{ selectedPlaylist?.name || 'Discover music' }}</h2>
-
+              <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Browse sections' }}</p>
+              <h2>{{ selectedPlaylist?.name || 'Discover by sections' }}</h2>
               <p class="content-section__sub">
-                {{
-                  selectedPlaylist
-                    ? selectedPlaylist.description || 'Tracks collected for this playlist.'
-                    : activeRecommendationMode === 'related'
-                      ? 'Related tracks based on your current listening context.'
-                      : 'Featured picks, fresh additions, and music worth coming back to.'
-                }}
+                {{ selectedPlaylist?.description || 'Explore curated rows by language, mood, trending activity, and your
+                listening context.' }}
               </p>
             </div>
 
-            <div class="content-section__meta" v-if="!loading && !errMsg && filteredTracks.length">
-              <span class="result-badge">{{ filteredTracks.length }}</span>
+            <div class="content-section__meta">
+              <span class="result-badge">{{ visibleSections.length }} sections</span>
             </div>
           </div>
 
-          <div v-if="loading" class="track-grid track-grid--skeleton">
-            <div v-for="n in 8" :key="n" class="track-skeleton"></div>
-          </div>
-
-          <div v-else-if="errMsg" class="empty-box surface-card">
-            <h3>Could not load music</h3>
-            <p>{{ errMsg }}</p>
-            <button class="btn btn-primary" type="button" @click="fetchTracks">Try again</button>
-          </div>
-
-          <div v-else-if="filteredTracks.length === 0" class="empty-box surface-card">
-            <h3>No tracks found</h3>
-            <p>Try another search or playlist.</p>
-          </div>
-
-          <template v-else>
-            <TrackDetail v-if="selectedDetailTrack" class="user-main-detail" :track="selectedDetailTrack"
-              :current-track="playerStore.currentTrack" :is-playing="playerStore.isPlaying"
-              :recommendations="detailRecommendations" :get-cover="resolveCover" @back="clearDetailTrack"
-              @play="toggleTrack" @toggle-like="toggleLikeTrack" @add-to-playlist="openAddToPlaylist"
-              @add-to-queue="addToQueue" @open-artist="openArtist" @select-track="openTrackDetail" />
-
-            <TrackGrid title="More tracks" :tracks="gridTracks" :current-music="playerStore.currentTrack"
+          <div class="section-stack">
+            <TrackGrid v-for="section in visibleSections" :key="section.key" :title="section.title"
+              :subtitle="section.subtitle" :tracks="section.tracks" :current-music="playerStore.currentTrack"
               :selected-music="selectedDetailTrack" :is-playing="playerStore.isPlaying" :get-cover="resolveCover"
               :fallback="fallbackCover" @select-track="openTrackDetail" @play-track="toggleTrack"
               @add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue" />
-          </template>
+          </div>
         </section>
+
+        <div v-if="loading" class="track-grid track-grid--skeleton">
+          <div v-for="n in 8" :key="n" class="track-skeleton"></div>
+        </div>
+
+        <div v-else-if="errMsg" class="empty-box surface-card">
+          <h3>Could not load music</h3>
+          <p>{{ errMsg }}</p>
+          <button class="btn btn-primary" type="button" @click="fetchTracks">Try again</button>
+        </div>
+
+        <div v-else-if="!visibleSections.length" class="empty-box surface-card">
+          <h3>No tracks found</h3>
+          <p>Try another search or playlist.</p>
+        </div>
       </main>
 
       <aside class="user-shell__right">
@@ -192,7 +171,6 @@ import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
 import '@/styles/user_page.css'
-
 import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
 
 const authStore = useAuthStore()
@@ -239,11 +217,15 @@ const playlistColors = [
 ]
 
 const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
-const MAX_RECENT = 4
+const MAX_RECENT = 6
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 
+const normalizeWord = (value) => String(value || '').trim().toLowerCase()
+
+const normalizedTracks = computed(() => [...tracks.value])
+
 const filteredTracks = computed(() => {
-  let arr = [...tracks.value]
+  let arr = [...normalizedTracks.value]
 
   if (selectedPlaylist.value?._id) {
     const ids = new Set((selectedPlaylist.value.tracks || []).map((t) => String(t._id || t)))
@@ -280,7 +262,7 @@ const activeRecommendationMode = computed(() => (currentReferenceTrack.value ? '
 
 const recommendations = computed(() => {
   const current = currentReferenceTrack.value
-  const all = [...tracks.value]
+  const all = [...filteredTracks.value]
 
   return all
     .filter((t) => String(t._id) !== String(current?._id || ''))
@@ -294,19 +276,19 @@ const recommendations = computed(() => {
         score += Math.min(Number(t.playCount || 0), 500) / 20
         score += Math.min(Number(t.likeCount || 0), 300) / 18
       } else {
-        if (t.artist && current.artist && t.artist === current.artist) score += 50
+        if (t.artist && current.artist && normalizeWord(t.artist) === normalizeWord(current.artist)) score += 50
 
-        const sharedGenre = (t.genre || []).filter((g) => (current.genre || []).includes(g)).length
-        const sharedMood = (t.mood || []).filter((m) => (current.mood || []).includes(m)).length
-        const sharedTags = (t.tags || []).filter((tag) => (current.tags || []).includes(tag)).length
+        const sharedGenre = (t.genre || []).filter((g) => (current.genre || []).map(normalizeWord).includes(normalizeWord(g))).length
+        const sharedMood = (t.mood || []).filter((m) => (current.mood || []).map(normalizeWord).includes(normalizeWord(m))).length
+        const sharedTags = (t.tags || []).filter((tag) => (current.tags || []).map(normalizeWord).includes(normalizeWord(tag))).length
 
         score += sharedGenre * 18
-        score += sharedMood * 12
+        score += sharedMood * 14
         score += sharedTags * 6
 
-        if (t.language && current.language && t.language === current.language) score += 12
-        if (t.country && current.country && t.country === current.country) score += 8
-        if (t.releaseType && current.releaseType && t.releaseType === current.releaseType) score += 6
+        if (t.language && current.language && normalizeWord(t.language) === normalizeWord(current.language)) score += 12
+        if (t.country && current.country && normalizeWord(t.country) === normalizeWord(current.country)) score += 8
+        if (t.releaseType && current.releaseType && normalizeWord(t.releaseType) === normalizeWord(current.releaseType)) score += 6
         if (t.isFeatured) score += 5
         if (t.isRecommended) score += 5
         score += Math.min(Number(t.playCount || 0), 500) / 45
@@ -322,7 +304,7 @@ const recommendations = computed(() => {
         Number(b.playCount || 0) - Number(a.playCount || 0) ||
         new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
     )
-    .slice(0, 8)
+    .slice(0, 10)
 })
 
 const detailRecommendations = computed(() =>
@@ -331,10 +313,157 @@ const detailRecommendations = computed(() =>
     .slice(0, 6)
 )
 
-const gridTracks = computed(() => {
-  if (!selectedDetailTrack.value) return filteredTracks.value
-  return filteredTracks.value.filter((t) => String(t._id) !== String(selectedDetailTrack.value._id))
+const heroKicker = computed(() => {
+  if (selectedPlaylist.value) return 'Playlist focus'
+  if (activeRecommendationMode.value === 'related') return 'Listening context'
+  return 'Premium discovery'
 })
+
+const heroTitle = computed(() => {
+  if (selectedPlaylist.value) return selectedPlaylist.value.name
+  if (activeRecommendationMode.value === 'related') return 'More like your current vibe'
+  return 'Curated music for every mood'
+})
+
+const heroSubtitle = computed(() => {
+  if (selectedPlaylist.value) {
+    return selectedPlaylist.value.description || 'A focused playlist view with the tracks you saved.'
+  }
+
+  if (activeRecommendationMode.value === 'related') {
+    return 'Recommendations adapt to what is playing now, using artist, mood, language, and listening signals.'
+  }
+
+  return 'Browse premium sections by language, mood, trending activity, and your recent listening.'
+})
+
+const heroMeta = computed(() => {
+  if (selectedPlaylist.value) return 'playlist view'
+  if (activeRecommendationMode.value === 'related') return 'smart recommendations'
+  return 'section based home'
+})
+
+const normalizeLanguage = (value) => {
+  const v = normalizeWord(value)
+
+  if (['uz', 'uzbek', 'uzbekistan', 'o\'zbek', 'ozbek'].includes(v)) return 'uzbek'
+  if (['ru', 'russian', 'rus'].includes(v)) return 'russian'
+  if (['en', 'english'].includes(v)) return 'english'
+  if (['ar', 'arabic', 'arab'].includes(v)) return 'arabic'
+  return v
+}
+
+const hasMood = (track, values = []) => {
+  const moods = Array.isArray(track.mood) ? track.mood.map(normalizeWord) : []
+  return values.some((value) => moods.includes(normalizeWord(value)))
+}
+
+const uniqueTracks = (arr = []) => {
+  const seen = new Set()
+  return arr.filter((item) => {
+    const id = String(item?._id || '')
+    if (!id || seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+}
+
+const sectionGroups = computed(() => {
+  const source = [...filteredTracks.value]
+
+  const trending = [...source]
+    .sort(
+      (a, b) =>
+        (Number(b.playCount || 0) + Number(b.likeCount || 0) * 2) -
+        (Number(a.playCount || 0) + Number(a.likeCount || 0) * 2)
+    )
+    .slice(0, 10)
+
+  const fresh = [...source]
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, 10)
+
+  const featured = source.filter((t) => t.isFeatured).slice(0, 10)
+  const recommended = uniqueTracks([
+    ...recommendations.value,
+    ...source.filter((t) => t.isRecommended),
+  ]).slice(0, 10)
+
+  const uzbek = source.filter((t) => normalizeLanguage(t.language) === 'uzbek').slice(0, 10)
+  const russian = source.filter((t) => normalizeLanguage(t.language) === 'russian').slice(0, 10)
+  const english = source.filter((t) => normalizeLanguage(t.language) === 'english').slice(0, 10)
+  const arabic = source.filter((t) => normalizeLanguage(t.language) === 'arabic').slice(0, 10)
+
+  const romantic = source.filter((t) => hasMood(t, ['romantic', 'love', 'romance'])).slice(0, 10)
+  const chill = source.filter((t) => hasMood(t, ['chill', 'calm', 'soft', 'relax'])).slice(0, 10)
+
+  return [
+    {
+      key: 'recommended',
+      title: 'Recommended for you',
+      subtitle: 'Smart picks based on your current listening',
+      tracks: recommended,
+    },
+    {
+      key: 'trending',
+      title: 'Trending now',
+      subtitle: 'Popular tracks people keep coming back to',
+      tracks: trending,
+    },
+    {
+      key: 'fresh',
+      title: 'Fresh picks',
+      subtitle: 'Recently added music worth checking out',
+      tracks: fresh,
+    },
+    {
+      key: 'featured',
+      title: 'Featured releases',
+      subtitle: 'Highlighted tracks from the library',
+      tracks: featured,
+    },
+    {
+      key: 'uzbek',
+      title: 'Uzbek picks',
+      subtitle: 'A focused row from the Uzbek catalog',
+      tracks: uzbek,
+    },
+    {
+      key: 'russian',
+      title: 'Russian picks',
+      subtitle: 'Popular and curated Russian tracks',
+      tracks: russian,
+    },
+    {
+      key: 'english',
+      title: 'English picks',
+      subtitle: 'Discover English-language favorites',
+      tracks: english,
+    },
+    {
+      key: 'arabic',
+      title: 'Arabic picks',
+      subtitle: 'Arabic selection with premium presentation',
+      tracks: arabic,
+    },
+    {
+      key: 'romantic',
+      title: 'Romantic mood',
+      subtitle: 'Soft, warm, and emotionally rich listening',
+      tracks: romantic,
+    },
+    {
+      key: 'chill',
+      title: 'Chill mood',
+      subtitle: 'Calm and relaxed tracks for any time of day',
+      tracks: chill,
+    },
+  ]
+})
+
+const visibleSections = computed(() =>
+  sectionGroups.value.filter((section) => Array.isArray(section.tracks) && section.tracks.length > 0)
+)
 
 const fetchTracks = async () => {
   loading.value = true
@@ -381,8 +510,8 @@ const saveRecentlyPlayed = (track) => {
   localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
 }
 
-const selectPlaylist = (pl) => {
-  selectedPlaylist.value = selectedPlaylist.value?._id === pl._id ? null : pl
+const selectPlaylist = (playlist) => {
+  selectedPlaylist.value = selectedPlaylist.value?._id === playlist._id ? null : playlist
   mobileSidebarOpen.value = false
 
   const source = selectedPlaylist.value?._id
@@ -396,6 +525,7 @@ const selectPlaylist = (pl) => {
 
 const openTrackDetail = (track) => {
   selectedDetailTrack.value = track
+
   requestAnimationFrame(() => {
     const el = document.querySelector('.user-main-detail')
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -438,9 +568,7 @@ const toggleLikeTrack = async (track) => {
     const { data } = await api.patch(`/music/${track._id}/like`)
 
     tracks.value = tracks.value.map((t) => (String(t._id) === String(data._id) ? data : t))
-    recentlyPlayed.value = recentlyPlayed.value.map((t) =>
-      String(t._id) === String(data._id) ? data : t
-    )
+    recentlyPlayed.value = recentlyPlayed.value.map((t) => (String(t._id) === String(data._id) ? data : t))
 
     if (selectedDetailTrack.value?._id === data._id) {
       selectedDetailTrack.value = data

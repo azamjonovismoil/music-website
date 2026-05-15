@@ -16,12 +16,12 @@
         <div class="td-topbar">
           <button class="td-back" type="button" @click="$emit('back')">
             <ArrowLeftIcon class="td-back-ico" />
-            <span>Back to library</span>
+            <span>Back to sections</span>
           </button>
         </div>
 
         <div class="td-copy">
-          <p class="page-label">Featured track</p>
+          <p class="page-label">Track focus</p>
 
           <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
 
@@ -57,6 +57,11 @@
           <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-queue', track)">
             <QueueListIcon class="td-btn-ico" />
             <span>Queue</span>
+          </button>
+
+          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-playlist', track)">
+            <PlusIcon class="td-btn-ico" />
+            <span>Playlist</span>
           </button>
         </div>
 
@@ -110,6 +115,7 @@ import {
   PauseIcon,
   HeartIcon,
   QueueListIcon,
+  PlusIcon,
 } from '@heroicons/vue/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/vue/24/solid'
 import '@/styles/track_detail.css'

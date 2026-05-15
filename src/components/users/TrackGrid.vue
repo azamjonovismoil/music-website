@@ -2,7 +2,7 @@
   <section class="tg-root">
     <div v-if="!compactHeader && title" class="tg-header">
       <div>
-        <p class="section-kicker">Library</p>
+        <p class="section-kicker">{{ subtitle || 'Library section' }}</p>
         <h2 class="tg-title">{{ title }}</h2>
       </div>
 
@@ -94,6 +94,7 @@ import '@/styles/track_grid.css'
 
 defineProps({
   title: { type: String, default: 'Tracks' },
+  subtitle: { type: String, default: '' },
   tracks: { type: Array, default: () => [] },
   playlist: { type: Object, default: null },
   currentMusic: { type: Object, default: null },

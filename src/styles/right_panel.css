@@ -16,7 +16,7 @@
 }
 
 .rp-tab {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
@@ -75,6 +75,8 @@
 .rp-body {
   min-height: 0;
   flex: 1;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .rp-section {
@@ -193,16 +195,10 @@
   color: var(--text-secondary);
   display: grid;
   place-items: center;
-  transition:
-    transform var(--t-fast),
-    border-color var(--t-fast),
-    background var(--t-fast),
-    color var(--t-fast);
 }
 
 .rp-clear:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 107, 138, 0.22);
+  border-color: rgba(255, 111, 145, 0.24);
   color: var(--rose);
   background: var(--rose-soft);
 }
@@ -321,15 +317,9 @@
   display: grid;
   place-items: center;
   color: var(--text-secondary);
-  transition:
-    transform var(--t-fast),
-    border-color var(--t-fast),
-    background var(--t-fast),
-    color var(--t-fast);
 }
 
 .rp-icon-btn:hover {
-  transform: translateY(-1px);
   border-color: var(--border-hover);
   color: var(--text-primary);
   background: var(--surface-2);
@@ -337,19 +327,13 @@
 
 .rp-icon-btn.danger:hover {
   color: var(--rose);
-  border-color: rgba(255, 107, 138, 0.22);
+  border-color: rgba(255, 111, 145, 0.24);
   background: var(--rose-soft);
 }
 
 .rp-item__icon {
   width: 12px;
   height: 12px;
-}
-
-@media (max-width: 1280px) {
-  .rp {
-    gap: 10px;
-  }
 }
 
 @media (max-width: 980px) {

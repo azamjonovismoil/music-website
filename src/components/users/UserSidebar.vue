@@ -17,44 +17,37 @@
       </button>
     </div>
 
-    <div class="us-playlists">
-      <div class="us-playlists-top">
-        <template v-if="!collapsed">
-          <span class="us-playlists-label">Your playlists</span>
+    <div class="us-top-actions" :class="{ 'is-collapsed': collapsed }">
+      <button class="us-create-btn" type="button" @click="$emit('create-playlist')" title="Create playlist">
+        <PlusIcon class="us-create-ico" />
+        <span v-if="!collapsed">New playlist</span>
+      </button>
+    </div>
 
-          <button class="us-create-btn" type="button" @click="$emit('create-playlist')" title="New playlist">
-            <PlusIcon class="us-create-ico" />
-          </button>
-        </template>
-
-        <template v-else>
-          <button class="us-create-btn us-create-btn--center" type="button" @click="$emit('create-playlist')"
-            title="New playlist">
-            <PlusIcon class="us-create-ico" />
-          </button>
-        </template>
-      </div>
+    <div class="us-body">
+      <div class="us-section-label" v-if="!collapsed">Your playlists</div>
 
       <div class="us-playlist-list">
-        <button v-for="pl in playlists" :key="pl._id" class="us-playlist-item"
-          :class="{ active: activePlaylistId === pl._id }" @click="$emit('open-playlist', pl)" :title="pl.name">
-          <div class="us-pl-art" :style="{ background: pl.color || defaultPlaylistColor }">
+        <button v-for="playlist in playlists" :key="playlist._id" class="us-playlist-item"
+          :class="{ active: activePlaylistId === playlist._id }" type="button" @click="$emit('open-playlist', playlist)"
+          :title="playlist.name">
+          <div class="us-pl-art" :style="{ background: playlist.color || defaultPlaylistColor }">
             <QueueListIcon class="us-pl-art-ico" />
           </div>
 
           <template v-if="!collapsed">
             <div class="us-pl-meta">
-              <span class="us-pl-name">{{ pl.name }}</span>
-              <span class="us-pl-count">{{ pl.count || pl.tracks?.length || 0 }} tracks</span>
+              <span class="us-pl-name">{{ playlist.name }}</span>
+              <span class="us-pl-count">{{ playlist.count || playlist.tracks?.length || 0 }} tracks</span>
             </div>
 
             <div class="us-pl-actions" @click.stop>
-              <button class="us-pl-btn" type="button" @click="$emit('rename-playlist', pl)" title="Edit">
+              <button class="us-pl-btn" type="button" title="Edit playlist" @click="$emit('rename-playlist', playlist)">
                 <PencilSquareIcon class="us-pl-btn-ico" />
               </button>
 
-              <button class="us-pl-btn us-pl-btn--del" type="button" @click="$emit('delete-playlist', pl)"
-                title="Delete">
+              <button class="us-pl-btn us-pl-btn--del" type="button" title="Delete playlist"
+                @click="$emit('delete-playlist', playlist)">
                 <TrashIcon class="us-pl-btn-ico" />
               </button>
             </div>

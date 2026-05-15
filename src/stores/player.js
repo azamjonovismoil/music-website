@@ -9,7 +9,7 @@ export const usePlayerStore = defineStore('player', () => {
   const isPlaying = ref(false)
 
   const shuffle = ref(false)
-  const repeatMode = ref('off') // off | all | one
+  const repeatMode = ref('off')
 
   const showLyricsPanel = ref(false)
   const showKaraokeMode = ref(false)
@@ -17,11 +17,9 @@ export const usePlayerStore = defineStore('player', () => {
   const hasQueue = computed(() => queue.value.length > 0)
   const currentTrackId = computed(() => String(currentTrack.value?._id || ''))
 
-  const findQueueIndex = (trackId) =>
-    queue.value.findIndex((item) => String(item?._id || '') === String(trackId || ''))
-
   const normalizeQueue = (tracks = []) => {
     const seen = new Set()
+
     return (Array.isArray(tracks) ? tracks : []).filter((item) => {
       const id = String(item?._id || '')
       if (!id || seen.has(id)) return false
@@ -30,11 +28,14 @@ export const usePlayerStore = defineStore('player', () => {
     })
   }
 
+  const findQueueIndex = (trackId) =>
+    queue.value.findIndex((item) => String(item?._id || '') === String(trackId || ''))
+
   const setQueue = (tracks = [], activeTrack = null) => {
     const nextQueue = normalizeQueue(tracks)
     queue.value = nextQueue
 
-    if (!queue.value.length) {
+    if (!nextQueue.length) {
       queueIndex.value = -1
       if (!activeTrack) {
         currentTrack.value = null
@@ -51,13 +52,14 @@ export const usePlayerStore = defineStore('player', () => {
       if (idx >= 0) {
         queueIndex.value = idx
       } else {
-        queue.value.unshift(activeTrack)
+        queue.value = normalizeQueue([activeTrack, ...nextQueue])
         queueIndex.value = 0
       }
+
       return
     }
 
-    currentTrack.value = queue.value[0]
+    currentTrack.value = nextQueue[0]
     queueIndex.value = 0
   }
 
@@ -78,10 +80,11 @@ export const usePlayerStore = defineStore('player', () => {
     currentTrack.value = track
 
     const idx = findQueueIndex(track._id)
+
     if (idx >= 0) {
       queueIndex.value = idx
     } else {
-      queue.value = [track, ...queue.value.filter((item) => String(item?._id || '') !== String(track._id || ''))]
+      queue.value = normalizeQueue([track, ...queue.value])
       queueIndex.value = 0
     }
 
@@ -92,7 +95,7 @@ export const usePlayerStore = defineStore('player', () => {
   const addToQueue = (track) => {
     if (!track?._id) return false
 
-    const exists = queue.value.some((q) => String(q?._id || '') === String(track._id || ''))
+    const exists = queue.value.some((item) => String(item?._id || '') === String(track._id))
     if (exists) return false
 
     queue.value.push(track)
@@ -131,16 +134,15 @@ export const usePlayerStore = defineStore('player', () => {
     if (!queue.value.length) return null
 
     if (shuffle.value && queue.value.length > 1) {
-      let nextIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
+      let nextIndex = queueIndex.value
 
-      while (nextIndex === queueIndex.value || nextIndex < 0) {
+      while (nextIndex === queueIndex.value) {
         nextIndex = Math.floor(Math.random() * queue.value.length)
       }
 
       queueIndex.value = nextIndex
     } else {
-      const baseIndex =
-        queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
+      const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
 
       if (baseIndex < queue.value.length - 1) {
         queueIndex.value = baseIndex + 1
@@ -155,26 +157,26 @@ export const usePlayerStore = defineStore('player', () => {
     currentTrack.value = queue.value[queueIndex.value] || null
     currentTime.value = 0
     isPlaying.value = true
+
     return currentTrack.value
   }
 
   const playPrev = () => {
     if (!queue.value.length) return null
 
-    const baseIndex =
-      queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
-
     if (currentTime.value > 3) {
       currentTime.value = 0
       return currentTrack.value
     }
 
+    const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
     const prevIndex = baseIndex > 0 ? baseIndex - 1 : queue.value.length - 1
 
     queueIndex.value = prevIndex
     currentTrack.value = queue.value[prevIndex] || null
     currentTime.value = 0
     isPlaying.value = true
+
     return currentTrack.value
   }
 
@@ -182,11 +184,11 @@ export const usePlayerStore = defineStore('player', () => {
     const id = String(trackId || '')
     if (!id) return
 
-    const prevQueue = [...queue.value]
-    const removedIndex = prevQueue.findIndex((item) => String(item?._id || '') === id)
+    const prev = [...queue.value]
+    const removedIndex = prev.findIndex((item) => String(item?._id || '') === id)
     const wasCurrent = String(currentTrack.value?._id || '') === id
 
-    queue.value = prevQueue.filter((item) => String(item?._id || '') !== id)
+    queue.value = prev.filter((item) => String(item?._id || '') !== id)
 
     if (!queue.value.length) {
       currentTrack.value = null
@@ -197,17 +199,14 @@ export const usePlayerStore = defineStore('player', () => {
     }
 
     if (wasCurrent) {
-      const fallbackIndex =
-        removedIndex >= queue.value.length ? queue.value.length - 1 : removedIndex
-
+      const fallbackIndex = Math.min(removedIndex, queue.value.length - 1)
       queueIndex.value = fallbackIndex
       currentTrack.value = queue.value[fallbackIndex] || null
       currentTime.value = 0
       return
     }
 
-    const currentIdx = findQueueIndex(currentTrack.value?._id)
-    queueIndex.value = currentIdx >= 0 ? currentIdx : 0
+    queueIndex.value = findQueueIndex(currentTrack.value?._id)
   }
 
   const clearQueue = ({ keepCurrent = true } = {}) => {

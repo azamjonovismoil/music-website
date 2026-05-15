@@ -6,58 +6,69 @@ export const fallbackCover =
   'data:image/svg+xml;utf8,' +
   encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
-      <rect width="100%" height="100%" fill="#111827"/>
-      <text
-        x="50%"
-        y="50%"
-        dominant-baseline="middle"
-        text-anchor="middle"
-        fill="#94a3b8"
-        font-size="28"
-        font-family="Arial"
-      >
-        No Cover
-      </text>
+      <defs>
+        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+          <stop stop-color="#0f172a" offset="0%"/>
+          <stop stop-color="#1e293b" offset="100%"/>
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#g)"/>
+      <circle cx="300" cy="220" r="88" fill="#243146"/>
+      <circle cx="300" cy="220" r="26" fill="#0f172a"/>
+      <rect x="166" y="360" rx="20" ry="20" width="268" height="30" fill="#334155"/>
+      <rect x="210" y="410" rx="16" ry="16" width="180" height="20" fill="#475569"/>
     </svg>
   `)
 
+const abs = (value = '') => {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (/^(blob:|data:|https?:)/i.test(raw)) return raw
+  return `${API_ROOT}/${raw.replace(/^\/+/, '')}`
+}
+
 export function norm(value = '') {
-  const s = String(value || '').trim()
-  if (!s) return ''
-  if (/^(blob:|data:|https?:)/i.test(s)) return s
-  return `${API_ROOT}/${s.replace(/^\/+/, '')}`
+  return abs(value)
 }
 
 export function resolveCover(music) {
   if (!music) return fallbackCover
 
-  for (const key of ['cover', 'coverUrl', 'thumbnail', 'image']) {
-    const url = norm(music[key] || '')
-    if (url) return url
+  const candidates = [
+    music.cover,
+    music.coverUrl,
+    music.thumbnail,
+    music.image,
+  ]
+
+  for (const item of candidates) {
+    const ready = abs(item)
+    if (ready) return ready
   }
 
   return fallbackCover
 }
 
 export function resolveAudio(music) {
-  if (!music?._id) return ''
+  if (!music) return ''
 
-  if (music.url) {
-    const u = String(music.url).trim()
-    if (u) return /^https?:/i.test(u) ? u : `${API_ROOT}/${u.replace(/^\/+/, '')}`
+  const directCandidates = [
+    music.url,
+    music.audioUrl,
+    music.streamUrl,
+    music.file,
+  ]
+
+  for (const item of directCandidates) {
+    const ready = abs(item)
+    if (ready) return ready
   }
 
-  if (music.streamUrl) {
-    const u = String(music.streamUrl).trim()
-    if (u) return /^https?:/i.test(u) ? u : `${API_ROOT}${u.startsWith('/') ? '' : '/'}${u}`
+  if (music._id) {
+    return `${API_ROOT}/api/music/${music._id}/stream`
   }
 
-  if (music.audioUrl) {
-    const u = String(music.audioUrl).trim()
-    if (u) return norm(u)
-  }
-
-  return `${API_ROOT}/api/music/${music._id}/stream`
+  return ''
 }
 
 export function buildMusic(music) {
