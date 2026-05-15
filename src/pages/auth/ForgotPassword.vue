@@ -1,82 +1,83 @@
 <template>
-  <div class="simple-auth">
-    <div class="bg-orb"></div>
-    <div class="card">
-      <router-link to="/" class="logo">
-        <span class="logo-icon">♪</span>
-        <span class="logo-text">ExclusiveMusics</span>
-      </router-link>
-
-      <div v-if="!sent">
-        <h2 class="title">Forgot password?</h2>
-        <p class="sub">Enter your email and we'll send you a reset code.</p>
-
-        <form @submit.prevent="submit" novalidate>
-          <div class="field" :class="{ err: error }">
-            <label>Email</label>
-            <div class="finput" :class="{ focused }">
-              <svg class="fic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
-              <input v-model="email" type="email" placeholder="you@example.com" @focus="focused = true"
-                @blur="focused = false" autocomplete="email" />
-            </div>
-            <span class="ferr" v-if="error">{{ error }}</span>
-          </div>
-
-          <div class="server-err" v-if="serverErr">{{ serverErr }}</div>
-
-          <button class="submit-btn" type="submit" :disabled="loading">
-            <span v-if="loading" class="spin"></span>
-            <span v-else>Send reset code</span>
-          </button>
-        </form>
+  <AuthLayout eyebrow="Password recovery" title="Reset your password"
+    description="Request a reset code and recover access without friction on any screen size.">
+    <section class="auth-card">
+      <div class="auth-card__head">
+        <h2 class="auth-card__title">Forgot password</h2>
+        <p class="auth-card__text">Enter your email and we’ll send a reset code.</p>
       </div>
 
-      <div v-else class="success-state">
-        <div class="success-icon">✉️</div>
-        <h2 class="title">Check your email</h2>
-        <p class="sub">We sent a 6-digit reset code to <strong>{{ email }}</strong>. It expires in 10 minutes.</p>
-        <router-link to="/reset-password" class="submit-btn auth-link-btn">
-          Enter the code
-        </router-link>
-      </div>
+      <form class="auth-form" @submit.prevent="handleSubmit">
+        <div v-if="serverMessage" class="auth-alert auth-alert--success">
+          {{ serverMessage }}
+        </div>
 
-      <p class="back-link"><router-link to="/login" class="link">← Back to sign in</router-link></p>
-    </div>
-  </div>
+        <div v-if="serverError" class="auth-alert auth-alert--error">
+          {{ serverError }}
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="email">Email</label>
+          <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
+            type="email" autocomplete="email" placeholder="you@example.com" />
+          <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
+        </div>
+
+        <button class="auth-submit" type="submit" :disabled="loading">
+          {{ loading ? 'Sending…' : 'Send reset code' }}
+        </button>
+
+        <p class="auth-footnote">
+          Code bormi?
+          <router-link class="auth-inline-link" :to="{ path: '/reset-password', query: { email: form.email } }">
+            Reset password
+          </router-link>
+        </p>
+      </form>
+    </section>
+  </AuthLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
+import AuthLayout from '@/components/auth/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
+import { normalizeAuthError } from '@/services/auth'
 
 const auth = useAuthStore()
 
-const email = ref('')
-const error = ref('')
-const serverErr = ref('')
 const loading = ref(false)
-const focused = ref(false)
-const sent = ref(false)
+const serverError = ref('')
+const serverMessage = ref('')
 
-const submit = async () => {
-  error.value = ''
-  serverErr.value = ''
+const form = reactive({
+  email: '',
+})
 
-  if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    error.value = 'Enter a valid email address'
-    return
-  }
+const errors = reactive({
+  email: '',
+})
+
+const validate = () => {
+  errors.email = ''
+  serverError.value = ''
+  serverMessage.value = ''
+
+  if (!form.email) errors.email = 'Email is required'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Enter a valid email'
+
+  return !errors.email
+}
+
+const handleSubmit = async () => {
+  if (!validate()) return
 
   loading.value = true
   try {
-    await auth.forgotPassword(email.value)
-    sent.value = true
-  } catch (e) {
-    serverErr.value = e?.response?.data?.message || 'Failed to send. Please try again.'
+    const data = await auth.forgotPassword(form)
+    serverMessage.value = data?.message || 'If that email exists, a reset code was sent'
+  } catch (error) {
+    serverError.value = normalizeAuthError(error, 'Request failed')
   } finally {
     loading.value = false
   }
@@ -84,237 +85,5 @@ const submit = async () => {
 </script>
 
 <style scoped>
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-.simple-auth {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-base, #04090f);
-  padding: 24px;
-  font-family: var(--font-body, 'Segoe UI', system-ui, sans-serif);
-  position: relative;
-  overflow: hidden;
-}
-
-.bg-orb {
-  position: fixed;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.12), transparent 70%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
-.card {
-  width: 100%;
-  max-width: 420px;
-  background: color-mix(in srgb, var(--bg-card, rgba(15, 30, 56, 0.7)) 92%, transparent);
-  border: 1px solid rgba(56, 189, 248, 0.12);
-  border-radius: 18px;
-  padding: 32px;
-  backdrop-filter: blur(16px);
-  position: relative;
-  z-index: 1;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  text-decoration: none;
-  color: inherit;
-  margin-bottom: 28px;
-}
-
-.logo-icon {
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-}
-
-.logo-text {
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--text-primary, #f1f5f9);
-  letter-spacing: -0.02em;
-}
-
-.title {
-  font-size: 22px;
-  font-weight: 900;
-  color: var(--text-primary, #f1f5f9);
-  letter-spacing: -0.02em;
-  margin: 0 0 6px;
-}
-
-.sub {
-  font-size: 14px;
-  color: var(--text-muted, #64748b);
-  margin: 0 0 24px;
-  line-height: 1.6;
-}
-
-.sub strong {
-  color: var(--text-secondary, #94a3b8);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 14px;
-}
-
-.field label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary, #94a3b8);
-}
-
-.finput {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 0 13px;
-  background: rgba(4, 9, 15, 0.5);
-  border: 1px solid rgba(56, 189, 248, 0.1);
-  border-radius: 10px;
-  transition: border-color 0.2s;
-}
-
-.finput.focused {
-  border-color: rgba(56, 189, 248, 0.38);
-}
-
-.field.err .finput {
-  border-color: rgba(239, 68, 68, 0.45);
-}
-
-.fic {
-  color: #334155;
-  flex-shrink: 0;
-}
-
-.finput input {
-  flex: 1;
-  height: 44px;
-  background: none;
-  border: none;
-  outline: none;
-  color: var(--text-primary, #f1f5f9);
-  font-size: 14px;
-}
-
-.finput input::placeholder {
-  color: #334155;
-}
-
-.ferr {
-  font-size: 12px;
-  color: #ef4444;
-}
-
-.server-err {
-  font-size: 13px;
-  color: #f87171;
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 8px;
-}
-
-.submit-btn {
-  width: 100%;
-  height: 46px;
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 4px;
-  text-decoration: none;
-}
-
-.submit-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(14, 165, 233, 0.3);
-}
-
-.submit-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.spin {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: sp 0.7s linear infinite;
-}
-
-@keyframes sp {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.success-state {
-  text-align: center;
-}
-
-.success-icon {
-  font-size: 44px;
-  margin-bottom: 16px;
-}
-
-.back-link {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
-}
-
-.link {
-  color: #38bdf8;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.link:hover {
-  text-decoration: underline;
-}
-
-.auth-link-btn {
-  display: flex;
-  justify-content: center;
-}
-
-@media (max-width: 520px) {
-  .card {
-    padding: 24px 20px;
-    border-radius: 16px;
-  }
-}
+@import '@/styles/auth.css';
 </style>

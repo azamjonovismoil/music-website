@@ -3,25 +3,33 @@ import { useAuthStore } from '../stores/auth'
 
 const APP_NAME = 'ExclusiveMusics'
 
+const getHomePath = (auth) => (auth.isAdmin ? '/admin' : '/user')
+
 const routes = [
   {
     path: '/',
     name: 'Landing',
     component: () => import('../pages/home/LandingPage.vue'),
-    // NOTE: no guestOnly here — landing is public, but we redirect logged-in users below
     meta: { title: 'Welcome', hidePlayerBar: true },
   },
+
   {
     path: '/login',
     name: 'Login',
-    component: () => import('../pages/auth/LoginPage.vue'),
+    component: () => import('../pages/auth/Login.vue'),
     meta: { guestOnly: true, title: 'Login', hidePlayerBar: true },
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('../pages/auth/RegistrationPage.vue'),
+    component: () => import('../pages/auth/Register.vue'),
     meta: { guestOnly: true, title: 'Register', hidePlayerBar: true },
+  },
+  {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../pages/auth/VerifyEmail.vue'),
+    meta: { guestOnly: true, title: 'Verify email', hidePlayerBar: true },
   },
   {
     path: '/forgot-password',
@@ -35,6 +43,7 @@ const routes = [
     component: () => import('../pages/auth/ResetPassword.vue'),
     meta: { guestOnly: true, title: 'Reset password', hidePlayerBar: true },
   },
+
   {
     path: '/user',
     name: 'User',
@@ -50,7 +59,7 @@ const routes = [
   {
     path: '/track/:id',
     name: 'TrackDetail',
-    component: () => import('../components/users/TrackDetail.vue'),
+    component: () => import('../pages/artist/ArtistPage.vue'),
     meta: { requiresAuth: true, title: 'Track' },
   },
   {
@@ -61,11 +70,23 @@ const routes = [
   },
   {
     path: '/profile',
-    redirect: () => {
+    name: 'ProfileRedirect',
+    beforeEnter: async () => {
       const auth = useAuthStore()
+
+      if (!auth.initialized) {
+        await auth.fetchMe()
+      }
+
+      if (!auth.isLoggedIn) {
+        return '/login'
+      }
+
       return auth.isAdmin ? '/admin/profile' : '/user'
     },
+    meta: { requiresAuth: true, hidePlayerBar: true },
   },
+
   {
     path: '/admin',
     component: () => import('../layouts/AdminLayout.vue'),
@@ -97,6 +118,7 @@ const routes = [
       },
     ],
   },
+
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -113,32 +135,39 @@ const router = createRouter({
   },
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
 
-  if (!auth.initialized) await auth.fetchMe()
+  if (!auth.initialized) {
+    await auth.fetchMe()
+  }
 
   if (to.name === 'Landing' && auth.isLoggedIn) {
-    return next(auth.isAdmin ? '/admin' : '/user')
+    return getHomePath(auth)
   }
 
   if (to.meta?.guestOnly && auth.isLoggedIn) {
-    return next(auth.isAdmin ? '/admin' : '/user')
+    return getHomePath(auth)
   }
 
   if (to.meta?.requiresAuth && !auth.isLoggedIn) {
-    return next({ path: '/login', query: { redirect: to.fullPath } })
+    return {
+      path: '/login',
+      query: { redirect: to.fullPath },
+    }
   }
 
   if (to.meta?.requiresAdmin && !auth.isAdmin) {
-    return next('/user')
+    return '/user'
   }
 
-  next()
+  return true
 })
 
-router.afterEach((to) => {  
-  document.title = to.meta?.title ? `${to.meta.title} | ${APP_NAME}` : APP_NAME
+router.afterEach((to) => {
+  document.title = to.meta?.title
+    ? `${to.meta.title} | ${APP_NAME}`
+    : APP_NAME
 })
 
 export default router

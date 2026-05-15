@@ -1,105 +1,132 @@
 <template>
-  <div class="auth-page">
-    <div class="auth-card">
-      <div class="auth-brand">
-        <div class="auth-icon">
-          <el-icon>
-            <Message />
-          </el-icon>
+  <AuthLayout eyebrow="Email verification" title="Verify your account"
+    description="Enter the code sent to your email to activate your account and continue.">
+    <section class="auth-card">
+      <div class="auth-card__head">
+        <h2 class="auth-card__title">Verify email</h2>
+        <p class="auth-card__text">
+          6 xonali kod <strong>{{ form.email }}</strong> manziliga yuborildi.
+        </p>
+      </div>
+
+      <form class="auth-form" @submit.prevent="handleSubmit">
+        <div v-if="serverError" class="auth-alert auth-alert--error">
+          {{ serverError }}
         </div>
-        <h1>Verify your email</h1>
-        <p>We sent a 6-digit code to <strong style="color:#e2e8f0">{{ userEmail }}</strong></p>
-      </div>
 
-      <div class="auth-form">
-        <el-input v-model="code" placeholder="Enter 6-digit code" class="auth-input" size="large" maxlength="6"
-          @keyup.enter="handleVerify">
-          <template #prefix><el-icon style="color:#3d5272">
-              <Key />
-            </el-icon></template>
-        </el-input>
+        <div class="auth-field">
+          <label class="auth-label" for="email">Email</label>
+          <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
+            type="email" autocomplete="email" placeholder="you@example.com" />
+          <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
+        </div>
 
-        <el-button type="primary" class="auth-btn" size="large" :loading="loading" @click="handleVerify">
-          Verify email
-        </el-button>
+        <div class="auth-field">
+          <label class="auth-label" for="code">Verification code</label>
+          <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
+            :class="{ 'is-invalid': errors.code }" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+          <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
+        </div>
 
-        <el-button class="auth-btn" size="large"
-          style="background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: #94a3b8 !important; box-shadow: none !important; margin-top: 0;"
-          :loading="resendLoading" :disabled="resendCooldown > 0" @click="handleResend">
-          {{ resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code' }}
-        </el-button>
-      </div>
+        <button class="auth-submit" type="submit" :disabled="loading">
+          {{ loading ? 'Verifying…' : 'Verify email' }}
+        </button>
 
-      <p class="auth-link">
-        Wrong account?
-        <span @click="handleLogout">Sign out</span>
-      </p>
-    </div>
-  </div>
+        <button class="auth-secondary" type="button" :disabled="resending" @click="handleResend">
+          {{ resending ? 'Sending…' : 'Resend code' }}
+        </button>
+
+        <p class="auth-footnote">
+          Wrong email?
+          <router-link class="auth-inline-link" to="/register">Create again</router-link>
+        </p>
+      </form>
+    </section>
+  </AuthLayout>
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElNotification } from 'element-plus'
-import { Message, Key } from '@element-plus/icons-vue'
+import AuthLayout from '@/components/auth/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
-import '@/styles/global.css'
-import '@/styles/auth_pages.css'
+import { normalizeAuthError, getRedirectPathByUser } from '@/services/auth'
 
 const router = useRouter()
-const authStore = useAuthStore()
+const route = useRoute()
+const auth = useAuthStore()
 
-const code = ref('')
 const loading = ref(false)
-const resendLoading = ref(false)
-const resendCooldown = ref(0)
+const resending = ref(false)
+const serverError = ref('')
 
-const userEmail = computed(() => authStore.user?.email || '')
+const form = reactive({
+  email: route.query.email ? String(route.query.email) : '',
+  code: '',
+})
 
-const notify = (type, msg) => ElNotification({ type, message: msg, duration: 2400 })
+const errors = reactive({
+  email: '',
+  code: '',
+})
 
-let cooldownTimer = null
-const startCooldown = (seconds = 60) => {
-  resendCooldown.value = seconds
-  cooldownTimer = setInterval(() => {
-    resendCooldown.value--
-    if (resendCooldown.value <= 0) clearInterval(cooldownTimer)
-  }, 1000)
+const validate = () => {
+  errors.email = ''
+  errors.code = ''
+  serverError.value = ''
+
+  if (!form.email) errors.email = 'Email is required'
+  if (!form.code) errors.code = 'Verification code is required'
+  else if (!/^\d{6}$/.test(form.code)) errors.code = 'Enter a valid 6-digit code'
+
+  return !errors.email && !errors.code
 }
 
-const handleVerify = async () => {
-  if (code.value.trim().length !== 6) return notify('error', 'Enter the 6-digit code')
+const handleSubmit = async () => {
+  if (!validate()) return
 
   loading.value = true
   try {
-    await authStore.verifyEmail(code.value.trim())
-    notify('success', 'Email verified! Welcome 🎵')
-    router.push(authStore.isAdmin ? '/admin' : '/user')
-  } catch (err) {
-    notify('error', err?.response?.data?.message || 'Invalid or expired code')
+    const data = await auth.verifyEmail(form)
+
+    ElNotification({
+      title: 'Verified',
+      type: 'success',
+      duration: 2200,
+    })
+
+    router.replace(getRedirectPathByUser(data.user))
+  } catch (error) {
+    serverError.value = normalizeAuthError(error, 'Verification failed')
   } finally {
     loading.value = false
   }
 }
 
 const handleResend = async () => {
-  resendLoading.value = true
+  if (!form.email) {
+    errors.email = 'Email is required'
+    return
+  }
+
+  resending.value = true
   try {
-    await authStore.resendVerificationEmail()
-    notify('success', 'New code sent to your email')
-    startCooldown(60)
-  } catch (err) {
-    notify('error', err?.response?.data?.message || 'Failed to resend')
+    const data = await auth.resendVerification({ email: form.email })
+    ElNotification({
+      title: 'Code sent',
+      message: data?.message || 'Verification code sent again',
+      type: 'success',
+      duration: 2200,
+    })
+  } catch (error) {
+    serverError.value = normalizeAuthError(error, 'Could not resend code')
   } finally {
-    resendLoading.value = false
+    resending.value = false
   }
 }
-
-const handleLogout = async () => {
-  await authStore.logout()
-  router.push('/login')
-}
-
-onUnmounted(() => clearInterval(cooldownTimer))
 </script>
+
+<style scoped>
+@import '@/styles/auth.css';
+</style>

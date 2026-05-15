@@ -15,16 +15,17 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => Number(user.value?.isAdmin) === 1)
+  const isVerified = computed(() => !!user.value?.isEmailVerified)
   const userName = computed(() => user.value?.name || 'User')
 
-  const setUser = (u) => {
-    user.value = u
+  const setUser = (value) => {
+    user.value = value || null
   }
 
   const fetchMe = async () => {
     try {
       const { data } = await api.get('/auth/me')
-      user.value = data.user
+      user.value = data?.user || null
     } catch {
       user.value = null
     } finally {
@@ -36,7 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const { data } = await api.post('/auth/login', credentials)
-      user.value = data.user
+      user.value = data?.user || null
       return data
     } finally {
       loading.value = false
@@ -47,7 +48,27 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const { data } = await api.post('/auth/register', payload)
-      user.value = data.user
+      return data
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const verifyEmail = async (payload) => {
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/verify-email', payload)
+      user.value = data?.user || null
+      return data
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const resendVerification = async (payload) => {
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/resend-verification', payload)
       return data
     } finally {
       loading.value = false
@@ -55,13 +76,40 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const forgotPassword = async (email) => {
-    const { data } = await api.post('/auth/forgot-password', { email })
-    return data
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/forgot-password', { email })
+      return data
+    } finally {
+      loading.value = false
+    }
   }
 
   const resetPassword = async (payload) => {
-    const { data } = await api.post('/auth/reset-password', payload)
-    return data
+    loading.value = true
+    try {
+      const { data } = await api.post('/auth/reset-password', payload)
+      return data
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateProfile = async (payload) => {
+    loading.value = true
+    try {
+      const { data } = await api.put('/auth/profile', payload)
+
+      if (data?.user) {
+        user.value = data.user
+      } else if (data?.requiresVerification) {
+        user.value = null
+      }
+
+      return data
+    } finally {
+      loading.value = false
+    }
   }
 
   const loginWithGoogle = () => {
@@ -69,10 +117,14 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const logout = async () => {
+    loading.value = true
     try {
       await api.post('/auth/logout')
-    } catch { }
-    user.value = null
+    } catch {
+    } finally {
+      user.value = null
+      loading.value = false
+    }
   }
 
   return {
@@ -81,13 +133,17 @@ export const useAuthStore = defineStore('auth', () => {
     initialized,
     isLoggedIn,
     isAdmin,
+    isVerified,
     userName,
     setUser,
     fetchMe,
     login,
     register,
+    verifyEmail,
+    resendVerification,
     forgotPassword,
     resetPassword,
+    updateProfile,
     loginWithGoogle,
     logout,
   }
