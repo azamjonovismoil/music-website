@@ -97,8 +97,7 @@
               <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Browse sections' }}</p>
               <h2>{{ selectedPlaylist?.name || 'Discover by sections' }}</h2>
               <p class="content-section__sub">
-                {{ selectedPlaylist?.description || 'Explore curated rows by language, mood, trending activity, and your
-                listening context.' }}
+                {{ selectedPlaylist?.description || 'Explore curated rows by language, mood, trending activity, and yourlistening context.' }}
               </p>
             </div>
 
