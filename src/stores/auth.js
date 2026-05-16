@@ -120,7 +120,6 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       await api.post('/auth/logout')
-    } catch {
     } finally {
       user.value = null
       loading.value = false

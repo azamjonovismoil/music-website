@@ -1,19 +1,21 @@
 <template>
-  <AuthLayout eyebrow="Email verification" title="Verify your account"
-    description="Enter the code sent to your email to activate your account and continue.">
+  <AuthLayout eyebrow="Verify account" title="Confirm your email"
+    description="Enter the verification code sent to your email to activate your account.">
     <section class="auth-card">
       <div class="auth-card__head">
         <h2 class="auth-card__title">Verify email</h2>
-        <p class="auth-card__text">
-          6 xonali kod <strong>{{ form.email }}</strong> manziliga yuborildi.
-        </p>
+        <p class="auth-card__text">We sent a 6-digit code to your email address.</p>
+      </div>
+
+      <div v-if="serverError" class="auth-alert auth-alert--error">
+        {{ serverError }}
+      </div>
+
+      <div v-if="serverSuccess" class="auth-alert auth-alert--success">
+        {{ serverSuccess }}
       </div>
 
       <form class="auth-form" @submit.prevent="handleSubmit">
-        <div v-if="serverError" class="auth-alert auth-alert--error">
-          {{ serverError }}
-        </div>
-
         <div class="auth-field">
           <label class="auth-label" for="email">Email</label>
           <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
@@ -24,45 +26,43 @@
         <div class="auth-field">
           <label class="auth-label" for="code">Verification code</label>
           <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
-            :class="{ 'is-invalid': errors.code }" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+            :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric" placeholder="123456" />
           <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
         </div>
 
-        <button class="auth-submit" type="submit" :disabled="loading">
-          {{ loading ? 'Verifying…' : 'Verify email' }}
+        <button class="auth-submit" type="submit" :disabled="auth.loading">
+          {{ auth.loading ? 'Verifying...' : 'Verify email' }}
         </button>
 
         <button class="auth-secondary" type="button" :disabled="resending" @click="handleResend">
-          {{ resending ? 'Sending…' : 'Resend code' }}
+          {{ resending ? 'Sending...' : 'Resend code' }}
         </button>
-
-        <p class="auth-footnote">
-          Wrong email?
-          <router-link class="auth-inline-link" to="/register">Create again</router-link>
-        </p>
       </form>
+
+      <p class="auth-footnote">
+        Back to <router-link class="auth-link" to="/login">Log in</router-link>
+      </p>
     </section>
   </AuthLayout>
 </template>
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
-import { normalizeAuthError, getRedirectPathByUser } from '@/services/auth'
 
+const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
-const auth = useAuthStore()
 
-const loading = ref(false)
 const resending = ref(false)
 const serverError = ref('')
+const serverSuccess = ref('')
 
 const form = reactive({
-  email: route.query.email ? String(route.query.email) : '',
+  email: String(route.query.email || ''),
   code: '',
 })
 
@@ -75,9 +75,12 @@ const validate = () => {
   errors.email = ''
   errors.code = ''
   serverError.value = ''
+  serverSuccess.value = ''
 
   if (!form.email) errors.email = 'Email is required'
-  if (!form.code) errors.code = 'Verification code is required'
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Enter a valid email'
+
+  if (!form.code) errors.code = 'Code is required'
   else if (!/^\d{6}$/.test(form.code)) errors.code = 'Enter a valid 6-digit code'
 
   return !errors.email && !errors.code
@@ -86,21 +89,21 @@ const validate = () => {
 const handleSubmit = async () => {
   if (!validate()) return
 
-  loading.value = true
   try {
-    const data = await auth.verifyEmail(form)
-
-    ElNotification({
-      title: 'Verified',
-      type: 'success',
-      duration: 2200,
+    const data = await auth.verifyEmail({
+      email: form.email,
+      code: form.code,
     })
 
-    router.replace(getRedirectPathByUser(data.user))
+    ElNotification({
+      title: 'Email verified',
+      type: 'success',
+      duration: 1800,
+    })
+
+    router.replace(Number(data?.user?.isAdmin) === 1 ? '/admin' : '/user')
   } catch (error) {
-    serverError.value = normalizeAuthError(error, 'Verification failed')
-  } finally {
-    loading.value = false
+    serverError.value = error?.response?.data?.message || 'Verification failed'
   }
 }
 
@@ -111,22 +114,16 @@ const handleResend = async () => {
   }
 
   resending.value = true
+  serverError.value = ''
+  serverSuccess.value = ''
+
   try {
     const data = await auth.resendVerification({ email: form.email })
-    ElNotification({
-      title: 'Code sent',
-      message: data?.message || 'Verification code sent again',
-      type: 'success',
-      duration: 2200,
-    })
+    serverSuccess.value = data?.message || 'Verification code sent again'
   } catch (error) {
-    serverError.value = normalizeAuthError(error, 'Could not resend code')
+    serverError.value = error?.response?.data?.message || 'Could not resend code'
   } finally {
     resending.value = false
   }
 }
 </script>
-
-<style scoped>
-@import '@/styles/auth.css';
-</style>

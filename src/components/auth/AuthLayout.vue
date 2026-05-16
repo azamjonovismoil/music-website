@@ -4,7 +4,10 @@
       <div class="auth-shell__brand-inner">
         <router-link to="/" class="auth-brand">
           <span class="auth-brand__mark">♪</span>
-          <span class="auth-brand__text">Exclusive</span>
+          <div class="auth-brand__copy">
+            <strong>Exclusive</strong>
+            <span>Premium music platform</span>
+          </div>
         </router-link>
 
         <div class="auth-hero">
@@ -12,13 +15,24 @@
           <h1 class="auth-hero__title">{{ title }}</h1>
           <p class="auth-hero__text">{{ description }}</p>
 
-          <div class="auth-hero__points">
-            <div v-for="item in points" :key="item" class="auth-hero__point">
-              <span class="auth-hero__dot"></span>
-              <span>{{ item }}</span>
+          <div class="auth-hero__stats">
+            <div class="auth-stat">
+              <strong>Clean</strong>
+              <span>Focused auth flow</span>
+            </div>
+            <div class="auth-stat">
+              <strong>Secure</strong>
+              <span>Email + Google access</span>
+            </div>
+            <div class="auth-stat">
+              <strong>Responsive</strong>
+              <span>Mobile to desktop ready</span>
             </div>
           </div>
         </div>
+
+        <div class="auth-glow auth-glow--one" />
+        <div class="auth-glow auth-glow--two" />
       </div>
     </section>
 
@@ -31,30 +45,14 @@
 </template>
 
 <script setup>
+import '@/styles/auth.css'
+
 defineProps({
-  eyebrow: {
-    type: String,
-    default: 'Exclusive Music',
-  },
-  title: {
-    type: String,
-    default: 'Premium listening experience',
-  },
+  eyebrow: { type: String, default: 'Exclusive Music' },
+  title: { type: String, default: 'Modern music experience' },
   description: {
     type: String,
-    default: 'Clean auth flow, real product structure, and smooth access across devices.',
-  },
-  points: {
-    type: Array,
-    default: () => [
-      'Fast email sign in',
-      'Secure account verification',
-      'Clean mobile and desktop UX',
-    ],
+    default: 'Clean account flow built for a real product experience.',
   },
 })
 </script>
-
-<style scoped>
-@import '@/styles/auth.css';
-</style>
