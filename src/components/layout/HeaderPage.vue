@@ -139,8 +139,9 @@
                 <div v-if="recentSearches.length" class="search-group">
                   <div class="search-group__label search-group__label--row">
                     <span>Recent searches</span>
-                    <button class="search-link-btn" type="button"
-                      @mousedown.prevent="clearRecentSearches">Clear</button>
+                    <button class="search-link-btn" type="button" @mousedown.prevent="clearRecentSearches">
+                      Clear
+                    </button>
                   </div>
 
                   <button v-for="item in recentSearches" :key="item" class="search-history-item" type="button"
@@ -210,17 +211,17 @@
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item" type="button" @click="nav(isAdminPage ? '/admin' : '/user')">
+                <button class="dropdown-item" type="button" @click="nav(homePath)">
                   <HomeIcon class="di-icon" />
                   <span>Home</span>
                 </button>
 
-                <button class="dropdown-item" type="button" @click="nav(isAdminPage ? '/admin/profile' : '/profile')">
+                <button class="dropdown-item" type="button" @click="nav(profilePath)">
                   <UserIcon class="di-icon" />
                   <span>Profile</span>
                 </button>
 
-                <button class="dropdown-item" type="button" @click="nav(isAdminPage ? '/admin/settings' : '/settings')">
+                <button class="dropdown-item" type="button" @click="nav(settingsPath)">
                   <Cog6ToothIcon class="di-icon" />
                   <span>Settings</span>
                 </button>
@@ -392,17 +393,17 @@
           </div>
 
           <div class="mobile-menu-links">
-            <button class="mobile-link" type="button" @click="navMobile(isAdminPage ? '/admin' : '/user')">
+            <button class="mobile-link" type="button" @click="navMobile(homePath)">
               <HomeIcon class="di-icon" />
               <span>Home</span>
             </button>
 
-            <button class="mobile-link" type="button" @click="navMobile(isAdminPage ? '/admin/profile' : '/profile')">
+            <button class="mobile-link" type="button" @click="navMobile(profilePath)">
               <UserIcon class="di-icon" />
               <span>Profile</span>
             </button>
 
-            <button class="mobile-link" type="button" @click="navMobile(isAdminPage ? '/admin/settings' : '/settings')">
+            <button class="mobile-link" type="button" @click="navMobile(settingsPath)">
               <Cog6ToothIcon class="di-icon" />
               <span>Settings</span>
             </button>
@@ -483,6 +484,10 @@ const isAdminPage = computed(() => props.pageType === 'admin')
 const firstLetter = computed(() => authStore.userName?.charAt(0)?.toUpperCase() || 'U')
 const internalSearch = computed(() => String(props.search || ''))
 const normalizedSearchItems = computed(() => (Array.isArray(props.searchItems) ? props.searchItems : []))
+
+const homePath = computed(() => (isAdminPage.value ? '/admin' : '/user'))
+const profilePath = computed(() => (isAdminPage.value ? '/admin/profile' : '/profile'))
+const settingsPath = computed(() => (isAdminPage.value ? '/admin/settings' : '/settings'))
 
 const normalizeText = (value) =>
   String(value || '')
@@ -569,14 +574,22 @@ const topResult = computed(() => scoredResults.value[0] || null)
 const trackResults = computed(() =>
   scoredResults.value
     .filter((item) => isTrackResult(item))
-    .filter((item) => String(item._id || item.id || item.slug) !== String(topResult.value?._id || topResult.value?.id || topResult.value?.slug))
+    .filter(
+      (item) =>
+        String(item._id || item.id || item.slug) !==
+        String(topResult.value?._id || topResult.value?.id || topResult.value?.slug)
+    )
     .slice(0, 5)
 )
 
 const artistResults = computed(() =>
   scoredResults.value
     .filter((item) => isArtistResult(item))
-    .filter((item) => String(item._id || item.id || item.slug) !== String(topResult.value?._id || topResult.value?.id || topResult.value?.slug))
+    .filter(
+      (item) =>
+        String(item._id || item.id || item.slug) !==
+        String(topResult.value?._id || topResult.value?.id || topResult.value?.slug)
+    )
     .slice(0, 4)
 )
 
@@ -709,7 +722,7 @@ const goHome = () => {
     router.push('/')
     return
   }
-  router.push(isAdminPage.value ? '/admin' : '/user')
+  router.push(homePath.value)
 }
 
 const openMobileSearch = async () => {

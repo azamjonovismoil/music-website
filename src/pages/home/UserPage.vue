@@ -1,16 +1,19 @@
 <template>
   <div class="user-layout">
-    <HeaderPage :search="search" :showSearch="true" :search-items="tracks" @update:search="search = $event"
+    <HeaderPage :search="search" :show-search="true" :search-items="tracks" @update:search="search = $event"
       @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
 
-    <div class="user-shell">
+    <div class="user-shell" :class="{
+      'user-shell--left-collapsed': leftSidebarCollapsed,
+      'user-shell--mobile-left-open': mobileSidebarOpen
+    }">
       <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false" />
 
       <aside class="user-shell__left" :class="{ open: mobileSidebarOpen }">
         <div class="user-shell__left-scroll">
-          <UserSidebar :playlists="playlists" :activePlaylistId="selectedPlaylist?._id || ''"
-            @create-playlist="openCreatePlaylist" @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist"
-            @delete-playlist="openDeletePlaylist" />
+          <UserSidebar :playlists="playlists" :active-playlist-id="selectedPlaylist?._id || ''"
+            @collapsed-change="handleSidebarCollapse" @create-playlist="openCreatePlaylist"
+            @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist" @delete-playlist="openDeletePlaylist" />
         </div>
       </aside>
 
@@ -97,7 +100,10 @@
               <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Browse sections' }}</p>
               <h2>{{ selectedPlaylist?.name || 'Discover by sections' }}</h2>
               <p class="content-section__sub">
-                {{ selectedPlaylist?.description || 'Explore curated rows by language, mood, trending activity, and yourlistening context.' }}
+                {{
+                  selectedPlaylist?.description ||
+                  'Explore curated rows by language, mood, trending activity, and your listening context.'
+                }}
               </p>
             </div>
 
@@ -196,6 +202,7 @@ const showDeletePlaylist = ref(false)
 const playlistToDelete = ref(null)
 const recentlyPlayed = ref([])
 const mobileSidebarOpen = ref(false)
+const leftSidebarCollapsed = ref(false)
 const editingPlaylistId = ref(null)
 
 const playlistForm = reactive({
@@ -215,7 +222,7 @@ const playlistColors = [
   '#8b5cf6',
 ]
 
-const RECENT_KEY = computed(() => `rp_${authStore.user?._id || 'u'}`)
+const RECENT_KEY = computed(() => `rp_${authStore.user?._id || authStore.user?.id || 'u'}`)
 const MAX_RECENT = 6
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 
@@ -277,9 +284,15 @@ const recommendations = computed(() => {
       } else {
         if (t.artist && current.artist && normalizeWord(t.artist) === normalizeWord(current.artist)) score += 50
 
-        const sharedGenre = (t.genre || []).filter((g) => (current.genre || []).map(normalizeWord).includes(normalizeWord(g))).length
-        const sharedMood = (t.mood || []).filter((m) => (current.mood || []).map(normalizeWord).includes(normalizeWord(m))).length
-        const sharedTags = (t.tags || []).filter((tag) => (current.tags || []).map(normalizeWord).includes(normalizeWord(tag))).length
+        const sharedGenre = (t.genre || []).filter((g) =>
+          (current.genre || []).map(normalizeWord).includes(normalizeWord(g))
+        ).length
+        const sharedMood = (t.mood || []).filter((m) =>
+          (current.mood || []).map(normalizeWord).includes(normalizeWord(m))
+        ).length
+        const sharedTags = (t.tags || []).filter((tag) =>
+          (current.tags || []).map(normalizeWord).includes(normalizeWord(tag))
+        ).length
 
         score += sharedGenre * 18
         score += sharedMood * 14
@@ -345,7 +358,7 @@ const heroMeta = computed(() => {
 const normalizeLanguage = (value) => {
   const v = normalizeWord(value)
 
-  if (['uz', 'uzbek', 'uzbekistan', 'o\'zbek', 'ozbek'].includes(v)) return 'uzbek'
+  if (['uz', 'uzbek', 'uzbekistan', "o'zbek", 'ozbek'].includes(v)) return 'uzbek'
   if (['ru', 'russian', 'rus'].includes(v)) return 'russian'
   if (['en', 'english'].includes(v)) return 'english'
   if (['ar', 'arabic', 'arab'].includes(v)) return 'arabic'
@@ -373,7 +386,8 @@ const sectionGroups = computed(() => {
   const trending = [...source]
     .sort(
       (a, b) =>
-        (Number(b.playCount || 0) + Number(b.likeCount || 0) * 2) -
+        Number(b.playCount || 0) +
+        Number(b.likeCount || 0) * 2 -
         (Number(a.playCount || 0) + Number(a.likeCount || 0) * 2)
     )
     .slice(0, 10)
@@ -507,6 +521,10 @@ const saveRecentlyPlayed = (track) => {
   const prev = recentlyPlayed.value.filter((t) => String(t._id) !== String(track._id))
   recentlyPlayed.value = [track, ...prev].slice(0, MAX_RECENT)
   localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
+}
+
+const handleSidebarCollapse = (value) => {
+  leftSidebarCollapsed.value = !!value
 }
 
 const selectPlaylist = (playlist) => {
