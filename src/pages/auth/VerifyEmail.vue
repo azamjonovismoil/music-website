@@ -1,48 +1,40 @@
 <template>
-  <AuthLayout eyebrow="Verify account" title="Confirm your email"
-    description="Enter the verification code sent to your email to activate your account.">
-    <section class="auth-card">
-      <div class="auth-card__head">
-        <h2 class="auth-card__title">Verify email</h2>
-        <p class="auth-card__text">We sent a 6-digit code to your email address.</p>
+  <AuthLayout eyebrow="Verify account" title="Verify email" description="Enter the 6-digit code sent to your email.">
+    <div v-if="serverError" class="auth-alert auth-alert--error">
+      {{ serverError }}
+    </div>
+
+    <div v-if="serverSuccess" class="auth-alert auth-alert--success">
+      {{ serverSuccess }}
+    </div>
+
+    <form class="auth-form" @submit.prevent="handleSubmit">
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email</label>
+        <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
+          type="email" autocomplete="email" placeholder="you@example.com" />
+        <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
       </div>
 
-      <div v-if="serverError" class="auth-alert auth-alert--error">
-        {{ serverError }}
+      <div class="auth-field">
+        <label class="auth-label" for="code">Verification code</label>
+        <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
+          :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric" placeholder="123456" />
+        <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
       </div>
 
-      <div v-if="serverSuccess" class="auth-alert auth-alert--success">
-        {{ serverSuccess }}
-      </div>
+      <button class="auth-submit" type="submit" :disabled="auth.loading">
+        {{ auth.loading ? 'Verifying...' : 'Verify email' }}
+      </button>
 
-      <form class="auth-form" @submit.prevent="handleSubmit">
-        <div class="auth-field">
-          <label class="auth-label" for="email">Email</label>
-          <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
-            type="email" autocomplete="email" placeholder="you@example.com" />
-          <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
-        </div>
+      <button class="auth-secondary" type="button" :disabled="resending" @click="handleResend">
+        {{ resending ? 'Sending...' : 'Resend code' }}
+      </button>
+    </form>
 
-        <div class="auth-field">
-          <label class="auth-label" for="code">Verification code</label>
-          <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
-            :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric" placeholder="123456" />
-          <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
-        </div>
-
-        <button class="auth-submit" type="submit" :disabled="auth.loading">
-          {{ auth.loading ? 'Verifying...' : 'Verify email' }}
-        </button>
-
-        <button class="auth-secondary" type="button" :disabled="resending" @click="handleResend">
-          {{ resending ? 'Sending...' : 'Resend code' }}
-        </button>
-      </form>
-
-      <p class="auth-footnote">
-        Back to <router-link class="auth-link" to="/login">Log in</router-link>
-      </p>
-    </section>
+    <p class="auth-footnote">
+      Back to <router-link class="auth-link" to="/login">Log in</router-link>
+    </p>
   </AuthLayout>
 </template>
 
@@ -95,12 +87,7 @@ const handleSubmit = async () => {
       code: form.code,
     })
 
-    ElNotification({
-      title: 'Email verified',
-      type: 'success',
-      duration: 1800,
-    })
-
+    ElNotification({ title: 'Email verified', type: 'success', duration: 1600 })
     router.replace(Number(data?.user?.isAdmin) === 1 ? '/admin' : '/user')
   } catch (error) {
     serverError.value = error?.response?.data?.message || 'Verification failed'

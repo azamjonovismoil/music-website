@@ -1,61 +1,54 @@
 <template>
-  <AuthLayout eyebrow="New password" title="Set a new password"
-    description="Use the reset code from your email and choose a new password.">
-    <section class="auth-card">
-      <div class="auth-card__head">
-        <h2 class="auth-card__title">Reset password</h2>
-        <p class="auth-card__text">Enter your email, reset code, and new password.</p>
+  <AuthLayout eyebrow="New password" title="Reset password"
+    description="Enter your email, reset code, and new password.">
+    <div v-if="serverError" class="auth-alert auth-alert--error">
+      {{ serverError }}
+    </div>
+
+    <form class="auth-form" @submit.prevent="handleSubmit">
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email</label>
+        <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
+          type="email" autocomplete="email" placeholder="you@example.com" />
+        <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
       </div>
 
-      <div v-if="serverError" class="auth-alert auth-alert--error">
-        {{ serverError }}
+      <div class="auth-field">
+        <label class="auth-label" for="code">Reset code</label>
+        <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
+          :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric" placeholder="123456" />
+        <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
       </div>
 
-      <form class="auth-form" @submit.prevent="handleSubmit">
-        <div class="auth-field">
-          <label class="auth-label" for="email">Email</label>
-          <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
-            type="email" autocomplete="email" placeholder="you@example.com" />
-          <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
+      <div class="auth-field">
+        <label class="auth-label" for="password">New password</label>
+        <div class="auth-password">
+          <input id="password" v-model="form.newPassword" class="auth-input auth-input--with-action"
+            :class="{ 'is-invalid': errors.newPassword }" :type="showPassword ? 'text' : 'password'"
+            autocomplete="new-password" placeholder="At least 6 characters" />
+          <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
         </div>
+        <p v-if="errors.newPassword" class="auth-field__error">{{ errors.newPassword }}</p>
+      </div>
 
-        <div class="auth-field">
-          <label class="auth-label" for="code">Reset code</label>
-          <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
-            :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric" placeholder="123456" />
-          <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
-        </div>
+      <div class="auth-field">
+        <label class="auth-label" for="confirmPassword">Confirm password</label>
+        <input id="confirmPassword" v-model="form.confirmPassword" class="auth-input"
+          :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
+          autocomplete="new-password" placeholder="Repeat password" />
+        <p v-if="errors.confirmPassword" class="auth-field__error">{{ errors.confirmPassword }}</p>
+      </div>
 
-        <div class="auth-field">
-          <label class="auth-label" for="password">New password</label>
-          <div class="auth-password">
-            <input id="password" v-model="form.newPassword" class="auth-input auth-input--with-action"
-              :class="{ 'is-invalid': errors.newPassword }" :type="showPassword ? 'text' : 'password'"
-              autocomplete="new-password" placeholder="At least 6 characters" />
-            <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
-              {{ showPassword ? 'Hide' : 'Show' }}
-            </button>
-          </div>
-          <p v-if="errors.newPassword" class="auth-field__error">{{ errors.newPassword }}</p>
-        </div>
+      <button class="auth-submit" type="submit" :disabled="auth.loading">
+        {{ auth.loading ? 'Updating...' : 'Update password' }}
+      </button>
+    </form>
 
-        <div class="auth-field">
-          <label class="auth-label" for="confirmPassword">Confirm password</label>
-          <input id="confirmPassword" v-model="form.confirmPassword" class="auth-input"
-            :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
-            autocomplete="new-password" placeholder="Repeat password" />
-          <p v-if="errors.confirmPassword" class="auth-field__error">{{ errors.confirmPassword }}</p>
-        </div>
-
-        <button class="auth-submit" type="submit" :disabled="auth.loading">
-          {{ auth.loading ? 'Updating...' : 'Update password' }}
-        </button>
-      </form>
-
-      <p class="auth-footnote">
-        Back to <router-link class="auth-link" to="/login">Log in</router-link>
-      </p>
-    </section>
+    <p class="auth-footnote">
+      Back to <router-link class="auth-link" to="/login">Log in</router-link>
+    </p>
   </AuthLayout>
 </template>
 
@@ -119,11 +112,7 @@ const handleSubmit = async () => {
       newPassword: form.newPassword,
     })
 
-    ElNotification({
-      title: 'Password updated',
-      type: 'success',
-      duration: 1800,
-    })
+    ElNotification({ title: 'Password updated', type: 'success', duration: 1600 })
 
     router.replace({
       path: '/login',

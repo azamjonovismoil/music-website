@@ -1,45 +1,21 @@
 <template>
-  <div class="auth-shell">
-    <section class="auth-shell__brand">
-      <div class="auth-shell__brand-inner">
-        <router-link to="/" class="auth-brand">
-          <span class="auth-brand__mark">♪</span>
-          <div class="auth-brand__copy">
-            <strong>Exclusive</strong>
-            <span>Premium music platform</span>
-          </div>
-        </router-link>
+  <div class="auth-min-shell">
+    <div class="auth-min-bg auth-min-bg--one" />
+    <div class="auth-min-bg auth-min-bg--two" />
 
-        <div class="auth-hero">
-          <span class="auth-hero__eyebrow">{{ eyebrow }}</span>
-          <h1 class="auth-hero__title">{{ title }}</h1>
-          <p class="auth-hero__text">{{ description }}</p>
+    <main class="auth-min-main">
+      <router-link to="/" class="auth-min-brand">
+        <span class="auth-min-brand__mark">♪</span>
+        <span class="auth-min-brand__text">Exclusive</span>
+      </router-link>
 
-          <div class="auth-hero__stats">
-            <div class="auth-stat">
-              <strong>Clean</strong>
-              <span>Focused auth flow</span>
-            </div>
-            <div class="auth-stat">
-              <strong>Secure</strong>
-              <span>Email + Google access</span>
-            </div>
-            <div class="auth-stat">
-              <strong>Responsive</strong>
-              <span>Mobile to desktop ready</span>
-            </div>
-          </div>
-        </div>
+      <section class="auth-min-card">
+        <div v-if="eyebrow" class="auth-min-eyebrow">{{ eyebrow }}</div>
+        <h1 class="auth-min-title">{{ title }}</h1>
+        <p v-if="description" class="auth-min-text">{{ description }}</p>
 
-        <div class="auth-glow auth-glow--one" />
-        <div class="auth-glow auth-glow--two" />
-      </div>
-    </section>
-
-    <main class="auth-shell__content">
-      <div class="auth-shell__content-inner">
         <slot />
-      </div>
+      </section>
     </main>
   </div>
 </template>
@@ -48,11 +24,8 @@
 import '@/styles/auth.css'
 
 defineProps({
-  eyebrow: { type: String, default: 'Exclusive Music' },
-  title: { type: String, default: 'Modern music experience' },
-  description: {
-    type: String,
-    default: 'Clean account flow built for a real product experience.',
-  },
+  eyebrow: { type: String, default: '' },
+  title: { type: String, default: '' },
+  description: { type: String, default: '' },
 })
 </script>
