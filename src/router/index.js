@@ -59,7 +59,7 @@ const routes = [
   {
     path: '/track/:id',
     name: 'TrackDetail',
-    component: () => import('../components/track/TrackDetail.vue'),
+    component: () => import('../components/users/TrackDetail.vue'),
     meta: { requiresAuth: true, title: 'Track' },
   },
   {
