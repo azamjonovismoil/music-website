@@ -1,23 +1,23 @@
 <template>
   <transition name="player-rise">
     <div v-if="music" class="player-shell">
-      <div class="player-bar" :class="{ playing: isPlaying }">
+      <div class="player-bar" :class="{ playing: isPlaying, loading: isLoading }">
         <audio ref="audioRef" :key="audioSrc" :src="audioSrc" preload="metadata" playsinline @timeupdate="onTimeUpdate"
-          @loadedmetadata="onMeta" @progress="onProgress" @waiting="isLoading = true" @playing="onPlaying"
-          @pause="onPause" @ended="onEnded" @error="onAudioError" />
+          @loadedmetadata="onMeta" @progress="onProgress" @waiting="onWaiting" @playing="onPlaying" @pause="onPause"
+          @ended="onEnded" @error="onAudioError" />
 
         <div class="player-left">
-          <div class="cover-wrap" @click="goDetail">
+          <button class="cover-wrap" type="button" @click="goDetail" aria-label="Open track details">
             <img class="player-cover" :src="coverSrc" alt="cover" @error="onCoverError" />
             <div class="cover-go">
               <ArrowTopRightOnSquareIcon class="cover-go-icon" />
             </div>
-          </div>
+          </button>
 
           <div class="player-info">
             <div class="title-row">
               <button class="track-btn track-title marquee-wrap" type="button" @click="goDetail">
-                <span class="marquee-text" :class="{ scrolling: shouldScrollTitle }">
+                <span ref="titleTextRef" class="marquee-text" :class="{ scrolling: shouldScrollTitle }">
                   {{ music.title || 'Unknown' }}
                 </span>
               </button>
@@ -32,12 +32,14 @@
                 {{ music.artist || 'Unknown artist' }}
               </button>
 
-              <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" @click="handleToggleLike">
+              <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" @click="handleToggleLike"
+                aria-label="Toggle like">
                 <HeartSolidIcon v-if="music.liked" class="ctrl-icon" />
                 <HeartIcon v-else class="ctrl-icon" />
               </button>
 
-              <button v-if="!isAdmin" class="ctrl playlist-btn" type="button" @click="handleAddToPlaylist">
+              <button v-if="!isAdmin" class="ctrl playlist-btn" type="button" @click="handleAddToPlaylist"
+                aria-label="Add to playlist">
                 <PlusIcon class="ctrl-icon" />
               </button>
             </div>
@@ -46,31 +48,33 @@
 
         <div class="player-center">
           <div class="controls">
-            <button class="ctrl" :class="{ active: player.shuffle }" type="button" @click="player.toggleShuffle()">
+            <button class="ctrl" :class="{ active: player.shuffle }" type="button" @click="player.toggleShuffle()"
+              aria-label="Toggle shuffle">
               <ArrowsRightLeftIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" type="button" @click="player.playPrev()">
+            <button class="ctrl" type="button" @click="player.playPrev()" aria-label="Previous track">
               <BackwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl play-ctrl" type="button" @click="togglePlay">
+            <button class="ctrl play-ctrl" type="button" @click="togglePlay" :aria-label="isPlaying ? 'Pause' : 'Play'">
               <ArrowPathIcon v-if="isLoading" class="play-icon spin" />
               <PauseIcon v-else-if="isPlaying" class="play-icon" />
               <PlayIcon v-else class="play-icon play-icon--shift" />
             </button>
 
-            <button class="ctrl" type="button" @click="player.playNext()">
+            <button class="ctrl" type="button" @click="player.playNext()" aria-label="Next track">
               <ForwardIcon class="ctrl-icon" />
             </button>
 
             <button class="ctrl" :class="{ active: player.repeatMode !== 'off' }" type="button"
-              @click="player.cycleRepeatMode()">
+              @click="player.cycleRepeatMode()" aria-label="Cycle repeat mode">
               <ArrowPathRoundedSquareIcon class="ctrl-icon" />
               <span v-if="player.repeatMode === 'one'" class="repeat-badge">1</span>
             </button>
 
-            <button class="ctrl" :class="{ active: queueOpen }" type="button" @click="$emit('toggle-queue')">
+            <button class="ctrl" :class="{ active: queueOpen }" type="button" @click="$emit('toggle-queue')"
+              aria-label="Toggle queue">
               <QueueListIcon class="ctrl-icon" />
             </button>
           </div>
@@ -79,11 +83,12 @@
             <span class="time">{{ fmt(currentTime) }}</span>
 
             <div class="progress-track" @click="seekClick">
+              <div class="progress-base" />
               <div class="progress-buf" :style="{ width: buffered + '%' }" />
               <div class="progress-fill" :style="{ width: pct + '%' }" />
               <div class="progress-thumb" :style="{ left: pct + '%' }" />
               <input v-model="progress" class="progress-input" type="range" min="0" :max="duration || 0" step="0.1"
-                @input="seekInput" />
+                @input="seekInput" aria-label="Seek track" />
             </div>
 
             <span class="time">{{ fmt(duration) }}</span>
@@ -92,37 +97,41 @@
 
         <div class="player-right">
           <button v-if="!isAdmin" class="ctrl lyrics-btn" :class="{ active: lyricsOpen }" :disabled="!hasLyrics"
-            type="button" @click="handleLyricsOpen">
+            type="button" @click="handleLyricsOpen" aria-label="Open lyrics">
             <MicrophoneIcon class="ctrl-icon" />
           </button>
 
-          <button v-if="!isAdmin" class="ctrl expand-btn" type="button" @click="handleExpand">
+          <button v-if="!isAdmin" class="ctrl expand-btn" type="button" @click="handleExpand"
+            aria-label="Expand player">
             <ArrowsPointingOutIcon class="ctrl-icon" />
           </button>
 
-          <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" @click="toggleMute">
-            <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
-            <SpeakerWaveIcon v-else class="ctrl-icon" />
-          </button>
+          <template v-if="!isMobile">
+            <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" @click="toggleMute"
+              :aria-label="isMuted || effectiveVol === 0 ? 'Unmute' : 'Mute'">
+              <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
+              <SpeakerWaveIcon v-else class="ctrl-icon" />
+            </button>
 
-          <div class="vol-wrap" @mouseenter="showVolHint" @mouseleave="hideVolHint">
-            <transition name="vol-pop">
-              <div v-if="showVolTip" class="vol-tooltip">
-                <span class="vol-tooltip-val">{{ Math.round(effectiveVol) }}%</span>
-                <div class="vol-tooltip-bar">
-                  <div class="vol-tooltip-fill" :style="{ width: effectiveVol + '%' }" />
+            <div class="vol-wrap" @mouseenter="showVolHint" @mouseleave="hideVolHint">
+              <transition name="vol-pop">
+                <div v-if="showVolTip" class="vol-tooltip">
+                  <span class="vol-tooltip-val">{{ Math.round(effectiveVol) }}%</span>
+                  <div class="vol-tooltip-bar">
+                    <div class="vol-tooltip-fill" :style="{ width: effectiveVol + '%' }" />
+                  </div>
                 </div>
-              </div>
-            </transition>
+              </transition>
 
-            <div class="vol-slider-wrap">
-              <div class="vol-track"></div>
-              <div class="vol-fill" :style="{ width: effectiveVol + '%' }"></div>
-              <div class="vol-thumb" :style="{ left: effectiveVol + '%' }"></div>
-              <input v-model="volume" class="vol-input" type="range" min="0" max="1" step="0.01" @input="changeVol"
-                @mousedown="showVolHint" @touchstart.passive="showVolHint" />
+              <div class="vol-slider-wrap">
+                <div class="vol-track"></div>
+                <div class="vol-fill" :style="{ width: effectiveVol + '%' }"></div>
+                <div class="vol-thumb" :style="{ left: effectiveVol + '%' }"></div>
+                <input v-model="volume" class="vol-input" type="range" min="0" max="1" step="0.01" @input="changeVol"
+                  @mousedown="showVolHint" @touchstart.passive="showVolHint" aria-label="Volume" />
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </div>
@@ -174,6 +183,8 @@ const player = usePlayerStore()
 const authStore = useAuthStore()
 
 const audioRef = ref(null)
+const titleTextRef = ref(null)
+
 const isPlaying = ref(false)
 const isLoading = ref(false)
 const currentTime = ref(0)
@@ -185,10 +196,12 @@ const buffered = ref(0)
 const showVolTip = ref(false)
 const lastVol = ref(0.72)
 const shouldScrollTitle = ref(false)
+const viewport = ref(typeof window !== 'undefined' ? window.innerWidth : 1440)
 
 let volTimer = null
 
 const isAdmin = computed(() => Number(authStore.user?.isAdmin) === 1)
+const isMobile = computed(() => viewport.value <= 640)
 const audioSrc = computed(() => resolveAudio(props.music || {}))
 const coverSrc = computed(() => resolveCover(props.music || {}) || fallbackCover)
 
@@ -211,8 +224,14 @@ const fmt = (t) => {
   return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
 }
 
-const updateMarquee = () => {
-  shouldScrollTitle.value = String(props.music?.title || '').length > 26
+const updateMarquee = async () => {
+  await nextTick()
+  const el = titleTextRef.value
+  if (!el) {
+    shouldScrollTitle.value = false
+    return
+  }
+  shouldScrollTitle.value = el.scrollWidth > el.clientWidth + 12
 }
 
 const onCoverError = (e) => {
@@ -275,8 +294,14 @@ const onProgress = () => {
   if (!audioRef.value || !duration.value) return
   try {
     const b = audioRef.value.buffered
-    if (b.length) buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
+    if (b.length) {
+      buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
+    }
   } catch { }
+}
+
+const onWaiting = () => {
+  isLoading.value = true
 }
 
 const onAudioError = () => {
@@ -333,6 +358,7 @@ const toggleMute = () => {
 }
 
 const showVolHint = () => {
+  if (isMobile.value) return
   showVolTip.value = true
   clearTimeout(volTimer)
   volTimer = setTimeout(() => {
@@ -378,9 +404,16 @@ const onEnded = async () => {
   }
 }
 
+const handleResize = async () => {
+  viewport.value = window.innerWidth
+  await updateMarquee()
+}
+
 watch(
   () => props.music?.title,
-  () => updateMarquee(),
+  async () => {
+    await updateMarquee()
+  },
   { immediate: true }
 )
 
@@ -402,7 +435,7 @@ watch(
     audioRef.value.muted = Number(volume.value) === 0
     isMuted.value = Number(volume.value) === 0
 
-    updateMarquee()
+    await updateMarquee()
 
     if (player.isPlaying) await play()
   },
@@ -430,15 +463,17 @@ watch(
   }
 )
 
-onMounted(() => {
+onMounted(async () => {
   if (audioRef.value) {
     audioRef.value.volume = Number(volume.value)
     audioRef.value.muted = Number(volume.value) === 0
   }
-  updateMarquee()
+  await updateMarquee()
+  window.addEventListener('resize', handleResize, { passive: true })
 })
 
 onBeforeUnmount(() => {
   clearTimeout(volTimer)
+  window.removeEventListener('resize', handleResize)
 })
 </script>

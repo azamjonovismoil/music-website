@@ -83,16 +83,27 @@ const totalLikes = computed(() => tracks.value.reduce((s, t) => s + (t.likeCount
 
 const loadArtist = async () => {
   const slug = decodeURIComponent(route.params.slug || '')
-  const { data } = await api.get(`/music?artist=${encodeURIComponent(slug)}`)
+  const { data } = await api.get('/music')
   const list = Array.isArray(data) ? data : []
-  tracks.value = list
+  const matched = list.filter(
+    (item) => String(item.artist || '').trim().toLowerCase() === slug.trim().toLowerCase()
+  )
 
-  if (list.length) {
+  tracks.value = matched
+
+  if (matched.length) {
     artist.value = {
-      name: list[0].artist || slug,
+      name: matched[0].artist || slug,
+      bio: matched[0].artistBio || '',
+      cover: matched[0].cover || '',
+      genres: [...new Set(matched.flatMap((t) => t.genre || []))].slice(0, 6),
+    }
+  } else {
+    artist.value = {
+      name: slug,
       bio: '',
-      cover: list[0].cover || '',
-      genres: [...new Set(list.flatMap((t) => t.genre || []))].slice(0, 6),
+      cover: '',
+      genres: [],
     }
   }
 }

@@ -1,28 +1,47 @@
 <template>
   <div class="user-layout">
-    <HeaderPage :search="search" :show-search="true" :search-items="tracks" @update:search="search = $event"
-      @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
+    <HeaderPage
+      :search="search"
+      :show-search="true"
+      :search-items="tracks"
+      @update:search="search = $event"
+      @toggle-sidebar="toggleMobileSidebar"
+    />
 
-    <div class="user-shell" :class="{
-      'user-shell--left-collapsed': leftSidebarCollapsed,
-      'user-shell--mobile-left-open': mobileSidebarOpen
-    }">
-      <div class="mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }" @click="mobileSidebarOpen = false" />
+    <div
+      class="user-shell"
+      :class="{
+        'user-shell--left-collapsed': leftSidebarCollapsed,
+        'user-shell--mobile-left-open': mobileSidebarOpen,
+        'user-shell--player-open': !!playerStore.currentTrack
+      }"
+    >
+      <transition name="fade">
+        <div
+          v-if="mobileSidebarOpen"
+          class="mobile-sidebar-overlay show"
+          @click="mobileSidebarOpen = false"
+        />
+      </transition>
 
       <aside class="user-shell__left" :class="{ open: mobileSidebarOpen }">
         <div class="user-shell__left-scroll">
-          <UserSidebar :playlists="playlists" :active-playlist-id="selectedPlaylist?._id || ''"
-            @collapsed-change="handleSidebarCollapse" @create-playlist="openCreatePlaylist"
-            @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist" @delete-playlist="openDeletePlaylist" />
+          <UserSidebar
+            :playlists="playlists"
+            :active-playlist-id="selectedPlaylist?._id || ''"
+            @collapsed-change="handleSidebarCollapse"
+            @create-playlist="openCreatePlaylist"
+            @open-playlist="selectPlaylist"
+            @rename-playlist="openEditPlaylist"
+            @delete-playlist="openDeletePlaylist"
+          />
         </div>
       </aside>
 
       <main class="user-main">
         <section class="discover-hero surface-card">
           <div class="discover-hero__copy">
-            <p class="section-kicker">
-              {{ heroKicker }}
-            </p>
+            <p class="section-kicker">{{ heroKicker }}</p>
 
             <h1 class="discover-hero__title">
               {{ heroTitle }}
@@ -40,8 +59,12 @@
 
           <div v-if="selectedDetailTrack" class="discover-hero__highlight">
             <button class="discover-highlight" type="button" @click="toggleTrack(selectedDetailTrack)">
-              <img class="discover-highlight__cover" :src="resolveCover(selectedDetailTrack)"
-                :alt="selectedDetailTrack.title || 'Track cover'" @error="imgErr" />
+              <img
+                class="discover-highlight__cover"
+                :src="resolveCover(selectedDetailTrack)"
+                :alt="selectedDetailTrack.title || 'Track cover'"
+                @error="imgErr"
+              />
 
               <div class="discover-highlight__body">
                 <span class="discover-highlight__label">
@@ -52,8 +75,10 @@
               </div>
 
               <div class="discover-highlight__play">
-                <PauseIcon v-if="playerStore.currentTrack?._id === selectedDetailTrack._id && playerStore.isPlaying"
-                  class="discover-play-ico" />
+                <PauseIcon
+                  v-if="playerStore.currentTrack?._id === selectedDetailTrack._id && playerStore.isPlaying"
+                  class="discover-play-ico"
+                />
                 <PlayIcon v-else class="discover-play-ico discover-play-ico--shift" />
               </div>
             </button>
@@ -69,10 +94,20 @@
           </div>
 
           <div class="recent-list">
-            <button v-for="track in recentlyPlayed" :key="track._id" type="button" class="recent-item"
-              :class="{ playing: playerStore.currentTrack?._id === track._id }" @click="toggleTrack(track)">
-              <img class="recent-item__cover" :src="resolveCover(track)" :alt="track.title || 'Track cover'"
-                @error="imgErr" />
+            <button
+              v-for="track in recentlyPlayed"
+              :key="track._id"
+              type="button"
+              class="recent-item"
+              :class="{ playing: playerStore.currentTrack?._id === track._id }"
+              @click="toggleTrack(track)"
+            >
+              <img
+                class="recent-item__cover"
+                :src="resolveCover(track)"
+                :alt="track.title || 'Track cover'"
+                @error="imgErr"
+              />
 
               <div class="recent-item__meta">
                 <strong>{{ track.title || 'Untitled' }}</strong>
@@ -80,21 +115,33 @@
               </div>
 
               <div class="recent-item__play">
-                <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
-                  class="recent-play-ico" />
+                <PauseIcon
+                  v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
+                  class="recent-play-ico"
+                />
                 <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
               </div>
             </button>
           </div>
         </section>
 
-        <TrackDetail v-if="selectedDetailTrack" class="user-main-detail" :track="selectedDetailTrack"
-          :current-track="playerStore.currentTrack" :is-playing="playerStore.isPlaying"
-          :recommendations="detailRecommendations" :get-cover="resolveCover" @back="clearDetailTrack"
-          @play="toggleTrack" @toggle-like="toggleLikeTrack" @add-to-playlist="openAddToPlaylist"
-          @add-to-queue="addToQueue" @open-artist="openArtist" @select-track="openTrackDetail" />
+        <TrackDetail
+          v-if="selectedDetailTrack"
+          class="user-main-detail"
+          :track="selectedDetailTrack"
+          :current-track="playerStore.currentTrack"
+          :is-playing="playerStore.isPlaying"
+          :recommendations="detailRecommendations"
+          :get-cover="resolveCover"
+          @play="toggleTrack"
+          @toggle-like="toggleLikeTrack"
+          @add-to-playlist="openAddToPlaylist"
+          @add-to-queue="addToQueue"
+          @open-artist="openArtist"
+          @select-track="openTrackDetail"
+        />
 
-        <section class="content-section" v-if="!loading && !errMsg && visibleSections.length">
+        <section v-if="!loading && !errMsg && visibleSections.length" class="content-section">
           <div class="content-section__head">
             <div>
               <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Browse sections' }}</p>
@@ -113,11 +160,22 @@
           </div>
 
           <div class="section-stack">
-            <TrackGrid v-for="section in visibleSections" :key="section.key" :title="section.title"
-              :subtitle="section.subtitle" :tracks="section.tracks" :current-music="playerStore.currentTrack"
-              :selected-music="selectedDetailTrack" :is-playing="playerStore.isPlaying" :get-cover="resolveCover"
-              :fallback="fallbackCover" @select-track="openTrackDetail" @play-track="toggleTrack"
-              @add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue" />
+            <TrackGrid
+              v-for="section in visibleSections"
+              :key="section.key"
+              :title="section.title"
+              :subtitle="section.subtitle"
+              :tracks="section.tracks"
+              :current-music="playerStore.currentTrack"
+              :selected-music="selectedDetailTrack"
+              :is-playing="playerStore.isPlaying"
+              :get-cover="resolveCover"
+              :fallback="fallbackCover"
+              @select-track="openTrackDetail"
+              @play-track="toggleTrack"
+              @add-to-playlist="openAddToPlaylist"
+              @add-to-queue="addToQueue"
+            />
           </div>
         </section>
 
@@ -139,25 +197,54 @@
 
       <aside class="user-shell__right">
         <div class="user-shell__right-scroll">
-          <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
-            :recommendations="recommendations" :get-cover="resolveCover" @play-track="toggleTrack"
-            @remove-from-queue="playerStore.removeFromQueue" @clear-queue="clearQueueKeepingCurrent"
-            @add-to-queue="addToQueue" />
+          <RightPanel
+            :queue="playerStore.queue"
+            :current-music="playerStore.currentTrack"
+            :recommendations="recommendations"
+            :artist-view="selectedArtistView"
+            :get-cover="resolveCover"
+            @play-track="toggleTrack"
+            @remove-from-queue="playerStore.removeFromQueue"
+            @clear-queue="clearQueueKeepingCurrent"
+            @add-to-queue="addToQueue"
+            @select-track="openTrackDetail"
+            @close-artist="clearArtistView"
+          />
         </div>
       </aside>
     </div>
 
-    <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
-      @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
+    <AddToPlayListModal
+      :open="showAddToPlaylist"
+      :track="selectedTrack"
+      :playlists="playlists"
+      @close="showAddToPlaylist = false"
+      @select="addTrackToPlaylist"
+      @create-new="openCreateFromAdd"
+    />
 
-    <CreatePlaylists :open="showCreatePlaylist" :loading="playlistLoading" :isEdit="isEditingPlaylist"
-      :name="playlistForm.name" :description="playlistForm.description" :selectedColor="playlistForm.color"
-      :colors="playlistColors" @close="closePlaylistModal" @submit="submitPlaylistForm"
-      @update:name="playlistForm.name = $event" @update:description="playlistForm.description = $event"
-      @update:color="playlistForm.color = $event" />
+    <CreatePlaylists
+      :open="showCreatePlaylist"
+      :loading="playlistLoading"
+      :isEdit="isEditingPlaylist"
+      :name="playlistForm.name"
+      :description="playlistForm.description"
+      :selectedColor="playlistForm.color"
+      :colors="playlistColors"
+      @close="closePlaylistModal"
+      @submit="submitPlaylistForm"
+      @update:name="playlistForm.name = $event"
+      @update:description="playlistForm.description = $event"
+      @update:color="playlistForm.color = $event"
+    />
 
-    <DeletePlaylistModal :open="showDeletePlaylist" :loading="deleteLoading" :playlist="playlistToDelete"
-      @close="closeDeletePlaylist" @confirm="confirmDeletePlaylist" />
+    <DeletePlaylistModal
+      :open="showDeletePlaylist"
+      :loading="deleteLoading"
+      :playlist="playlistToDelete"
+      @close="closeDeletePlaylist"
+      @confirm="confirmDeletePlaylist"
+    />
   </div>
 </template>
 
@@ -175,8 +262,8 @@ import TrackGrid from '@/components/users/TrackGrid.vue'
 import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
-import '@/styles/user_page.css'
 import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
+import '@/styles/user_page.css'
 
 const authStore = useAuthStore()
 const playerStore = usePlayerStore()
@@ -194,6 +281,7 @@ const search = ref('')
 const selectedTrack = ref(null)
 const selectedPlaylist = ref(null)
 const selectedDetailTrack = ref(null)
+const selectedArtistView = ref(null)
 const showAddToPlaylist = ref(false)
 const showCreatePlaylist = ref(false)
 const playlistLoading = ref(false)
@@ -523,6 +611,10 @@ const saveRecentlyPlayed = (track) => {
   localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
 }
 
+const toggleMobileSidebar = () => {
+  mobileSidebarOpen.value = !mobileSidebarOpen.value
+}
+
 const handleSidebarCollapse = (value) => {
   leftSidebarCollapsed.value = !!value
 }
@@ -530,11 +622,12 @@ const handleSidebarCollapse = (value) => {
 const selectPlaylist = (playlist) => {
   selectedPlaylist.value = selectedPlaylist.value?._id === playlist._id ? null : playlist
   mobileSidebarOpen.value = false
+  selectedArtistView.value = null
 
   const source = selectedPlaylist.value?._id
     ? tracks.value.filter((t) =>
-      new Set((selectedPlaylist.value.tracks || []).map((x) => String(x._id || x))).has(String(t._id))
-    )
+        new Set((selectedPlaylist.value.tracks || []).map((x) => String(x._id || x))).has(String(t._id))
+      )
     : tracks.value
 
   selectedDetailTrack.value = source[0] || null
@@ -542,6 +635,7 @@ const selectPlaylist = (playlist) => {
 
 const openTrackDetail = (track) => {
   selectedDetailTrack.value = track
+  selectedArtistView.value = null
 
   requestAnimationFrame(() => {
     const el = document.querySelector('.user-main-detail')
@@ -549,14 +643,10 @@ const openTrackDetail = (track) => {
   })
 }
 
-const clearDetailTrack = () => {
-  selectedDetailTrack.value = filteredTracks.value[0] || null
-}
-
 const trackPlay = async (track) => {
   try {
     await api.patch(`/music/${track._id}/play`)
-  } catch { }
+  } catch {}
 }
 
 const toggleTrack = (track) => {
@@ -590,7 +680,14 @@ const toggleLikeTrack = async (track) => {
     if (selectedDetailTrack.value?._id === data._id) {
       selectedDetailTrack.value = data
     }
-  } catch { }
+
+    if (selectedArtistView.value?.tracks?.length) {
+      selectedArtistView.value = {
+        ...selectedArtistView.value,
+        tracks: selectedArtistView.value.tracks.map((t) => (String(t._id) === String(data._id) ? data : t)),
+      }
+    }
+  } catch {}
 }
 
 const addToQueue = (track) => {
@@ -623,7 +720,7 @@ const addTrackToPlaylist = async (playlist) => {
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     showAddToPlaylist.value = false
-  } catch { }
+  } catch {}
 }
 
 const openCreatePlaylist = () => {
@@ -713,9 +810,26 @@ const confirmDeletePlaylist = async () => {
 }
 
 const openArtist = (artist) => {
-  if (!artist) return
-  search.value = String(artist).trim()
-  selectedPlaylist.value = null
+  const name = String(artist || '').trim()
+  if (!name) return
+
+  const artistTracks = filteredTracks.value.filter(
+    (track) => normalizeWord(track.artist) === normalizeWord(name)
+  )
+
+  selectedArtistView.value = {
+    name,
+    cover: artistTracks[0]?.cover || '',
+    bio: artistTracks[0]?.artistBio || '',
+    genres: [...new Set(artistTracks.flatMap((t) => t.genre || []))].slice(0, 8),
+    tracks: artistTracks,
+    totalPlays: artistTracks.reduce((s, t) => s + Number(t.playCount || 0), 0),
+    totalLikes: artistTracks.reduce((s, t) => s + Number(t.likeCount || 0), 0),
+  }
+}
+
+const clearArtistView = () => {
+  selectedArtistView.value = null
 }
 
 const imgErr = (e) => {
@@ -736,6 +850,21 @@ watch(filteredTracks, (value) => {
   const exists = value.find((t) => String(t._id) === String(selectedDetailTrack.value._id))
   if (!exists) selectedDetailTrack.value = value[0]
 })
+
+watch(
+  () => search.value,
+  () => {
+    selectedPlaylist.value = null
+  }
+)
+
+watch(
+  () => selectedArtistView.value?.name,
+  (name) => {
+    if (!name) return
+    mobileSidebarOpen.value = false
+  }
+)
 
 onMounted(async () => {
   await fetchTracks()

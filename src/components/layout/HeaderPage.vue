@@ -185,12 +185,13 @@
             <span v-if="!isXs">Add track</span>
           </button>
 
-          <div v-if="!isMobile" class="profile-wrap" ref="profileRef">
+          <div v-if="!isMobile" ref="profileRef" class="profile-wrap">
             <button class="profile-btn" :class="{ open: menuOpen }" type="button"
-              :aria-expanded="menuOpen ? 'true' : 'false'" aria-label="Open profile menu" @click="menuOpen = !menuOpen">
+              :aria-expanded="menuOpen ? 'true' : 'false'" aria-haspopup="menu" aria-label="Open profile menu"
+              @click.stop="toggleProfileMenu">
               <div class="avatar">{{ firstLetter }}</div>
 
-              <div class="profile-mini" v-if="!isXs">
+              <div v-if="!isXs" class="profile-mini">
                 <span class="profile-mini__name">{{ authStore.userName || 'User' }}</span>
                 <span class="profile-mini__role">{{ isAdminPage ? 'Admin' : 'Member' }}</span>
               </div>
@@ -199,7 +200,7 @@
             </button>
 
             <transition name="dropdown">
-              <div v-if="menuOpen" class="profile-dropdown">
+              <div v-if="menuOpen" class="profile-dropdown" role="menu">
                 <div class="dropdown-user">
                   <div class="dropdown-avatar">{{ firstLetter }}</div>
 
@@ -211,24 +212,25 @@
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item" type="button" @click="nav(homePath)">
+                <button class="dropdown-item" type="button" @click="nav(homePath)" role="menuitem">
                   <HomeIcon class="di-icon" />
                   <span>Home</span>
                 </button>
 
-                <button class="dropdown-item" type="button" @click="nav(profilePath)">
+                <button class="dropdown-item" type="button" @click="nav(profilePath)" role="menuitem">
                   <UserIcon class="di-icon" />
                   <span>Profile</span>
                 </button>
 
-                <button class="dropdown-item" type="button" @click="nav(settingsPath)">
+                <button class="dropdown-item" type="button" @click="nav(settingsPath)" role="menuitem">
                   <Cog6ToothIcon class="di-icon" />
                   <span>Settings</span>
                 </button>
 
                 <div class="dropdown-divider" />
 
-                <button class="dropdown-item danger" type="button" :disabled="loggingOut" @click="logout">
+                <button class="dropdown-item danger" type="button" :disabled="loggingOut" @click="logout"
+                  role="menuitem">
                   <ArrowRightOnRectangleIcon class="di-icon" />
                   <span>{{ loggingOut ? 'Logging out…' : 'Log out' }}</span>
                 </button>
@@ -428,7 +430,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   HomeIcon,
@@ -622,7 +624,7 @@ const moveActiveResult = (direction) => {
 
 const saveRecentSearch = (value) => {
   const q = String(value || '').trim()
-  if (!q) return
+  if (!q || typeof window === 'undefined') return
 
   const next = [q, ...recentSearches.value.filter((item) => item !== q)].slice(0, 6)
   recentSearches.value = next
@@ -631,7 +633,7 @@ const saveRecentSearch = (value) => {
 
 const clearRecentSearches = () => {
   recentSearches.value = []
-  localStorage.removeItem(RECENT_SEARCHES_KEY)
+  if (typeof window !== 'undefined') localStorage.removeItem(RECENT_SEARCHES_KEY)
 }
 
 const applyRecentSearch = async (value) => {
@@ -660,16 +662,19 @@ const handleSearchFocus = () => {
 
 const handleSearchBlur = () => {
   requestAnimationFrame(() => {
+    const activeEl = document.activeElement
+    if (searchWrapRef.value?.contains(activeEl)) return
     searchFocused.value = false
     activeResultKey.value = ''
   })
 }
 
-const handleSearchKeydown = async (e) => {
+const handleSearchKeydown = (e) => {
   if (e.key === 'Escape') {
     emit('update:search', '')
     activeResultKey.value = ''
     searchFocused.value = false
+    searchRef.value?.blur()
     return
   }
 
@@ -712,6 +717,11 @@ const selectSearchResult = (item) => {
     return
   }
 
+  if (isTrackResult(item) && (item._id || item.id)) {
+    router.push(`/track/${item._id || item.id}`)
+    return
+  }
+
   if (isArtistResult(item) && item.slug) {
     router.push(`/artist/${item.slug}`)
   }
@@ -726,6 +736,8 @@ const goHome = () => {
 }
 
 const openMobileSearch = async () => {
+  menuOpen.value = false
+  mobileMenuOpen.value = false
   mobileSearchOpen.value = true
   await nextTick()
   mobileSearchRef.value?.focus()
@@ -749,6 +761,12 @@ const nav = (path) => {
 const navMobile = (path) => {
   mobileMenuOpen.value = false
   router.push(path)
+}
+
+const toggleProfileMenu = () => {
+  mobileMenuOpen.value = false
+  mobileSearchOpen.value = false
+  menuOpen.value = !menuOpen.value
 }
 
 const logout = async () => {
@@ -792,8 +810,17 @@ const handleGlobalKey = (e) => {
   }
 }
 
-const handleOutside = (e) => {
-  if (profileRef.value && !profileRef.value.contains(e.target)) menuOpen.value = false
+const handlePointerDownOutside = (e) => {
+  const target = e.target
+
+  if (profileRef.value && !profileRef.value.contains(target)) {
+    menuOpen.value = false
+  }
+
+  if (searchWrapRef.value && !searchWrapRef.value.contains(target)) {
+    searchFocused.value = false
+    activeResultKey.value = ''
+  }
 }
 
 const handleResize = () => {
@@ -801,12 +828,25 @@ const handleResize = () => {
   if (window.innerWidth > 980) {
     mobileMenuOpen.value = false
     mobileSearchOpen.value = false
+  } else {
+    menuOpen.value = false
   }
 }
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 8
 }
+
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => {
+    menuOpen.value = false
+    mobileMenuOpen.value = false
+    mobileSearchOpen.value = false
+    searchFocused.value = false
+    activeResultKey.value = ''
+  }
+)
 
 onMounted(() => {
   try {
@@ -816,7 +856,7 @@ onMounted(() => {
     recentSearches.value = []
   }
 
-  document.addEventListener('click', handleOutside)
+  document.addEventListener('pointerdown', handlePointerDownOutside)
   window.addEventListener('keydown', handleGlobalKey)
   window.addEventListener('resize', handleResize)
   window.addEventListener('scroll', handleScroll, { passive: true })
@@ -825,7 +865,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleOutside)
+  document.removeEventListener('pointerdown', handlePointerDownOutside)
   window.removeEventListener('keydown', handleGlobalKey)
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('scroll', handleScroll)

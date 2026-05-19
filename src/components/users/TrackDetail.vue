@@ -13,13 +13,6 @@
       </div>
 
       <div class="td-main">
-        <div class="td-topbar">
-          <button class="td-back" type="button" @click="$emit('back')">
-            <ArrowLeftIcon class="td-back-ico" />
-            <span>Back to sections</span>
-          </button>
-        </div>
-
         <div class="td-copy">
           <p class="page-label">Track focus</p>
 
@@ -110,7 +103,6 @@
 import { computed } from 'vue'
 import { fallbackCover } from '@/utils/media'
 import {
-  ArrowLeftIcon,
   PlayIcon,
   PauseIcon,
   HeartIcon,
@@ -129,7 +121,6 @@ const props = defineProps({
 })
 
 defineEmits([
-  'back',
   'play',
   'toggle-like',
   'add-to-playlist',
