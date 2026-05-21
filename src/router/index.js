@@ -1,9 +1,19 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const APP_NAME = 'ExclusiveMusics'
 
 const getHomePath = (auth) => (auth.isAdmin ? '/admin' : '/user')
+
+const ensureAuthInitialized = async () => {
+  const auth = useAuthStore()
+
+  if (!auth.initialized) {
+    await auth.fetchMe()
+  }
+
+  return auth
+}
 
 const routes = [
   {
@@ -59,8 +69,9 @@ const routes = [
   {
     path: '/track/:id',
     name: 'TrackDetail',
-    component: () => import('../components/users/TrackDetail.vue'),
+    component: () => import('../pages/track/TrackDetailPage.vue'),
     meta: { requiresAuth: true, title: 'Track' },
+    props: true,
   },
   {
     path: '/settings',
@@ -72,11 +83,7 @@ const routes = [
     path: '/profile',
     name: 'ProfileRedirect',
     beforeEnter: async () => {
-      const auth = useAuthStore()
-
-      if (!auth.initialized) {
-        await auth.fetchMe()
-      }
+      const auth = await ensureAuthInitialized()
 
       if (!auth.isLoggedIn) {
         return '/login'
@@ -128,37 +135,43 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
-  scrollBehavior() {
-    return { top: 0 }
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    return { top: 0, left: 0 }
   },
 })
 
 router.beforeEach(async (to) => {
-  const auth = useAuthStore()
-
-  if (!auth.initialized) {
-    await auth.fetchMe()
-  }
+  const auth = await ensureAuthInitialized()
 
   if (to.name === 'Landing' && auth.isLoggedIn) {
     return getHomePath(auth)
   }
 
   if (to.meta?.guestOnly && auth.isLoggedIn) {
-    return getHomePath(auth)
+    const guestAllowedWhenLoggedIn = ['VerifyEmail', 'ResetPassword']
+    if (!guestAllowedWhenLoggedIn.includes(String(to.name || ''))) {
+      return getHomePath(auth)
+    }
   }
 
   if (to.meta?.requiresAuth && !auth.isLoggedIn) {
     return {
       path: '/login',
-      query: { redirect: to.fullPath },
+      query: {
+        redirect: to.fullPath,
+      },
+      replace: true,
     }
   }
 
   if (to.meta?.requiresAdmin && !auth.isAdmin) {
-    return '/user'
+    return {
+      path: '/user',
+      replace: true,
+    }
   }
 
   return true
