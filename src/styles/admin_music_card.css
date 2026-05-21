@@ -150,14 +150,14 @@
 }
 
 .admin-music-card__health.is-premium {
-  color: var(--accent);
-  background: var(--accent-soft);
+  color: var(--green);
+  background: var(--green-soft);
   border-color: transparent;
 }
 
 .admin-music-card__health.is-rich {
-  color: var(--green);
-  background: var(--green-soft);
+  color: var(--accent);
+  background: var(--accent-soft);
   border-color: transparent;
 }
 
@@ -230,12 +230,29 @@
   background: var(--amber-soft);
 }
 
+.admin-music-card__chip--featured {
+  color: var(--accent);
+  border-color: transparent;
+  background: var(--accent-soft);
+}
+
+.admin-music-card__chip--recommended {
+  color: #8b5cf6;
+  border-color: transparent;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.admin-music-card__summary,
 .admin-music-card__note {
   margin: 0;
   min-height: 26px;
   font-size: 10px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .admin-music-card__meta {

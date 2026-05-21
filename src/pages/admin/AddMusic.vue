@@ -20,7 +20,9 @@
           <div>
             <p class="am-kicker">Admin • Music</p>
             <h1 class="am-title">Add new track</h1>
-            <p class="am-subtitle">Create a track with strong metadata, lyrics tools and live preview.</p>
+            <p class="am-subtitle">
+              Create a premium-ready track entry with strong metadata, artist context, lyrics and release details.
+            </p>
           </div>
           <div class="am-status-pill" :class="targetStatus">
             <span class="am-status-dot" />
@@ -141,6 +143,18 @@
                 <label class="am-label">Version</label>
                 <input v-model="form.version" class="am-input" type="text" placeholder="Original / Remix / Live" />
               </div>
+
+              <div class="am-field am-span2">
+                <label class="am-label">Short description</label>
+                <input v-model="form.shortDescription" class="am-input" type="text"
+                  placeholder="Short premium summary for cards and previews" />
+              </div>
+
+              <div class="am-field am-span2">
+                <label class="am-label">Highlight text</label>
+                <input v-model="form.highlightText" class="am-input" type="text"
+                  placeholder="Optional promo line for spotlight sections" />
+              </div>
             </div>
           </div>
 
@@ -221,6 +235,46 @@
                 <label class="am-label">Country</label>
                 <input v-model="form.country" class="am-input" type="text" placeholder="Uzbekistan" />
               </div>
+
+              <div class="am-field">
+                <label class="am-label">Artist country</label>
+                <input v-model="form.artistCountry" class="am-input" type="text" placeholder="Uzbekistan" />
+              </div>
+
+              <div class="am-field am-span2">
+                <label class="am-label">Artist genres</label>
+                <input v-model="artistGenresText" class="am-input" type="text" placeholder="Pop, Ballad, Romantic" />
+              </div>
+            </div>
+          </div>
+
+          <div class="am-card">
+            <div class="am-card-head">
+              <div class="am-card-ico">
+                <DocumentTextIcon />
+              </div>
+              <div>
+                <h3>Track and artist story</h3>
+                <p>Richer content for detail views and discovery</p>
+              </div>
+            </div>
+
+            <div class="am-field">
+              <label class="am-label">Track bio</label>
+              <textarea v-model="form.bio" class="am-textarea"
+                placeholder="Describe the song, mood, context, and why it matters..." />
+            </div>
+
+            <div class="am-field am-mt16">
+              <label class="am-label">Artist bio</label>
+              <textarea v-model="form.artistBio" class="am-textarea"
+                placeholder="Describe the artist, style, background, and positioning..." />
+            </div>
+
+            <div class="am-field am-mt16">
+              <label class="am-label">Artist image URL</label>
+              <input v-model="form.artistImage" class="am-input" type="url"
+                placeholder="https://example.com/artist.jpg" />
             </div>
           </div>
 
@@ -256,6 +310,15 @@
                   <option value="private">Private</option>
                 </select>
                 <p v-if="errors.visibility" class="am-err">{{ errors.visibility }}</p>
+              </div>
+
+              <div class="am-field">
+                <label class="am-label">Editorial priority</label>
+                <select v-model="form.editorialPriority" class="am-input am-select">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
               </div>
 
               <div class="am-field">
@@ -448,12 +511,28 @@
                 <DocumentTextIcon />
               </div>
               <div>
-                <h3>Internal note</h3>
-                <p>Admin-only private notes</p>
+                <h3>SEO and internal</h3>
+                <p>Search preview and internal notes</p>
               </div>
             </div>
-            <textarea v-model="form.adminNote" class="am-textarea"
-              placeholder="Promo plan, release reminders, edit notes..." />
+
+            <div class="am-grid2">
+              <div class="am-field">
+                <label class="am-label">SEO title</label>
+                <input v-model="form.seoTitle" class="am-input" type="text" placeholder="Track SEO title" />
+              </div>
+
+              <div class="am-field">
+                <label class="am-label">SEO description</label>
+                <input v-model="form.seoDescription" class="am-input" type="text" placeholder="Short search snippet" />
+              </div>
+
+              <div class="am-field am-span2">
+                <label class="am-label">Internal note</label>
+                <textarea v-model="form.adminNote" class="am-textarea"
+                  placeholder="Promo plan, release reminders, edit notes..." />
+              </div>
+            </div>
           </div>
 
           <div class="am-footer">
@@ -520,6 +599,7 @@
 
           <div class="am-preview-chips">
             <span class="am-chip" :class="`am-chip--${healthTier}`">{{ healthTier }}</span>
+            <span v-if="form.editorialPriority" class="am-chip">{{ form.editorialPriority }}</span>
             <span v-if="form.isExplicit" class="am-chip am-chip--rose">Explicit</span>
             <span v-if="form.isFeatured" class="am-chip">Featured</span>
             <span v-if="form.isRecommended" class="am-chip am-chip--purple">Recommended</span>
@@ -540,6 +620,8 @@
             <dd>{{ form.language || '—' }}</dd>
             <dt>Country</dt>
             <dd>{{ form.country || '—' }}</dd>
+            <dt>Artist country</dt>
+            <dd>{{ form.artistCountry || '—' }}</dd>
             <dt>Type</dt>
             <dd>{{ form.releaseType }}</dd>
             <dt>BPM</dt>
@@ -549,19 +631,6 @@
             <dt>Visibility</dt>
             <dd>{{ form.visibility }}</dd>
           </dl>
-        </div>
-
-        <div class="am-side-card am-tips-card">
-          <p class="am-tips-title">
-            <SparklesIcon class="w-3.5 h-3.5" />
-            Quick tips
-          </p>
-          <ul class="am-tips-list">
-            <li>Upload a square cover for best results.</li>
-            <li>Add genres and moods for better discovery.</li>
-            <li>Transcribe first, then sync lyrics.</li>
-            <li>Use unlisted before going fully public.</li>
-          </ul>
         </div>
       </aside>
     </div>
@@ -585,14 +654,13 @@ import {
   MusicalNoteIcon,
   PhotoIcon,
   RocketLaunchIcon,
-  SparklesIcon,
   TagIcon,
 } from '@heroicons/vue/24/outline'
 import '@/styles/add_music_page.css'
 
 const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
 const router = useRouter()
-const storageKey = 'am-draft-v4'
+const storageKey = 'am-draft-v5'
 
 const loading = ref(false)
 const uploadPct = ref(0)
@@ -608,6 +676,7 @@ const errors = reactive({})
 const genreText = ref('')
 const moodText = ref('')
 const tagsText = ref('')
+const artistGenresText = ref('')
 const slugTouched = ref(false)
 let coverObjectUrl = ''
 
@@ -617,14 +686,52 @@ const previewTimer = ref(null)
 const syncPreviewRef = ref(null)
 
 const form = reactive({
-  title: '', slug: '', artist: '', author: '', composer: '', producer: '',
-  featuredArtists: '', album: '', trackNumber: '', discNumber: '', version: '',
-  language: '', lyricsLanguage: '', country: '', releaseType: 'single',
-  visibility: 'public', releaseDate: '', publishAt: '', bio: '', artistBio: '',
-  lyrics: '', syncedLyricsRaw: '', coverUrl: '', bpm: '', keySignature: '',
-  isrc: '', labelName: '', copyright: '', isExplicit: false, isFeatured: false,
-  isRecommended: false, isFreeDownload: false, adminNote: '',
-  youtube: '', spotify: '', appleMusic: '', soundcloud: '', instagram: '', tiktok: '',
+  title: '',
+  slug: '',
+  artist: '',
+  author: '',
+  composer: '',
+  producer: '',
+  featuredArtists: '',
+  album: '',
+  trackNumber: '',
+  discNumber: '',
+  version: '',
+  language: '',
+  lyricsLanguage: '',
+  country: '',
+  artistCountry: '',
+  releaseType: 'single',
+  visibility: 'public',
+  releaseDate: '',
+  publishAt: '',
+  bio: '',
+  shortDescription: '',
+  artistBio: '',
+  artistImage: '',
+  highlightText: '',
+  lyrics: '',
+  syncedLyricsRaw: '',
+  coverUrl: '',
+  bpm: '',
+  keySignature: '',
+  isrc: '',
+  labelName: '',
+  copyright: '',
+  editorialPriority: 'medium',
+  isExplicit: false,
+  isFeatured: false,
+  isRecommended: false,
+  isFreeDownload: false,
+  adminNote: '',
+  seoTitle: '',
+  seoDescription: '',
+  youtube: '',
+  spotify: '',
+  appleMusic: '',
+  soundcloud: '',
+  instagram: '',
+  tiktok: '',
 })
 
 const statusOpts = [
@@ -637,7 +744,7 @@ const presets = [
   { id: 'single', label: '🎵 Single', releaseType: 'single' },
   { id: 'remix', label: '🎛 Remix', releaseType: 'remix', version: 'Remix' },
   { id: 'live', label: '🎤 Live', releaseType: 'live', version: 'Live' },
-  { id: 'uzpop', label: "🇺🇿 O'zbek Pop", language: 'Uzbek', country: 'Uzbekistan', genre: 'Pop' },
+  { id: 'uzpop', label: "🇺🇿 O'zbek Pop", language: 'Uzbek', country: 'Uzbekistan', artistCountry: 'Uzbekistan', genre: 'Pop' },
 ]
 
 const parseList = (s = '') => String(s).split(',').map(t => t.trim()).filter(Boolean)
@@ -669,6 +776,7 @@ const parseLrc = (raw = '') => {
 const genreList = computed(() => parseList(genreText.value))
 const moodList = computed(() => parseList(moodText.value))
 const tagsList = computed(() => parseList(tagsText.value))
+const artistGenresList = computed(() => parseList(artistGenresText.value))
 const parsedSyncedLyrics = computed(() => parseLrc(form.syncedLyricsRaw))
 
 const hasCover = computed(() => !!coverFile.value || !!coverPreview.value)
@@ -717,6 +825,9 @@ const healthScore = computed(() => {
     genreList.value.length > 0,
     !!form.lyrics.trim(),
     !!form.syncedLyricsRaw.trim(),
+    !!form.bio.trim(),
+    !!form.artistBio.trim(),
+    !!form.shortDescription.trim(),
     hasLinks.value,
     !!form.visibility,
   ]
@@ -736,7 +847,10 @@ const canPublish = computed(() =>
   !!audioFile.value &&
   hasCover.value &&
   genreList.value.length > 0 &&
-  !!form.visibility
+  !!form.visibility &&
+  !!form.bio.trim() &&
+  !!form.artistBio.trim() &&
+  !!form.shortDescription.trim()
 )
 
 const targetStatusLabel = computed(() =>
@@ -749,6 +863,8 @@ const requireSteps = computed(() => [
   { label: 'Artist', done: !!form.artist.trim() },
   { label: 'Genre', done: genreList.value.length > 0 },
   { label: 'Cover', done: hasCover.value },
+  { label: 'Track bio', done: !!form.bio.trim() },
+  { label: 'Artist bio', done: !!form.artistBio.trim() },
   { label: 'Visibility', done: !!form.visibility },
 ])
 
@@ -859,6 +975,7 @@ const applyPreset = (preset) => {
   if (preset.version && !form.version) form.version = preset.version
   if (preset.language && !form.language) form.language = preset.language
   if (preset.country && !form.country) form.country = preset.country
+  if (preset.artistCountry && !form.artistCountry) form.artistCountry = preset.artistCountry
   if (preset.genre && !genreList.value.includes(preset.genre)) {
     genreText.value = [...genreList.value, preset.genre].join(', ')
   }
@@ -911,7 +1028,13 @@ watch(activeSyncedIndex, async (idx) => {
 })
 
 watch(
-  () => ({ ...form, genreText: genreText.value, moodText: moodText.value, tagsText: tagsText.value }),
+  () => ({
+    ...form,
+    genreText: genreText.value,
+    moodText: moodText.value,
+    tagsText: tagsText.value,
+    artistGenresText: artistGenresText.value,
+  }),
   (v) => localStorage.setItem(storageKey, JSON.stringify(v)),
   { deep: true }
 )
@@ -925,6 +1048,7 @@ const restoreDraft = () => {
     genreText.value = p.genreText || ''
     moodText.value = p.moodText || ''
     tagsText.value = p.tagsText || ''
+    artistGenresText.value = p.artistGenresText || ''
     if (form.coverUrl) coverPreview.value = form.coverUrl
   } catch { }
 }
@@ -1003,6 +1127,7 @@ const buildFD = (status) => {
   fd.append('genre', JSON.stringify(genreList.value))
   fd.append('mood', JSON.stringify(moodList.value))
   fd.append('tags', JSON.stringify(tagsList.value))
+  fd.append('artistGenres', JSON.stringify(artistGenresList.value))
   fd.append('album', str(form.album))
   fd.append('trackNumber', String(form.trackNumber || 0))
   fd.append('discNumber', String(form.discNumber || 0))
@@ -1010,10 +1135,16 @@ const buildFD = (status) => {
   fd.append('language', str(form.language))
   fd.append('lyricsLanguage', str(form.lyricsLanguage))
   fd.append('country', str(form.country))
+  fd.append('artistCountry', str(form.artistCountry))
   fd.append('releaseType', form.releaseType)
   fd.append('visibility', form.visibility)
   fd.append('releaseDate', form.releaseDate || '')
   fd.append('publishAt', form.publishAt || '')
+  fd.append('bio', str(form.bio))
+  fd.append('shortDescription', str(form.shortDescription))
+  fd.append('artistBio', str(form.artistBio))
+  fd.append('artistImage', str(form.artistImage))
+  fd.append('highlightText', str(form.highlightText))
   fd.append('lyrics', str(form.lyrics))
   fd.append('syncedLyricsRaw', str(form.syncedLyricsRaw))
   fd.append('coverUrl', str(form.coverUrl))
@@ -1023,6 +1154,9 @@ const buildFD = (status) => {
   fd.append('isrc', str(form.isrc))
   fd.append('labelName', str(form.labelName))
   fd.append('copyright', str(form.copyright))
+  fd.append('editorialPriority', form.editorialPriority)
+  fd.append('seoTitle', str(form.seoTitle))
+  fd.append('seoDescription', str(form.seoDescription))
   fd.append('status', status)
   fd.append('isExplicit', String(form.isExplicit))
   fd.append('isFeatured', String(form.isFeatured))

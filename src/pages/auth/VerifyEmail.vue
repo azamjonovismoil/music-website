@@ -1,5 +1,6 @@
 <template>
-  <AuthLayout eyebrow="Verify account" title="Verify email" description="Enter the 6-digit code sent to your email.">
+  <AuthLayout eyebrow="Verify account" title="Verify email"
+    description="Enter the 6-digit code sent to your email to activate your account.">
     <div v-if="serverError" class="auth-alert auth-alert--error">
       {{ serverError }}
     </div>
@@ -87,7 +88,13 @@ const handleSubmit = async () => {
       code: form.code,
     })
 
-    ElNotification({ title: 'Email verified', type: 'success', duration: 1600 })
+    ElNotification({
+      title: 'Email verified',
+      message: data?.message || 'Account verified successfully',
+      type: 'success',
+      duration: 1800,
+    })
+
     router.replace(Number(data?.user?.isAdmin) === 1 ? '/admin' : '/user')
   } catch (error) {
     serverError.value = error?.response?.data?.message || 'Verification failed'
@@ -95,14 +102,16 @@ const handleSubmit = async () => {
 }
 
 const handleResend = async () => {
+  errors.email = ''
+  serverError.value = ''
+  serverSuccess.value = ''
+
   if (!form.email) {
     errors.email = 'Email is required'
     return
   }
 
   resending.value = true
-  serverError.value = ''
-  serverSuccess.value = ''
 
   try {
     const data = await auth.resendVerification({ email: form.email })

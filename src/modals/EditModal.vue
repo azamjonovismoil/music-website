@@ -5,7 +5,7 @@
       <div class="edit-head">
         <div class="edit-head__copy">
           <h2>Edit track</h2>
-          <p>Update metadata, media, publishing settings, and synced lyrics.</p>
+          <p>Update metadata, story, release settings, links, media and synced lyrics.</p>
         </div>
 
         <div class="edit-head-right">
@@ -20,7 +20,6 @@
     </template>
 
     <div class="edit-shell">
-      <!-- TOP PREVIEW -->
       <section class="preview-hero">
         <div class="preview-hero__media">
           <div class="preview-cover-wrap">
@@ -39,6 +38,7 @@
             <div class="preview-hero__badges">
               <span class="badge">{{ healthScore }}%</span>
               <span class="badge">{{ healthTier }}</span>
+              <span class="badge">{{ form.editorialPriority }}</span>
               <span class="preview-status" :class="form.status">
                 <span class="status-dot" />
                 {{ statusLabel }}
@@ -58,6 +58,12 @@
 
             <dt>Visibility</dt>
             <dd>{{ form.visibility || 'public' }}</dd>
+
+            <dt>Artist country</dt>
+            <dd>{{ form.artistCountry || '—' }}</dd>
+
+            <dt>Highlight</dt>
+            <dd>{{ form.highlightText || '—' }}</dd>
           </dl>
 
           <div class="preview-readiness">
@@ -65,16 +71,18 @@
               <div class="mini-check-list__item" :class="{ ok: hasAudio }"><span />Audio</div>
               <div class="mini-check-list__item" :class="{ ok: hasCover }"><span />Cover</div>
               <div class="mini-check-list__item" :class="{ ok: genreList.length > 0 }"><span />Genre</div>
-              <div class="mini-check-list__item" :class="{ ok: !!form.lyrics.trim() }"><span />Lyrics</div>
-              <div class="mini-check-list__item" :class="{ ok: !!form.syncedLyricsRaw.trim() }"><span />Synced lyrics
+              <div class="mini-check-list__item" :class="{ ok: !!form.bio.trim() }"><span />Track bio</div>
+              <div class="mini-check-list__item" :class="{ ok: !!form.artistBio.trim() }"><span />Artist bio</div>
+              <div class="mini-check-list__item" :class="{ ok: !!form.shortDescription.trim() }"><span />Short desc
               </div>
+              <div class="mini-check-list__item" :class="{ ok: !!form.lyrics.trim() }"><span />Lyrics</div>
+              <div class="mini-check-list__item" :class="{ ok: !!form.syncedLyricsRaw.trim() }"><span />Synced</div>
               <div class="mini-check-list__item" :class="{ ok: hasLinks }"><span />Links</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- FORM -->
       <div class="edit-main">
         <section class="edit-section">
           <div class="edit-section-head">
@@ -113,6 +121,16 @@
             <div class="field">
               <label class="field-label">Version</label>
               <input v-model="form.version" class="edit-input" type="text" />
+            </div>
+
+            <div class="field full">
+              <label class="field-label">Short description</label>
+              <input v-model="form.shortDescription" class="edit-input" type="text" />
+            </div>
+
+            <div class="field full">
+              <label class="field-label">Highlight text</label>
+              <input v-model="form.highlightText" class="edit-input" type="text" />
             </div>
           </div>
         </section>
@@ -185,6 +203,11 @@
             </div>
 
             <div class="field">
+              <label class="field-label">Artist country</label>
+              <input v-model="form.artistCountry" class="edit-input" type="text" />
+            </div>
+
+            <div class="field">
               <label class="field-label">Release type</label>
               <select v-model="form.releaseType" class="edit-input">
                 <option value="single">Single</option>
@@ -196,9 +219,47 @@
               </select>
             </div>
 
+            <div class="field">
+              <label class="field-label">Editorial priority</label>
+              <select v-model="form.editorialPriority" class="edit-input">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+
             <div class="field full">
               <label class="field-label">Tags</label>
               <input v-model="tagsText" class="edit-input" type="text" />
+            </div>
+
+            <div class="field full">
+              <label class="field-label">Artist genres</label>
+              <input v-model="artistGenresText" class="edit-input" type="text" />
+            </div>
+          </div>
+        </section>
+
+        <section class="edit-section">
+          <div class="edit-section-head">
+            <h3>Track and artist story</h3>
+            <p>Richer content for detail views and discovery</p>
+          </div>
+
+          <div class="edit-grid">
+            <div class="field full">
+              <label class="field-label">Track bio</label>
+              <textarea v-model="form.bio" class="edit-input area" />
+            </div>
+
+            <div class="field full">
+              <label class="field-label">Artist bio</label>
+              <textarea v-model="form.artistBio" class="edit-input area" />
+            </div>
+
+            <div class="field full">
+              <label class="field-label">Artist image URL</label>
+              <input v-model="form.artistImage" class="edit-input" type="url" />
             </div>
           </div>
         </section>
@@ -383,6 +444,30 @@
 
         <section class="edit-section">
           <div class="edit-section-head">
+            <h3>SEO and internal</h3>
+            <p>Search preview and internal notes</p>
+          </div>
+
+          <div class="edit-grid">
+            <div class="field">
+              <label class="field-label">SEO title</label>
+              <input v-model="form.seoTitle" class="edit-input" type="text" />
+            </div>
+
+            <div class="field">
+              <label class="field-label">SEO description</label>
+              <input v-model="form.seoDescription" class="edit-input" type="text" />
+            </div>
+
+            <div class="field full">
+              <label class="field-label">Internal note</label>
+              <textarea v-model="form.adminNote" class="edit-input area" />
+            </div>
+          </div>
+        </section>
+
+        <section class="edit-section">
+          <div class="edit-section-head">
             <h3>Replace media</h3>
             <p>Update cover and audio assets</p>
           </div>
@@ -404,14 +489,6 @@
             <input v-model="form.coverUrl" class="edit-input" type="url" placeholder="https://example.com/cover.jpg"
               @blur="applyCoverUrlPreview" />
           </div>
-        </section>
-
-        <section class="edit-section">
-          <div class="edit-section-head">
-            <h3>Internal note</h3>
-            <p>Private admin note</p>
-          </div>
-          <textarea v-model="form.adminNote" class="edit-input area" />
         </section>
       </div>
     </div>
@@ -461,6 +538,7 @@ const featuredArtistsText = ref('')
 const genreText = ref('')
 const moodText = ref('')
 const tagsText = ref('')
+const artistGenresText = ref('')
 const errors = reactive({})
 const initialSnapshot = ref('')
 
@@ -493,10 +571,16 @@ const form = reactive({
   language: '',
   lyricsLanguage: '',
   country: '',
+  artistCountry: '',
   releaseType: 'single',
   visibility: 'public',
   releaseDate: '',
   publishAt: '',
+  bio: '',
+  shortDescription: '',
+  artistBio: '',
+  artistImage: '',
+  highlightText: '',
   lyrics: '',
   syncedLyricsRaw: '',
   bpm: '',
@@ -504,6 +588,7 @@ const form = reactive({
   isrc: '',
   labelName: '',
   copyright: '',
+  editorialPriority: 'medium',
   status: 'draft',
   isExplicit: false,
   isFeatured: false,
@@ -511,6 +596,8 @@ const form = reactive({
   isFreeDownload: false,
   adminNote: '',
   coverUrl: '',
+  seoTitle: '',
+  seoDescription: '',
   youtube: '',
   spotify: '',
   appleMusic: '',
@@ -551,6 +638,7 @@ const parseLrc = (raw = '') => {
 const genreList = computed(() => parseList(genreText.value))
 const moodList = computed(() => parseList(moodText.value))
 const tagsList = computed(() => parseList(tagsText.value))
+const artistGenresList = computed(() => parseList(artistGenresText.value))
 const parsedSyncedLyrics = computed(() => parseLrc(form.syncedLyricsRaw))
 
 const hasAudio = computed(() => !!audioFile.value || !!props.music?.url)
@@ -567,6 +655,9 @@ const healthScore = computed(() => {
     hasAudio.value,
     hasCover.value,
     genreList.value.length > 0,
+    !!form.bio.trim(),
+    !!form.artistBio.trim(),
+    !!form.shortDescription.trim(),
     !!form.lyrics.trim(),
     !!form.syncedLyricsRaw.trim(),
     hasLinks.value,
@@ -625,6 +716,7 @@ const snapshot = () =>
     genreText: genreText.value,
     moodText: moodText.value,
     tagsText: tagsText.value,
+    artistGenresText: artistGenresText.value,
     coverFile: !!coverFile.value,
     audioFile: !!audioFile.value,
   })
@@ -749,10 +841,16 @@ const fillForm = (music) => {
   form.language = music?.language || ''
   form.lyricsLanguage = music?.lyricsLanguage || ''
   form.country = music?.country || ''
+  form.artistCountry = music?.artistCountry || ''
   form.releaseType = music?.releaseType || 'single'
   form.visibility = music?.visibility || 'public'
   form.releaseDate = toLocalDateInput(music?.releaseDate)
   form.publishAt = toLocalDateTimeInput(music?.publishAt)
+  form.bio = music?.bio || ''
+  form.shortDescription = music?.shortDescription || ''
+  form.artistBio = music?.artistBio || ''
+  form.artistImage = music?.artistImage || ''
+  form.highlightText = music?.highlightText || ''
   form.lyrics = music?.lyrics || ''
   form.syncedLyricsRaw = music?.syncedLyricsRaw || ''
   form.bpm = music?.bpm ?? ''
@@ -760,6 +858,7 @@ const fillForm = (music) => {
   form.isrc = music?.isrc || ''
   form.labelName = music?.labelName || ''
   form.copyright = music?.copyright || ''
+  form.editorialPriority = music?.editorialPriority || 'medium'
   form.status = music?.status || 'draft'
   form.isExplicit = !!music?.isExplicit
   form.isFeatured = !!music?.isFeatured
@@ -767,6 +866,8 @@ const fillForm = (music) => {
   form.isFreeDownload = !!music?.isFreeDownload
   form.adminNote = music?.adminNote || ''
   form.coverUrl = ''
+  form.seoTitle = music?.seoTitle || ''
+  form.seoDescription = music?.seoDescription || ''
   form.youtube = music?.externalLinks?.youtube || ''
   form.spotify = music?.externalLinks?.spotify || ''
   form.appleMusic = music?.externalLinks?.appleMusic || ''
@@ -778,6 +879,7 @@ const fillForm = (music) => {
   genreText.value = Array.isArray(music?.genre) ? music.genre.join(', ') : ''
   moodText.value = Array.isArray(music?.mood) ? music.mood.join(', ') : ''
   tagsText.value = Array.isArray(music?.tags) ? music.tags.join(', ') : ''
+  artistGenresText.value = Array.isArray(music?.artistGenres) ? music.artistGenres.join(', ') : ''
 
   coverFile.value = null
   audioFile.value = null
@@ -871,6 +973,7 @@ const buildFD = () => {
   fd.append('genre', JSON.stringify(genreList.value))
   fd.append('mood', JSON.stringify(moodList.value))
   fd.append('tags', JSON.stringify(tagsList.value))
+  fd.append('artistGenres', JSON.stringify(artistGenresList.value))
   fd.append('album', form.album.trim())
   fd.append('trackNumber', form.trackNumber || '')
   fd.append('discNumber', form.discNumber || '')
@@ -878,10 +981,16 @@ const buildFD = () => {
   fd.append('language', form.language.trim())
   fd.append('lyricsLanguage', form.lyricsLanguage.trim())
   fd.append('country', form.country.trim())
+  fd.append('artistCountry', form.artistCountry.trim())
   fd.append('releaseType', form.releaseType)
   fd.append('visibility', form.visibility)
   fd.append('releaseDate', form.releaseDate || '')
   fd.append('publishAt', form.publishAt || '')
+  fd.append('bio', form.bio.trim())
+  fd.append('shortDescription', form.shortDescription.trim())
+  fd.append('artistBio', form.artistBio.trim())
+  fd.append('artistImage', form.artistImage.trim())
+  fd.append('highlightText', form.highlightText.trim())
   fd.append('lyrics', form.lyrics.trim())
   fd.append('syncedLyricsRaw', form.syncedLyricsRaw.trim())
   fd.append('bpm', form.bpm || '')
@@ -889,12 +998,15 @@ const buildFD = () => {
   fd.append('isrc', form.isrc.trim())
   fd.append('labelName', form.labelName.trim())
   fd.append('copyright', form.copyright.trim())
+  fd.append('editorialPriority', form.editorialPriority)
   fd.append('status', form.status)
   fd.append('isExplicit', String(form.isExplicit))
   fd.append('isFeatured', String(form.isFeatured))
   fd.append('isRecommended', String(form.isRecommended))
   fd.append('isFreeDownload', String(form.isFreeDownload))
   fd.append('adminNote', form.adminNote.trim())
+  fd.append('seoTitle', form.seoTitle.trim())
+  fd.append('seoDescription', form.seoDescription.trim())
 
   const coverUrl = form.coverUrl.trim()
   if (coverUrl) fd.append('coverUrl', coverUrl)

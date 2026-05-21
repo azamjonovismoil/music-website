@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
@@ -103,7 +103,13 @@ const handleSubmit = async () => {
       password: form.password,
     })
 
-    ElNotification({ title: 'Logged in', type: 'success', duration: 1600 })
+    ElNotification({
+      title: 'Logged in',
+      message: data?.message || 'Welcome back',
+      type: 'success',
+      duration: 1600,
+    })
+
     router.replace(getRedirectPath(data?.user))
   } catch (error) {
     const code = error?.response?.data?.code
@@ -120,4 +126,13 @@ const handleSubmit = async () => {
     serverError.value = message
   }
 }
+
+onMounted(() => {
+  if (route.query.error === 'google_failed') {
+    serverError.value = 'Google sign-in failed. Please try again.'
+  }
+  if (route.query.error === 'google_not_configured') {
+    serverError.value = 'Google sign-in is not configured yet.'
+  }
+})
 </script>

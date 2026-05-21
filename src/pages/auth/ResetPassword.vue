@@ -1,6 +1,6 @@
 <template>
   <AuthLayout eyebrow="New password" title="Reset password"
-    description="Enter your email, reset code, and new password.">
+    description="Enter your email, reset code, and your new password.">
     <div v-if="serverError" class="auth-alert auth-alert--error">
       {{ serverError }}
     </div>
@@ -112,7 +112,11 @@ const handleSubmit = async () => {
       newPassword: form.newPassword,
     })
 
-    ElNotification({ title: 'Password updated', type: 'success', duration: 1600 })
+    ElNotification({
+      title: 'Password updated',
+      type: 'success',
+      duration: 1600,
+    })
 
     router.replace({
       path: '/login',

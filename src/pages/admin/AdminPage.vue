@@ -5,7 +5,7 @@
         <span class="admin-hero__eyebrow">Admin workspace</span>
         <h1 class="admin-hero__title">Music library</h1>
         <p class="admin-hero__subtitle">
-          Manage releases, clean metadata, and keep the catalog production-ready.
+          Manage releases, review metadata quality, and keep the catalog production-ready.
         </p>
 
         <div class="admin-hero__meta">
@@ -60,7 +60,7 @@
     <section class="admin-toolbar">
       <div class="admin-toolbar__main">
         <input v-model="searchQuery" class="admin-toolbar__input" type="text"
-          placeholder="Search title, artist, album, tags…" />
+          placeholder="Search title, artist, album, tags, bio, artist story…" />
 
         <select v-model="sortBy" class="admin-toolbar__select">
           <option value="newest">Newest</option>
@@ -123,7 +123,7 @@
                   <strong>{{ item.title || 'Untitled' }}</strong>
                   <span class="mini-pill mini-pill--ok">{{ item.healthScore || 0 }}%</span>
                 </div>
-                <p>{{ item.artist || 'Unknown artist' }} • Ready now</p>
+                <p>{{ item.artist || 'Unknown artist' }} • {{ item.editorialPriority || 'medium' }} priority</p>
               </button>
             </div>
 
@@ -220,7 +220,7 @@
 
           <ul class="side-notes">
             <li>Prioritize tracks under 70% health before publishing.</li>
-            <li>Use quick publish only when audio, cover and genres are complete.</li>
+            <li>Use quick publish only when audio, cover and bios are complete.</li>
             <li>Review scheduled releases before their publish window.</li>
           </ul>
         </section>
@@ -242,7 +242,6 @@ import { API_ROOT } from '@/utils/media'
 import '@/styles/admin_page.css'
 
 const api = axios.create({ baseURL: `${API_ROOT}/api`, withCredentials: true })
-
 const router = useRouter()
 
 const musics = ref([])
@@ -272,6 +271,9 @@ const smartFilters = [
   { label: 'Ready', value: 'ready' },
   { label: 'Scheduled', value: 'scheduled' },
   { label: 'Premium', value: 'premium' },
+  { label: 'Rich', value: 'rich' },
+  { label: 'Featured', value: 'featured' },
+  { label: 'Recommended', value: 'recommended' },
   { label: 'Archived', value: 'archived' },
 ]
 
@@ -280,13 +282,16 @@ const attentionList = computed(() => summary.value.attention || [])
 const readyToPublish = computed(() =>
   musics.value.filter((m) =>
     m.status === 'draft' &&
-    (m.healthScore || 0) >= 60 &&
+    (m.healthScore || 0) >= 70 &&
     m.title &&
     m.artist &&
     m.url &&
     m.cover &&
     Array.isArray(m.genre) &&
-    m.genre.length
+    m.genre.length &&
+    m.bio &&
+    m.artistBio &&
+    m.shortDescription
   )
 )
 
@@ -314,9 +319,16 @@ const matchesQuery = (m, q) => {
     m.labelName,
     m.language,
     m.country,
+    m.artistCountry,
+    m.shortDescription,
+    m.bio,
+    m.artistBio,
+    m.highlightText,
+    m.editorialPriority,
     ...(m.genre || []),
     ...(m.mood || []),
     ...(m.tags || []),
+    ...(m.artistGenres || []),
   ]
     .filter(Boolean)
     .join(' ')
@@ -335,6 +347,9 @@ const filtered = computed(() => {
   if (filter.value === 'archived') r = r.filter((m) => m.status === 'archived')
   if (filter.value === 'attention') r = r.filter((m) => m.needsAttention)
   if (filter.value === 'premium') r = r.filter((m) => m.healthTier === 'premium')
+  if (filter.value === 'rich') r = r.filter((m) => m.healthTier === 'rich')
+  if (filter.value === 'featured') r = r.filter((m) => m.isFeatured)
+  if (filter.value === 'recommended') r = r.filter((m) => m.isRecommended)
   if (filter.value === 'ready') r = r.filter((m) => readyToPublish.value.some((x) => x._id === m._id))
   if (filter.value === 'scheduled') r = r.filter((m) => scheduledSoon.value.some((x) => x._id === m._id))
 

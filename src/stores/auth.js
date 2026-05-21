@@ -123,6 +123,7 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       user.value = null
       loading.value = false
+      initialized.value = true
     }
   }
 

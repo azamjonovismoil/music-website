@@ -39,6 +39,10 @@
           {{ music.genre[0] }}
         </span>
 
+        <span v-if="music.editorialPriority" class="admin-music-card__chip">
+          {{ music.editorialPriority }}
+        </span>
+
         <span v-if="music.healthTier" class="admin-music-card__chip">
           {{ music.healthTier }}
         </span>
@@ -48,12 +52,24 @@
           scheduled
         </span>
 
+        <span v-if="music.isFeatured" class="admin-music-card__chip admin-music-card__chip--featured">
+          featured
+        </span>
+
+        <span v-if="music.isRecommended" class="admin-music-card__chip admin-music-card__chip--recommended">
+          recommended
+        </span>
+
         <span v-if="music.needsAttention" class="admin-music-card__chip admin-music-card__chip--warn">
           attention
         </span>
       </div>
 
-      <p v-if="music.needsAttention && music.attentionReasons?.length" class="admin-music-card__note">
+      <p v-if="music.shortDescription" class="admin-music-card__summary">
+        {{ music.shortDescription }}
+      </p>
+
+      <p v-else-if="music.needsAttention && music.attentionReasons?.length" class="admin-music-card__note">
         {{ music.attentionReasons[0] }}
       </p>
 
