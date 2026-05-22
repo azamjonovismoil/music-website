@@ -45,6 +45,16 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = value || null
   }
 
+  const hydrateUser = (value) => {
+    user.value = value || null
+    initialized.value = true
+  }
+
+  const clearSession = () => {
+    user.value = null
+    initialized.value = true
+  }
+
   const resetLoadingStates = () => {
     loginLoading.value = false
     registerLoading.value = false
@@ -58,13 +68,18 @@ export const useAuthStore = defineStore('auth', () => {
     fetchMeLoading.value = false
   }
 
+  const resetGoogleLoading = () => {
+    googleLoading.value = false
+  }
+
   const fetchMe = async () => {
     fetchMeLoading.value = true
+
     try {
       const { data } = await api.get('/auth/me')
       user.value = data?.user || null
       return data
-    } catch {
+    } catch (error) {
       user.value = null
       return null
     } finally {
@@ -75,10 +90,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (credentials) => {
     loginLoading.value = true
+
     try {
       const { data } = await api.post('/auth/login', credentials)
-      user.value = data?.user || null
-      initialized.value = true
+      hydrateUser(data?.user || null)
       return data
     } finally {
       loginLoading.value = false
@@ -87,6 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (payload) => {
     registerLoading.value = true
+
     try {
       const { data } = await api.post('/auth/register', payload)
       initialized.value = true
@@ -98,10 +114,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const verifyEmail = async (payload) => {
     verifyEmailLoading.value = true
+
     try {
       const { data } = await api.post('/auth/verify-email', payload)
-      user.value = data?.user || null
-      initialized.value = true
+      hydrateUser(data?.user || null)
       return data
     } finally {
       verifyEmailLoading.value = false
@@ -110,6 +126,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const resendVerification = async (payload) => {
     resendVerificationLoading.value = true
+
     try {
       const { data } = await api.post('/auth/resend-verification', payload)
       return data
@@ -120,6 +137,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const forgotPassword = async (email) => {
     forgotPasswordLoading.value = true
+
     try {
       const { data } = await api.post('/auth/forgot-password', { email })
       return data
@@ -130,8 +148,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   const resetPassword = async (payload) => {
     resetPasswordLoading.value = true
+
     try {
       const { data } = await api.post('/auth/reset-password', payload)
+      initialized.value = true
       return data
     } finally {
       resetPasswordLoading.value = false
@@ -140,16 +160,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateProfile = async (payload) => {
     updateProfileLoading.value = true
+
     try {
       const { data } = await api.put('/auth/profile', payload)
 
-      if (data?.user) {
-        user.value = data.user
-      } else if (data?.requiresVerification) {
-        user.value = null
+      if (data?.requiresVerification) {
+        clearSession()
+      } else {
+        hydrateUser(data?.user || null)
       }
 
-      initialized.value = true
       return data
     } finally {
       updateProfileLoading.value = false
@@ -163,11 +183,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     logoutLoading.value = true
+
     try {
       await api.post('/auth/logout')
     } finally {
-      user.value = null
-      initialized.value = true
+      clearSession()
       logoutLoading.value = false
     }
   }
@@ -194,7 +214,11 @@ export const useAuthStore = defineStore('auth', () => {
     userName,
 
     setUser,
+    hydrateUser,
+    clearSession,
     resetLoadingStates,
+    resetGoogleLoading,
+
     fetchMe,
     login,
     register,
