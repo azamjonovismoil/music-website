@@ -1,35 +1,47 @@
 <template>
   <AuthLayout eyebrow="Verify account" title="Verify email"
-    description="Enter the 6-digit code sent to your email to activate your account.">
-    <div v-if="serverError" class="auth-alert auth-alert--error">
+    description="Enter the 6-digit code sent to your email to activate your account." :back-to="backTo">
+    <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
 
-    <div v-if="serverSuccess" class="auth-alert auth-alert--success">
+    <div v-if="serverSuccess" class="auth-alert auth-alert--success" role="status" aria-live="polite">
       {{ serverSuccess }}
     </div>
 
-    <form class="auth-form" @submit.prevent="handleSubmit">
+    <form class="auth-form" novalidate @submit.prevent="handleSubmit">
       <div class="auth-field">
         <label class="auth-label" for="email">Email</label>
-        <input id="email" v-model.trim="form.email" class="auth-input" :class="{ 'is-invalid': errors.email }"
-          type="email" autocomplete="email" placeholder="you@example.com" />
-        <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
+        <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
+          :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
+          placeholder="you@example.com" :aria-invalid="errors.email ? 'true' : 'false'"
+          :aria-describedby="errors.email ? 'verify-email-error' : undefined" @input="clearFieldError('email')" />
+        <p v-if="errors.email" id="verify-email-error" class="auth-field__error">
+          {{ errors.email }}
+        </p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="code">Verification code</label>
-        <input id="code" v-model.trim="form.code" class="auth-input auth-input--center auth-input--code"
-          :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric" placeholder="123456" />
-        <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
+        <input id="code" ref="codeRef" v-model="form.code" class="auth-input auth-input--center auth-input--code"
+          :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric"
+          autocomplete="one-time-code" placeholder="123456" :aria-invalid="errors.code ? 'true' : 'false'"
+          :aria-describedby="errors.code ? 'verify-code-error' : undefined" @input="handleCodeInput" />
+        <p v-if="errors.code" id="verify-code-error" class="auth-field__error">
+          {{ errors.code }}
+        </p>
       </div>
 
-      <button class="auth-submit" type="submit" :disabled="auth.loading">
-        {{ auth.loading ? 'Verifying...' : 'Verify email' }}
+      <button class="auth-submit" type="submit"
+        :disabled="!canSubmit || auth.verifyEmailLoading || auth.resendVerificationLoading"
+        :aria-busy="auth.verifyEmailLoading ? 'true' : 'false'">
+        {{ auth.verifyEmailLoading ? 'Verifying...' : 'Verify email' }}
       </button>
 
-      <button class="auth-secondary" type="button" :disabled="resending" @click="handleResend">
-        {{ resending ? 'Sending...' : 'Resend code' }}
+      <button class="auth-secondary" type="button"
+        :disabled="!canResend || auth.resendVerificationLoading || auth.verifyEmailLoading"
+        :aria-busy="auth.resendVerificationLoading ? 'true' : 'false'" @click="handleResend">
+        {{ auth.resendVerificationLoading ? 'Sending...' : 'Resend code' }}
       </button>
     </form>
 
@@ -40,7 +52,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElNotification } from 'element-plus'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
@@ -50,7 +62,9 @@ const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-const resending = ref(false)
+const emailRef = ref(null)
+const codeRef = ref(null)
+
 const serverError = ref('')
 const serverSuccess = ref('')
 
@@ -64,6 +78,44 @@ const errors = reactive({
   code: '',
 })
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const codePattern = /^\d{6}$/
+
+const backTo = computed(() => '/login')
+
+const canSubmit = computed(() => {
+  return emailPattern.test(form.email) && codePattern.test(form.code)
+})
+
+const canResend = computed(() => {
+  return emailPattern.test(form.email)
+})
+
+const clearFieldError = (field) => {
+  errors[field] = ''
+  serverError.value = ''
+  serverSuccess.value = ''
+}
+
+const handleCodeInput = (event) => {
+  const digitsOnly = String(event.target.value || '').replace(/\D/g, '').slice(0, 6)
+  form.code = digitsOnly
+  clearFieldError('code')
+}
+
+const focusFirstInvalidField = async () => {
+  await nextTick()
+
+  if (errors.email) {
+    emailRef.value?.focus()
+    return
+  }
+
+  if (errors.code) {
+    codeRef.value?.focus()
+  }
+}
+
 const validate = () => {
   errors.email = ''
   errors.code = ''
@@ -71,21 +123,26 @@ const validate = () => {
   serverSuccess.value = ''
 
   if (!form.email) errors.email = 'Email is required'
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Enter a valid email'
+  else if (!emailPattern.test(form.email)) errors.email = 'Enter a valid email'
 
   if (!form.code) errors.code = 'Code is required'
-  else if (!/^\d{6}$/.test(form.code)) errors.code = 'Enter a valid 6-digit code'
+  else if (!codePattern.test(form.code)) errors.code = 'Enter a valid 6-digit code'
 
   return !errors.email && !errors.code
 }
 
 const handleSubmit = async () => {
-  if (!validate()) return
+  if (auth.verifyEmailLoading || auth.resendVerificationLoading) return
+
+  if (!validate()) {
+    focusFirstInvalidField()
+    return
+  }
 
   try {
     const data = await auth.verifyEmail({
-      email: form.email,
-      code: form.code,
+      email: form.email.trim(),
+      code: form.code.trim(),
     })
 
     ElNotification({
@@ -108,18 +165,26 @@ const handleResend = async () => {
 
   if (!form.email) {
     errors.email = 'Email is required'
+    focusFirstInvalidField()
     return
   }
 
-  resending.value = true
+  if (!emailPattern.test(form.email)) {
+    errors.email = 'Enter a valid email'
+    focusFirstInvalidField()
+    return
+  }
 
   try {
-    const data = await auth.resendVerification({ email: form.email })
+    const data = await auth.resendVerification({ email: form.email.trim() })
     serverSuccess.value = data?.message || 'Verification code sent again'
   } catch (error) {
     serverError.value = error?.response?.data?.message || 'Could not resend code'
-  } finally {
-    resending.value = false
   }
 }
+
+onMounted(() => {
+  if (form.email) codeRef.value?.focus()
+  else emailRef.value?.focus()
+})
 </script>

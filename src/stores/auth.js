@@ -10,8 +10,31 @@ const api = axios.create({
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
-  const loading = ref(false)
   const initialized = ref(false)
+
+  const loginLoading = ref(false)
+  const registerLoading = ref(false)
+  const verifyEmailLoading = ref(false)
+  const resendVerificationLoading = ref(false)
+  const forgotPasswordLoading = ref(false)
+  const resetPasswordLoading = ref(false)
+  const updateProfileLoading = ref(false)
+  const logoutLoading = ref(false)
+  const googleLoading = ref(false)
+  const fetchMeLoading = ref(false)
+
+  const loading = computed(() =>
+    loginLoading.value ||
+    registerLoading.value ||
+    verifyEmailLoading.value ||
+    resendVerificationLoading.value ||
+    forgotPasswordLoading.value ||
+    resetPasswordLoading.value ||
+    updateProfileLoading.value ||
+    logoutLoading.value ||
+    googleLoading.value ||
+    fetchMeLoading.value
+  )
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => Number(user.value?.isAdmin) === 1)
@@ -22,81 +45,98 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = value || null
   }
 
+  const resetLoadingStates = () => {
+    loginLoading.value = false
+    registerLoading.value = false
+    verifyEmailLoading.value = false
+    resendVerificationLoading.value = false
+    forgotPasswordLoading.value = false
+    resetPasswordLoading.value = false
+    updateProfileLoading.value = false
+    logoutLoading.value = false
+    googleLoading.value = false
+    fetchMeLoading.value = false
+  }
+
   const fetchMe = async () => {
+    fetchMeLoading.value = true
     try {
       const { data } = await api.get('/auth/me')
       user.value = data?.user || null
+      return data
     } catch {
       user.value = null
+      return null
     } finally {
+      fetchMeLoading.value = false
       initialized.value = true
     }
   }
 
   const login = async (credentials) => {
-    loading.value = true
+    loginLoading.value = true
     try {
       const { data } = await api.post('/auth/login', credentials)
       user.value = data?.user || null
       return data
     } finally {
-      loading.value = false
+      loginLoading.value = false
     }
   }
 
   const register = async (payload) => {
-    loading.value = true
+    registerLoading.value = true
     try {
       const { data } = await api.post('/auth/register', payload)
       return data
     } finally {
-      loading.value = false
+      registerLoading.value = false
     }
   }
 
   const verifyEmail = async (payload) => {
-    loading.value = true
+    verifyEmailLoading.value = true
     try {
       const { data } = await api.post('/auth/verify-email', payload)
       user.value = data?.user || null
       return data
     } finally {
-      loading.value = false
+      verifyEmailLoading.value = false
     }
   }
 
   const resendVerification = async (payload) => {
-    loading.value = true
+    resendVerificationLoading.value = true
     try {
       const { data } = await api.post('/auth/resend-verification', payload)
       return data
     } finally {
-      loading.value = false
+      resendVerificationLoading.value = false
     }
   }
 
   const forgotPassword = async (email) => {
-    loading.value = true
+    forgotPasswordLoading.value = true
     try {
       const { data } = await api.post('/auth/forgot-password', { email })
       return data
     } finally {
-      loading.value = false
+      forgotPasswordLoading.value = false
     }
   }
 
   const resetPassword = async (payload) => {
-    loading.value = true
+    resetPasswordLoading.value = true
     try {
       const { data } = await api.post('/auth/reset-password', payload)
       return data
     } finally {
-      loading.value = false
+      resetPasswordLoading.value = false
     }
   }
 
   const updateProfile = async (payload) => {
-    loading.value = true
+    updateProfileLoading.value = true
     try {
       const { data } = await api.put('/auth/profile', payload)
 
@@ -108,34 +148,49 @@ export const useAuthStore = defineStore('auth', () => {
 
       return data
     } finally {
-      loading.value = false
+      updateProfileLoading.value = false
     }
   }
 
   const loginWithGoogle = () => {
+    googleLoading.value = true
     window.location.href = `${API_ROOT}/api/auth/google`
   }
 
   const logout = async () => {
-    loading.value = true
+    logoutLoading.value = true
     try {
       await api.post('/auth/logout')
     } finally {
       user.value = null
-      loading.value = false
+      logoutLoading.value = false
       initialized.value = true
     }
   }
 
   return {
     user,
-    loading,
     initialized,
+
+    loading,
+    loginLoading,
+    registerLoading,
+    verifyEmailLoading,
+    resendVerificationLoading,
+    forgotPasswordLoading,
+    resetPasswordLoading,
+    updateProfileLoading,
+    logoutLoading,
+    googleLoading,
+    fetchMeLoading,
+
     isLoggedIn,
     isAdmin,
     isVerified,
     userName,
+
     setUser,
+    resetLoadingStates,
     fetchMe,
     login,
     register,

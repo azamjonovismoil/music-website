@@ -1,24 +1,29 @@
 <template>
   <AuthLayout eyebrow="Password recovery" title="Forgot password"
-    description="Enter your email and we’ll send you a reset code.">
-    <div v-if="serverError" class="auth-alert auth-alert--error">
+    description="Enter your email and we’ll send you a reset code." :back-to="backTo">
+    <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
 
-    <div v-if="serverSuccess" class="auth-alert auth-alert--success">
+    <div v-if="serverSuccess" class="auth-alert auth-alert--success" role="status" aria-live="polite">
       {{ serverSuccess }}
     </div>
 
-    <form class="auth-form" @submit.prevent="handleSubmit">
+    <form class="auth-form" novalidate @submit.prevent="handleSubmit">
       <div class="auth-field">
         <label class="auth-label" for="email">Email</label>
-        <input id="email" v-model.trim="email" class="auth-input" :class="{ 'is-invalid': errorEmail }" type="email"
-          autocomplete="email" placeholder="you@example.com" />
-        <p v-if="errorEmail" class="auth-field__error">{{ errorEmail }}</p>
+        <input id="email" ref="emailRef" v-model.trim="email" class="auth-input" :class="{ 'is-invalid': errorEmail }"
+          type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"
+          :aria-invalid="errorEmail ? 'true' : 'false'"
+          :aria-describedby="errorEmail ? 'forgot-email-error' : undefined" @input="handleEmailInput" />
+        <p v-if="errorEmail" id="forgot-email-error" class="auth-field__error">
+          {{ errorEmail }}
+        </p>
       </div>
 
-      <button class="auth-submit" type="submit" :disabled="auth.loading">
-        {{ auth.loading ? 'Sending...' : 'Send reset code' }}
+      <button class="auth-submit" type="submit" :disabled="!canSubmit || auth.forgotPasswordLoading"
+        :aria-busy="auth.forgotPasswordLoading ? 'true' : 'false'">
+        {{ auth.forgotPasswordLoading ? 'Sending...' : 'Send reset code' }}
       </button>
     </form>
 
@@ -30,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -38,38 +43,73 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 const router = useRouter()
 
+const emailRef = ref(null)
+
 const email = ref('')
 const errorEmail = ref('')
 const serverError = ref('')
 const serverSuccess = ref('')
 
-const handleSubmit = async () => {
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const backTo = '/login'
+
+const canSubmit = computed(() => emailPattern.test(email.value))
+
+const focusEmail = async () => {
+  await nextTick()
+  emailRef.value?.focus()
+}
+
+const handleEmailInput = () => {
+  errorEmail.value = ''
+  serverError.value = ''
+  serverSuccess.value = ''
+}
+
+const validate = () => {
   errorEmail.value = ''
   serverError.value = ''
   serverSuccess.value = ''
 
   if (!email.value) {
     errorEmail.value = 'Email is required'
-    return
+    return false
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+  if (!emailPattern.test(email.value)) {
     errorEmail.value = 'Enter a valid email'
+    return false
+  }
+
+  return true
+}
+
+const handleSubmit = async () => {
+  if (auth.forgotPasswordLoading) return
+
+  if (!validate()) {
+    focusEmail()
     return
   }
 
   try {
-    const data = await auth.forgotPassword(email.value)
+    const normalizedEmail = email.value.trim()
+    const data = await auth.forgotPassword(normalizedEmail)
+
     serverSuccess.value = data?.message || 'Reset code sent to your email'
 
     setTimeout(() => {
       router.push({
         path: '/reset-password',
-        query: { email: email.value },
+        query: { email: normalizedEmail },
       })
     }, 900)
   } catch (error) {
     serverError.value = error?.response?.data?.message || 'Failed to send reset code'
   }
 }
+
+onMounted(() => {
+  focusEmail()
+})
 </script>
