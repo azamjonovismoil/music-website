@@ -118,7 +118,6 @@ const clearFieldError = (field) => {
 
 const focusFirstInvalidField = async () => {
   await nextTick()
-
   if (errors.name) return nameRef.value?.focus()
   if (errors.email) return emailRef.value?.focus()
   if (errors.password) return passwordRef.value?.focus()

@@ -21,11 +21,9 @@
       </div>
 
       <section class="auth-min-card">
-        <div class="auth-min-card__glow" />
         <div v-if="eyebrow" class="auth-min-eyebrow">{{ eyebrow }}</div>
         <h1 class="auth-min-title">{{ title }}</h1>
         <p v-if="description" class="auth-min-text">{{ description }}</p>
-
         <slot />
       </section>
     </main>
