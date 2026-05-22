@@ -66,7 +66,6 @@ const route = useRoute()
 
 const emailRef = ref(null)
 const passwordRef = ref(null)
-
 const showPassword = ref(false)
 const serverError = ref('')
 
@@ -82,9 +81,7 @@ const errors = reactive({
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-const canSubmit = computed(() => {
-  return emailPattern.test(form.email) && form.password.trim().length > 0
-})
+const canSubmit = computed(() => emailPattern.test(form.email) && form.password.trim().length > 0)
 
 const clearFieldError = (field) => {
   errors[field] = ''
@@ -127,6 +124,8 @@ const getRedirectPath = (user) => {
 }
 
 const handleSubmit = async () => {
+  serverError.value = ''
+
   if (!validate()) {
     focusFirstInvalidField()
     return

@@ -1,6 +1,6 @@
 <template>
   <AuthLayout eyebrow="Verify account" title="Verify email"
-    description="Enter the 6-digit code sent to your email to activate your account." :back-to="backTo">
+    description="Enter the 6-digit code sent to your email to activate your account.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
@@ -14,34 +14,24 @@
         <label class="auth-label" for="email">Email</label>
         <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
           :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
-          placeholder="you@example.com" :aria-invalid="errors.email ? 'true' : 'false'"
-          :aria-describedby="errors.email ? 'verify-email-error' : undefined" @input="clearFieldError('email')" />
-        <p v-if="errors.email" id="verify-email-error" class="auth-field__error">
-          {{ errors.email }}
-        </p>
+          placeholder="you@example.com" @input="clearFieldError('email')" />
+        <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="code">Verification code</label>
         <input id="code" ref="codeRef" v-model="form.code" class="auth-input auth-input--center auth-input--code"
           :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric"
-          autocomplete="one-time-code" placeholder="123456" :aria-invalid="errors.code ? 'true' : 'false'"
-          :aria-describedby="errors.code ? 'verify-code-error' : undefined" @input="handleCodeInput" />
-        <p v-if="errors.code" id="verify-code-error" class="auth-field__error">
-          {{ errors.code }}
-        </p>
+          autocomplete="one-time-code" placeholder="123456" @input="handleCodeInput" />
+        <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
       </div>
 
-      <button class="auth-submit" type="submit"
-        :disabled="!canSubmit || auth.verifyEmailLoading || auth.resendVerificationLoading"
-        :aria-busy="auth.verifyEmailLoading ? 'true' : 'false'">
-        {{ auth.verifyEmailLoading ? 'Verifying...' : 'Verify email' }}
+      <button class="auth-submit" type="submit" :disabled="!canSubmit || auth.loading">
+        {{ auth.loading ? 'Verifying...' : 'Verify email' }}
       </button>
 
-      <button class="auth-secondary" type="button"
-        :disabled="!canResend || auth.resendVerificationLoading || auth.verifyEmailLoading"
-        :aria-busy="auth.resendVerificationLoading ? 'true' : 'false'" @click="handleResend">
-        {{ auth.resendVerificationLoading ? 'Sending...' : 'Resend code' }}
+      <button class="auth-secondary" type="button" :disabled="!canResend || auth.loading" @click="handleResend">
+        {{ auth.loading ? 'Sending...' : 'Resend code' }}
       </button>
     </form>
 
@@ -81,15 +71,8 @@ const errors = reactive({
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const codePattern = /^\d{6}$/
 
-const backTo = computed(() => '/login')
-
-const canSubmit = computed(() => {
-  return emailPattern.test(form.email) && codePattern.test(form.code)
-})
-
-const canResend = computed(() => {
-  return emailPattern.test(form.email)
-})
+const canSubmit = computed(() => emailPattern.test(form.email) && codePattern.test(form.code))
+const canResend = computed(() => emailPattern.test(form.email))
 
 const clearFieldError = (field) => {
   errors[field] = ''
@@ -105,15 +88,8 @@ const handleCodeInput = (event) => {
 
 const focusFirstInvalidField = async () => {
   await nextTick()
-
-  if (errors.email) {
-    emailRef.value?.focus()
-    return
-  }
-
-  if (errors.code) {
-    codeRef.value?.focus()
-  }
+  if (errors.email) return emailRef.value?.focus()
+  if (errors.code) return codeRef.value?.focus()
 }
 
 const validate = () => {
@@ -132,8 +108,6 @@ const validate = () => {
 }
 
 const handleSubmit = async () => {
-  if (auth.verifyEmailLoading || auth.resendVerificationLoading) return
-
   if (!validate()) {
     focusFirstInvalidField()
     return
@@ -154,7 +128,10 @@ const handleSubmit = async () => {
 
     router.replace(Number(data?.user?.isAdmin) === 1 ? '/admin' : '/user')
   } catch (error) {
-    serverError.value = error?.response?.data?.message || 'Verification failed'
+    serverError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Verification failed'
   }
 }
 
@@ -179,7 +156,10 @@ const handleResend = async () => {
     const data = await auth.resendVerification({ email: form.email.trim() })
     serverSuccess.value = data?.message || 'Verification code sent again'
   } catch (error) {
-    serverError.value = error?.response?.data?.message || 'Could not resend code'
+    serverError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Could not resend code'
   }
 }
 

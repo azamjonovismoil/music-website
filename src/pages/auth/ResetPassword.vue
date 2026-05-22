@@ -1,6 +1,6 @@
 <template>
   <AuthLayout eyebrow="New password" title="Reset password"
-    description="Enter your email, reset code, and your new password." :back-to="backTo">
+    description="Enter your email, reset code, and your new password.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
@@ -10,22 +10,16 @@
         <label class="auth-label" for="email">Email</label>
         <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
           :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
-          placeholder="you@example.com" :aria-invalid="errors.email ? 'true' : 'false'"
-          :aria-describedby="errors.email ? 'reset-email-error' : undefined" @input="clearFieldError('email')" />
-        <p v-if="errors.email" id="reset-email-error" class="auth-field__error">
-          {{ errors.email }}
-        </p>
+          placeholder="you@example.com" @input="clearFieldError('email')" />
+        <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="code">Reset code</label>
         <input id="code" ref="codeRef" v-model="form.code" class="auth-input auth-input--center auth-input--code"
           :class="{ 'is-invalid': errors.code }" type="text" maxlength="6" inputmode="numeric"
-          autocomplete="one-time-code" placeholder="123456" :aria-invalid="errors.code ? 'true' : 'false'"
-          :aria-describedby="errors.code ? 'reset-code-error' : undefined" @input="handleCodeInput" />
-        <p v-if="errors.code" id="reset-code-error" class="auth-field__error">
-          {{ errors.code }}
-        </p>
+          autocomplete="one-time-code" placeholder="123456" @input="handleCodeInput" />
+        <p v-if="errors.code" class="auth-field__error">{{ errors.code }}</p>
       </div>
 
       <div class="auth-field">
@@ -33,36 +27,24 @@
         <div class="auth-password">
           <input id="password" ref="passwordRef" v-model="form.newPassword" class="auth-input auth-input--with-action"
             :class="{ 'is-invalid': errors.newPassword }" :type="showPassword ? 'text' : 'password'"
-            autocomplete="new-password" placeholder="At least 6 characters"
-            :aria-invalid="errors.newPassword ? 'true' : 'false'"
-            :aria-describedby="errors.newPassword ? 'reset-password-error' : undefined"
-            @input="clearFieldError('newPassword')" />
-          <button class="auth-password__toggle" type="button"
-            :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword">
+            autocomplete="new-password" placeholder="At least 6 characters" @input="clearFieldError('newPassword')" />
+          <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
             {{ showPassword ? 'Hide' : 'Show' }}
           </button>
         </div>
-        <p v-if="errors.newPassword" id="reset-password-error" class="auth-field__error">
-          {{ errors.newPassword }}
-        </p>
+        <p v-if="errors.newPassword" class="auth-field__error">{{ errors.newPassword }}</p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="confirmPassword">Confirm password</label>
         <input id="confirmPassword" ref="confirmPasswordRef" v-model="form.confirmPassword" class="auth-input"
           :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
-          autocomplete="new-password" placeholder="Repeat password"
-          :aria-invalid="errors.confirmPassword ? 'true' : 'false'"
-          :aria-describedby="errors.confirmPassword ? 'reset-confirm-password-error' : undefined"
-          @input="clearFieldError('confirmPassword')" />
-        <p v-if="errors.confirmPassword" id="reset-confirm-password-error" class="auth-field__error">
-          {{ errors.confirmPassword }}
-        </p>
+          autocomplete="new-password" placeholder="Repeat password" @input="clearFieldError('confirmPassword')" />
+        <p v-if="errors.confirmPassword" class="auth-field__error">{{ errors.confirmPassword }}</p>
       </div>
 
-      <button class="auth-submit" type="submit" :disabled="!canSubmit || auth.resetPasswordLoading"
-        :aria-busy="auth.resetPasswordLoading ? 'true' : 'false'">
-        {{ auth.resetPasswordLoading ? 'Updating...' : 'Update password' }}
+      <button class="auth-submit" type="submit" :disabled="!canSubmit || auth.loading">
+        {{ auth.loading ? 'Updating...' : 'Update password' }}
       </button>
     </form>
 
@@ -108,8 +90,6 @@ const errors = reactive({
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const codePattern = /^\d{6}$/
 
-const backTo = computed(() => '/login')
-
 const canSubmit = computed(() => {
   return (
     emailPattern.test(form.email) &&
@@ -133,7 +113,6 @@ const handleCodeInput = (event) => {
 
 const focusFirstInvalidField = async () => {
   await nextTick()
-
   if (errors.email) return emailRef.value?.focus()
   if (errors.code) return codeRef.value?.focus()
   if (errors.newPassword) return passwordRef.value?.focus()
@@ -163,7 +142,7 @@ const validate = () => {
 }
 
 const handleSubmit = async () => {
-  if (auth.resetPasswordLoading) return
+  serverError.value = ''
 
   if (!validate()) {
     focusFirstInvalidField()
@@ -189,7 +168,10 @@ const handleSubmit = async () => {
       query: { email: form.email.trim() },
     })
   } catch (error) {
-    serverError.value = error?.response?.data?.message || 'Reset failed'
+    serverError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Reset failed'
   }
 }
 

@@ -1,6 +1,6 @@
 <template>
   <AuthLayout eyebrow="Password recovery" title="Forgot password"
-    description="Enter your email and we’ll send you a reset code." :back-to="backTo">
+    description="Enter your email and we’ll send you a reset code.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
@@ -13,17 +13,12 @@
       <div class="auth-field">
         <label class="auth-label" for="email">Email</label>
         <input id="email" ref="emailRef" v-model.trim="email" class="auth-input" :class="{ 'is-invalid': errorEmail }"
-          type="email" inputmode="email" autocomplete="email" placeholder="you@example.com"
-          :aria-invalid="errorEmail ? 'true' : 'false'"
-          :aria-describedby="errorEmail ? 'forgot-email-error' : undefined" @input="handleEmailInput" />
-        <p v-if="errorEmail" id="forgot-email-error" class="auth-field__error">
-          {{ errorEmail }}
-        </p>
+          type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" @input="handleEmailInput" />
+        <p v-if="errorEmail" class="auth-field__error">{{ errorEmail }}</p>
       </div>
 
-      <button class="auth-submit" type="submit" :disabled="!canSubmit || auth.forgotPasswordLoading"
-        :aria-busy="auth.forgotPasswordLoading ? 'true' : 'false'">
-        {{ auth.forgotPasswordLoading ? 'Sending...' : 'Send reset code' }}
+      <button class="auth-submit" type="submit" :disabled="!canSubmit || auth.loading">
+        {{ auth.loading ? 'Sending...' : 'Send reset code' }}
       </button>
     </form>
 
@@ -51,8 +46,6 @@ const serverError = ref('')
 const serverSuccess = ref('')
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const backTo = '/login'
-
 const canSubmit = computed(() => emailPattern.test(email.value))
 
 const focusEmail = async () => {
@@ -85,8 +78,6 @@ const validate = () => {
 }
 
 const handleSubmit = async () => {
-  if (auth.forgotPasswordLoading) return
-
   if (!validate()) {
     focusEmail()
     return
@@ -105,7 +96,10 @@ const handleSubmit = async () => {
       })
     }, 900)
   } catch (error) {
-    serverError.value = error?.response?.data?.message || 'Failed to send reset code'
+    serverError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Failed to send reset code'
   }
 }
 

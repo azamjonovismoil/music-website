@@ -2,7 +2,6 @@
   <div class="auth-min-shell">
     <div class="auth-min-bg auth-min-bg--one" />
     <div class="auth-min-bg auth-min-bg--two" />
-    <div class="auth-min-grid" />
 
     <main class="auth-min-main">
       <div class="auth-min-topbar">

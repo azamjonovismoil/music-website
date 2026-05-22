@@ -1,14 +1,17 @@
 :root {
   --auth-bg: var(--bg-base, #081120);
   --auth-surface: rgba(14, 20, 36, 0.92);
+  --auth-surface-strong: rgba(18, 26, 46, 0.98);
   --auth-border: var(--border, rgba(255, 255, 255, 0.08));
+  --auth-border-strong: rgba(255, 255, 255, 0.14);
   --auth-text: var(--text-primary, #f8fafc);
   --auth-text-soft: var(--text-secondary, rgba(226, 232, 240, 0.72));
   --auth-text-hint: var(--text-hint, rgba(148, 163, 184, 0.88));
   --auth-accent: var(--accent, #5d82ff);
   --auth-accent-2: #7c5cff;
   --auth-danger: #f87171;
-  --auth-shadow: 0 20px 54px rgba(0, 0, 0, 0.34);
+  --auth-success: #34d399;
+  --auth-shadow: 0 22px 58px rgba(0, 0, 0, 0.34);
   --auth-radius-xl: 28px;
   --auth-radius-lg: 18px;
   --auth-radius-md: 14px;
@@ -18,7 +21,9 @@ html.light,
 [data-theme='light'] {
   --auth-bg: #f6f8fc;
   --auth-surface: rgba(255, 255, 255, 0.9);
+  --auth-surface-strong: rgba(255, 255, 255, 0.98);
   --auth-border: rgba(15, 23, 42, 0.08);
+  --auth-border-strong: rgba(15, 23, 42, 0.14);
   --auth-text: #0f172a;
   --auth-text-soft: rgba(15, 23, 42, 0.66);
   --auth-text-hint: rgba(100, 116, 139, 0.9);
@@ -26,31 +31,31 @@ html.light,
 }
 
 .auth-min-shell {
-  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 18px 16px;
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(circle at 12% 8%, rgba(93, 130, 255, 0.14), transparent 22%),
-    radial-gradient(circle at 88% 92%, rgba(124, 92, 255, 0.1), transparent 24%),
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px), var(--auth-bg);
+    radial-gradient(circle at 10% 10%, rgba(93, 130, 255, 0.14), transparent 22%),
+    radial-gradient(circle at 90% 90%, rgba(124, 92, 255, 0.12), transparent 24%),
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px), var(--auth-bg);
   background-size:
     auto,
     auto,
     28px 28px,
     28px 28px,
     auto;
-  overflow: hidden;
 }
 
 html.light .auth-min-shell,
 [data-theme='light'] .auth-min-shell {
   background:
-    radial-gradient(circle at 12% 8%, rgba(93, 130, 255, 0.1), transparent 22%),
-    radial-gradient(circle at 88% 92%, rgba(124, 92, 255, 0.08), transparent 24%),
+    radial-gradient(circle at 10% 10%, rgba(93, 130, 255, 0.1), transparent 22%),
+    radial-gradient(circle at 90% 90%, rgba(124, 92, 255, 0.08), transparent 24%),
     linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px), var(--auth-bg);
   background-size:
@@ -69,8 +74,8 @@ html.light .auth-min-shell,
 }
 
 .auth-min-bg--one {
-  top: -80px;
-  left: -60px;
+  top: -70px;
+  left: -50px;
   width: 220px;
   height: 220px;
   background: rgba(93, 130, 255, 0.12);
@@ -84,17 +89,11 @@ html.light .auth-min-shell,
   background: rgba(124, 92, 255, 0.1);
 }
 
-.auth-min-grid {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
 .auth-min-main {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 440px;
+  max-width: 438px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -103,23 +102,30 @@ html.light .auth-min-shell,
 .auth-min-topbar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 14px;
-  min-height: 44px;
+  gap: 12px;
+  min-height: 40px;
 }
 
 .auth-back {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
-  padding: 0 10px;
+  min-height: 34px;
+  padding: 0 8px;
   border: 0;
   background: transparent;
   color: var(--auth-text);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.auth-back:hover {
+  opacity: 0.86;
+  transform: translateX(-1px);
 }
 
 .auth-back svg {
@@ -136,20 +142,20 @@ html.light .auth-min-shell,
 }
 
 .auth-min-brand__mark {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
   display: grid;
   place-items: center;
   background: linear-gradient(135deg, var(--auth-accent), var(--auth-accent-2));
   color: #fff;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   box-shadow: 0 10px 22px rgba(93, 130, 255, 0.24);
 }
 
 .auth-min-brand__text {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 850;
   letter-spacing: -0.03em;
 }
@@ -231,7 +237,8 @@ html.light .auth-min-shell,
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    background 0.2s ease;
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 html.light .auth-input,
@@ -245,11 +252,13 @@ html.light .auth-input,
 
 .auth-input:hover {
   border-color: rgba(93, 130, 255, 0.24);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .auth-input:focus {
   border-color: rgba(93, 130, 255, 0.82);
   box-shadow: 0 0 0 4px rgba(93, 130, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .auth-input.is-invalid {
@@ -259,6 +268,15 @@ html.light .auth-input,
 
 .auth-input--with-action {
   padding-right: 72px;
+}
+
+.auth-input--center {
+  text-align: center;
+}
+
+.auth-input--code {
+  letter-spacing: 0.18em;
+  font-weight: 800;
 }
 
 .auth-password {
@@ -276,6 +294,7 @@ html.light .auth-input,
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .auth-password__toggle:hover {
@@ -316,6 +335,7 @@ html.light .auth-input,
 
 .auth-submit:hover:not(:disabled) {
   transform: translateY(-1px);
+  box-shadow: 0 18px 30px rgba(93, 130, 255, 0.24);
 }
 
 .auth-submit:disabled,
@@ -389,6 +409,7 @@ html.light .auth-input,
   color: var(--auth-text);
   font-weight: 750;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .auth-link:hover {
@@ -446,10 +467,6 @@ html.light .auth-alert--success,
 
   .auth-min-main {
     max-width: 100%;
-  }
-
-  .auth-min-topbar {
-    gap: 10px;
   }
 
   .auth-back span {

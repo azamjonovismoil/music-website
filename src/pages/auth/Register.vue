@@ -50,9 +50,7 @@
         <input id="confirmPassword" ref="confirmPasswordRef" v-model="form.confirmPassword" class="auth-input"
           :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
           autocomplete="new-password" placeholder="Repeat password" @input="clearFieldError('confirmPassword')" />
-        <p v-if="errors.confirmPassword" class="auth-field__error">
-          {{ errors.confirmPassword }}
-        </p>
+        <p v-if="errors.confirmPassword" class="auth-field__error">{{ errors.confirmPassword }}</p>
       </div>
 
       <button class="auth-submit" type="submit" :disabled="auth.loading || !canSubmit">
@@ -81,7 +79,6 @@ const nameRef = ref(null)
 const emailRef = ref(null)
 const passwordRef = ref(null)
 const confirmPasswordRef = ref(null)
-
 const showPassword = ref(false)
 const serverError = ref('')
 
@@ -147,6 +144,8 @@ const validate = () => {
 }
 
 const handleSubmit = async () => {
+  serverError.value = ''
+
   if (!validate()) {
     focusFirstInvalidField()
     return
@@ -163,7 +162,7 @@ const handleSubmit = async () => {
       title: 'Account created',
       message: data?.message || 'Verification code sent to your email',
       type: 'success',
-      duration: 1800,
+      duration: 2200,
     })
 
     router.push({
@@ -171,7 +170,10 @@ const handleSubmit = async () => {
       query: { email: form.email.trim() },
     })
   } catch (error) {
-    serverError.value = error?.response?.data?.message || 'Registration failed'
+    serverError.value =
+      error?.response?.data?.message ||
+      error?.message ||
+      'Registration failed'
   }
 }
 
