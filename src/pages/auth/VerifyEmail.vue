@@ -108,6 +108,9 @@ const validate = () => {
 }
 
 const handleSubmit = async () => {
+  serverError.value = ''
+  serverSuccess.value = ''
+
   if (!validate()) {
     focusFirstInvalidField()
     return
