@@ -3,14 +3,12 @@ import { useAuthStore } from '../stores/auth'
 
 const APP_NAME = 'ExclusiveMusics'
 
-const guestAllowedWhenLoggedIn = new Set(['VerifyEmail', 'ResetPassword'])
-
 const getHomePath = (auth) => (auth.isAdmin ? '/admin' : '/user')
 
 const ensureAuthInitialized = async () => {
   const auth = useAuthStore()
 
-  if (!auth.initialized && !auth.user) {
+  if (!auth.initialized) {
     await auth.fetchMe()
   }
 
@@ -88,16 +86,10 @@ const routes = [
       const auth = await ensureAuthInitialized()
 
       if (!auth.isLoggedIn) {
-        return {
-          path: '/login',
-          replace: true,
-        }
+        return '/login'
       }
 
-      return {
-        path: auth.isAdmin ? '/admin/profile' : '/user',
-        replace: true,
-      }
+      return auth.isAdmin ? '/admin/profile' : '/user'
     },
     meta: { requiresAuth: true, hidePlayerBar: true },
   },
@@ -155,30 +147,27 @@ router.beforeEach(async (to) => {
   const auth = await ensureAuthInitialized()
 
   if (to.name === 'Landing' && auth.isLoggedIn) {
-    return {
-      path: getHomePath(auth),
-      replace: true,
-    }
+    return getHomePath(auth)
   }
 
   if (to.meta?.guestOnly && auth.isLoggedIn) {
-    if (!guestAllowedWhenLoggedIn.has(String(to.name || ''))) {
-      return {
-        path: getHomePath(auth),
-        replace: true,
-      }
+    const guestAllowedWhenLoggedIn = ['VerifyEmail', 'ResetPassword']
+    if (!guestAllowedWhenLoggedIn.includes(String(to.name || ''))) {
+      return getHomePath(auth)
     }
   }
 
   if (to.meta?.requiresAuth && !auth.isLoggedIn) {
     return {
       path: '/login',
-      query: to.fullPath ? { redirect: to.fullPath } : undefined,
+      query: {
+        redirect: to.fullPath,
+      },
       replace: true,
     }
   }
 
-  if (to.meta?.requiresAdmin && auth.isLoggedIn && !auth.isAdmin) {
+  if (to.meta?.requiresAdmin && !auth.isAdmin) {
     return {
       path: '/user',
       replace: true,
