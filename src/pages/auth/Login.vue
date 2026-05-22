@@ -1,6 +1,5 @@
 <template>
-  <AuthLayout eyebrow="Welcome back" title="Log in" description="Continue with Google or sign in with your email."
-    :back-to="backTo">
+  <AuthLayout eyebrow="Welcome back" title="Log in" description="Continue with Google or sign in with your email.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
@@ -20,8 +19,7 @@
         <label class="auth-label" for="email">Email</label>
         <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
           :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
-          placeholder="you@example.com" :aria-invalid="errors.email ? 'true' : 'false'"
-          @input="clearFieldError('email')" />
+          placeholder="you@example.com" @input="clearFieldError('email')" />
         <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
       </div>
 
@@ -34,8 +32,7 @@
         <div class="auth-password">
           <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"
             :class="{ 'is-invalid': errors.password }" :type="showPassword ? 'text' : 'password'"
-            autocomplete="current-password" placeholder="Enter your password"
-            :aria-invalid="errors.password ? 'true' : 'false'" @input="clearFieldError('password')" />
+            autocomplete="current-password" placeholder="Enter your password" @input="clearFieldError('password')" />
           <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
             {{ showPassword ? 'Hide' : 'Show' }}
           </button>
@@ -85,12 +82,6 @@ const errors = reactive({
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-const backTo = computed(() => {
-  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
-  if (redirect && redirect !== '/login') return redirect
-  return '/'
-})
-
 const canSubmit = computed(() => {
   return emailPattern.test(form.email) && form.password.trim().length > 0
 })
@@ -102,15 +93,8 @@ const clearFieldError = (field) => {
 
 const focusFirstInvalidField = async () => {
   await nextTick()
-
-  if (errors.email) {
-    emailRef.value?.focus()
-    return
-  }
-
-  if (errors.password) {
-    passwordRef.value?.focus()
-  }
+  if (errors.email) return emailRef.value?.focus()
+  if (errors.password) return passwordRef.value?.focus()
 }
 
 const validate = () => {
@@ -187,8 +171,6 @@ onMounted(() => {
     serverError.value = 'Google sign-in is not configured yet.'
   }
 
-  if (!form.email) {
-    emailRef.value?.focus()
-  }
+  if (!form.email) emailRef.value?.focus()
 })
 </script>

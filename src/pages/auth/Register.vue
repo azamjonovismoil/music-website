@@ -1,6 +1,6 @@
 <template>
   <AuthLayout eyebrow="Create account" title="Register"
-    description="Create your account with email or continue with Google." :back-to="backTo">
+    description="Create your account with email or continue with Google.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
@@ -100,7 +100,6 @@ const errors = reactive({
 })
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const backTo = '/login'
 
 const canSubmit = computed(() => {
   return (
@@ -165,7 +164,7 @@ const handleSubmit = async () => {
       title: 'Account created',
       message: data?.message || 'Verification code sent to your email',
       type: 'success',
-      duration: 2000,
+      duration: 1800,
     })
 
     router.push({
