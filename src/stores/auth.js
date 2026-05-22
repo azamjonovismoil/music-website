@@ -78,6 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data } = await api.post('/auth/login', credentials)
       user.value = data?.user || null
+      initialized.value = true
       return data
     } finally {
       loginLoading.value = false
@@ -88,6 +89,7 @@ export const useAuthStore = defineStore('auth', () => {
     registerLoading.value = true
     try {
       const { data } = await api.post('/auth/register', payload)
+      initialized.value = true
       return data
     } finally {
       registerLoading.value = false
@@ -99,6 +101,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data } = await api.post('/auth/verify-email', payload)
       user.value = data?.user || null
+      initialized.value = true
       return data
     } finally {
       verifyEmailLoading.value = false
@@ -146,6 +149,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = null
       }
 
+      initialized.value = true
       return data
     } finally {
       updateProfileLoading.value = false
@@ -163,8 +167,8 @@ export const useAuthStore = defineStore('auth', () => {
       await api.post('/auth/logout')
     } finally {
       user.value = null
-      logoutLoading.value = false
       initialized.value = true
+      logoutLoading.value = false
     }
   }
 
