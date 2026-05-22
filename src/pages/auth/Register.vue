@@ -5,13 +5,12 @@
       {{ serverError }}
     </div>
 
-    <button class="auth-social" type="button" :disabled="isGoogleLoading || isSubmitting"
-      :aria-busy="isGoogleLoading ? 'true' : 'false'" @click="handleGoogleLogin">
+    <button class="auth-social" type="button" :disabled="auth.loading" @click="auth.loginWithGoogle()">
       <svg viewBox="0 0 24 24" class="auth-social__icon" aria-hidden="true">
         <path fill="#EA4335"
           d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 4 1.5l2.7-2.6C17 3.2 14.8 2.2 12 2.2 6.9 2.2 2.8 6.3 2.8 11.4S6.9 20.6 12 20.6c6.9 0 9.1-4.8 9.1-7.3 0-.5-.1-.9-.1-1.2H12z" />
       </svg>
-      <span>{{ isGoogleLoading ? 'Redirecting...' : 'Continue with Google' }}</span>
+      <span>Continue with Google</span>
     </button>
 
     <div class="auth-divider"><span>or</span></div>
@@ -21,18 +20,16 @@
         <label class="auth-label" for="name">Full name</label>
         <input id="name" ref="nameRef" v-model.trim="form.name" class="auth-input"
           :class="{ 'is-invalid': errors.name }" type="text" autocomplete="name" placeholder="Your full name"
-          :aria-invalid="errors.name ? 'true' : 'false'" :aria-describedby="errors.name ? 'name-error' : undefined"
           @input="clearFieldError('name')" />
-        <p v-if="errors.name" id="name-error" class="auth-field__error">{{ errors.name }}</p>
+        <p v-if="errors.name" class="auth-field__error">{{ errors.name }}</p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="email">Email</label>
         <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
           :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
-          placeholder="you@example.com" :aria-invalid="errors.email ? 'true' : 'false'"
-          :aria-describedby="errors.email ? 'email-error' : undefined" @input="clearFieldError('email')" />
-        <p v-if="errors.email" id="email-error" class="auth-field__error">{{ errors.email }}</p>
+          placeholder="you@example.com" @input="clearFieldError('email')" />
+        <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
       </div>
 
       <div class="auth-field">
@@ -40,35 +37,26 @@
         <div class="auth-password">
           <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"
             :class="{ 'is-invalid': errors.password }" :type="showPassword ? 'text' : 'password'"
-            autocomplete="new-password" placeholder="At least 6 characters"
-            :aria-invalid="errors.password ? 'true' : 'false'"
-            :aria-describedby="errors.password ? 'password-error' : undefined" @input="clearFieldError('password')" />
-          <button class="auth-password__toggle" type="button"
-            :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword">
+            autocomplete="new-password" placeholder="At least 6 characters" @input="clearFieldError('password')" />
+          <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
             {{ showPassword ? 'Hide' : 'Show' }}
           </button>
         </div>
-        <p v-if="errors.password" id="password-error" class="auth-field__error">
-          {{ errors.password }}
-        </p>
+        <p v-if="errors.password" class="auth-field__error">{{ errors.password }}</p>
       </div>
 
       <div class="auth-field">
         <label class="auth-label" for="confirmPassword">Confirm password</label>
         <input id="confirmPassword" ref="confirmPasswordRef" v-model="form.confirmPassword" class="auth-input"
           :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
-          autocomplete="new-password" placeholder="Repeat password"
-          :aria-invalid="errors.confirmPassword ? 'true' : 'false'"
-          :aria-describedby="errors.confirmPassword ? 'confirm-password-error' : undefined"
-          @input="clearFieldError('confirmPassword')" />
-        <p v-if="errors.confirmPassword" id="confirm-password-error" class="auth-field__error">
+          autocomplete="new-password" placeholder="Repeat password" @input="clearFieldError('confirmPassword')" />
+        <p v-if="errors.confirmPassword" class="auth-field__error">
           {{ errors.confirmPassword }}
         </p>
       </div>
 
-      <button class="auth-submit" type="submit" :disabled="!canSubmit || isSubmitting || isGoogleLoading"
-        :aria-busy="isSubmitting ? 'true' : 'false'">
-        {{ isSubmitting ? 'Creating account...' : 'Create account' }}
+      <button class="auth-submit" type="submit" :disabled="auth.loading || !canSubmit">
+        {{ auth.loading ? 'Creating account...' : 'Create account' }}
       </button>
     </form>
 
@@ -96,8 +84,6 @@ const confirmPasswordRef = ref(null)
 
 const showPassword = ref(false)
 const serverError = ref('')
-const isSubmitting = ref(false)
-const isGoogleLoading = ref(false)
 
 const form = reactive({
   name: '',
@@ -114,7 +100,6 @@ const errors = reactive({
 })
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 const backTo = '/login'
 
 const canSubmit = computed(() => {
@@ -163,29 +148,11 @@ const validate = () => {
   return !errors.name && !errors.email && !errors.password && !errors.confirmPassword
 }
 
-const handleGoogleLogin = async () => {
-  if (isGoogleLoading.value || isSubmitting.value) return
-
-  serverError.value = ''
-  isGoogleLoading.value = true
-
-  try {
-    await auth.loginWithGoogle()
-  } catch (error) {
-    serverError.value = error?.response?.data?.message || 'Google sign-in failed. Please try again.'
-    isGoogleLoading.value = false
-  }
-}
-
 const handleSubmit = async () => {
-  if (isSubmitting.value || isGoogleLoading.value) return
-
   if (!validate()) {
     focusFirstInvalidField()
     return
   }
-
-  isSubmitting.value = true
 
   try {
     const data = await auth.register({
@@ -203,12 +170,10 @@ const handleSubmit = async () => {
 
     router.push({
       path: '/verify-email',
-      query: { email: form.email },
+      query: { email: form.email.trim() },
     })
   } catch (error) {
     serverError.value = error?.response?.data?.message || 'Registration failed'
-  } finally {
-    isSubmitting.value = false
   }
 }
 
