@@ -1,6 +1,5 @@
 <template>
-  <AuthLayout eyebrow="Welcome back" title="Log in"
-    description="Access your library, playlists, recommendations, and listening history.">
+  <AuthLayout eyebrow="Welcome back" title="Log in">
     <div class="auth-stack auth-stack--login">
       <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
         {{ serverError }}
@@ -29,10 +28,7 @@
         </div>
 
         <div class="auth-field">
-          <div class="auth-label-row">
-            <label class="auth-label" for="password">Password</label>
-            <span class="auth-meta">Secure access</span>
-          </div>
+          <label class="auth-label" for="password">Password</label>
 
           <div class="auth-password">
             <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"

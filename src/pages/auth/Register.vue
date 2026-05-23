@@ -1,6 +1,5 @@
 <template>
-  <AuthLayout eyebrow="Create account" title="Start listening"
-    description="Create your account to access playlists, recommendations, downloads, and your personalized queue.">
+  <AuthLayout eyebrow="Create account" title="Register">
     <div class="auth-stack auth-stack--register">
       <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
         {{ serverError }}
@@ -19,45 +18,49 @@
         <span>or</span>
       </div>
 
-      <form class="auth-form" novalidate @submit.prevent="handleSubmit">
-        <div class="auth-field">
-          <label class="auth-label" for="name">Full name</label>
-          <input id="name" ref="nameRef" v-model.trim="form.name" class="auth-input"
-            :class="{ 'is-invalid': errors.name }" type="text" autocomplete="name" placeholder="Your full name"
-            @input="clearFieldError('name')" />
-          <p v-if="errors.name" class="auth-field__error">{{ errors.name }}</p>
-        </div>
-
-        <div class="auth-field">
-          <label class="auth-label" for="email">Email</label>
-          <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
-            :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
-            placeholder="you@example.com" @input="clearFieldError('email')" />
-          <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
-        </div>
-
-        <div class="auth-field">
-          <label class="auth-label" for="password">Password</label>
-
-          <div class="auth-password">
-            <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"
-              :class="{ 'is-invalid': errors.password }" :type="showPassword ? 'text' : 'password'"
-              autocomplete="new-password" placeholder="At least 6 characters" @input="clearFieldError('password')" />
-            <button class="auth-password__toggle" type="button"
-              :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword">
-              {{ showPassword ? 'Hide' : 'Show' }}
-            </button>
+      <form class="auth-form auth-form--compact" novalidate @submit.prevent="handleSubmit">
+        <div class="auth-grid auth-grid--2">
+          <div class="auth-field">
+            <label class="auth-label" for="name">Full name</label>
+            <input id="name" ref="nameRef" v-model.trim="form.name" class="auth-input"
+              :class="{ 'is-invalid': errors.name }" type="text" autocomplete="name" placeholder="Your full name"
+              @input="clearFieldError('name')" />
+            <p v-if="errors.name" class="auth-field__error">{{ errors.name }}</p>
           </div>
 
-          <p v-if="errors.password" class="auth-field__error">{{ errors.password }}</p>
+          <div class="auth-field">
+            <label class="auth-label" for="email">Email</label>
+            <input id="email" ref="emailRef" v-model.trim="form.email" class="auth-input"
+              :class="{ 'is-invalid': errors.email }" type="email" inputmode="email" autocomplete="email"
+              placeholder="you@example.com" @input="clearFieldError('email')" />
+            <p v-if="errors.email" class="auth-field__error">{{ errors.email }}</p>
+          </div>
         </div>
 
-        <div class="auth-field">
-          <label class="auth-label" for="confirmPassword">Confirm password</label>
-          <input id="confirmPassword" ref="confirmPasswordRef" v-model="form.confirmPassword" class="auth-input"
-            :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
-            autocomplete="new-password" placeholder="Repeat password" @input="clearFieldError('confirmPassword')" />
-          <p v-if="errors.confirmPassword" class="auth-field__error">{{ errors.confirmPassword }}</p>
+        <div class="auth-grid auth-grid--2">
+          <div class="auth-field">
+            <label class="auth-label" for="password">Password</label>
+
+            <div class="auth-password">
+              <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"
+                :class="{ 'is-invalid': errors.password }" :type="showPassword ? 'text' : 'password'"
+                autocomplete="new-password" placeholder="At least 6 characters" @input="clearFieldError('password')" />
+              <button class="auth-password__toggle" type="button"
+                :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword">
+                {{ showPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+
+            <p v-if="errors.password" class="auth-field__error">{{ errors.password }}</p>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="confirmPassword">Confirm</label>
+            <input id="confirmPassword" ref="confirmPasswordRef" v-model="form.confirmPassword" class="auth-input"
+              :class="{ 'is-invalid': errors.confirmPassword }" :type="showPassword ? 'text' : 'password'"
+              autocomplete="new-password" placeholder="Repeat password" @input="clearFieldError('confirmPassword')" />
+            <p v-if="errors.confirmPassword" class="auth-field__error">{{ errors.confirmPassword }}</p>
+          </div>
         </div>
 
         <button class="auth-submit" type="submit" :disabled="auth.loading || !canSubmit">
