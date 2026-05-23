@@ -2,7 +2,7 @@
   <header class="app-header" :class="{
     'app-header--compact': isMobile && authStore.user,
     'app-header--scrolled': isScrolled,
-    'app-header--search-open': showSearchSurface
+    'app-header--search-open': showSearchSurface,
   }">
     <div class="header-inner">
       <div class="header-left">
@@ -33,7 +33,7 @@
         </button>
 
         <div v-if="showSearch && authStore.user && !isMobile" ref="searchWrapRef" class="search-wrap"
-          :class="{ expanded: searchFocused || internalSearch, active: showSearchSurface }">
+          :class="{ expanded: searchFocused || internalSearch, active: showSearchSurface }" @pointerdown.stop>
           <div class="search-shell">
             <MagnifyingGlassIcon class="search-icon-el" />
 
@@ -55,7 +55,7 @@
 
           <transition name="dropdown">
             <div v-if="showSearchSurface" class="search-dropdown" role="listbox"
-              :aria-label="internalSearch.trim() ? 'Search results' : 'Search suggestions'">
+              :aria-label="internalSearch.trim() ? 'Search results' : 'Search suggestions'" @pointerdown.stop>
               <template v-if="internalSearch.trim()">
                 <div v-if="topResult" class="search-group">
                   <div class="search-group__label">Top result</div>
@@ -185,7 +185,7 @@
             <span v-if="!isXs">Add track</span>
           </button>
 
-          <div v-if="!isMobile" ref="profileRef" class="profile-wrap">
+          <div v-if="!isMobile" ref="profileRef" class="profile-wrap" @pointerdown.stop>
             <button class="profile-btn" :class="{ open: menuOpen }" type="button"
               :aria-expanded="menuOpen ? 'true' : 'false'" aria-haspopup="menu" aria-label="Open profile menu"
               @click.stop="toggleProfileMenu">
@@ -200,7 +200,7 @@
             </button>
 
             <transition name="dropdown">
-              <div v-if="menuOpen" class="profile-dropdown" role="menu">
+              <div v-if="menuOpen" class="profile-dropdown" role="menu" @pointerdown.stop>
                 <div class="dropdown-user">
                   <div class="dropdown-avatar">{{ firstLetter }}</div>
 
