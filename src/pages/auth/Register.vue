@@ -1,11 +1,12 @@
 <template>
-  <AuthLayout eyebrow="Create account" title="Register"
-    description="Create your account with email or continue with Google.">
+  <AuthLayout eyebrow="Create account" title="Start listening"
+    description="Create your account to access playlists, recommendations, downloads, and your personalized queue.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
 
-    <button class="auth-social" type="button" :disabled="auth.loading" @click="auth.loginWithGoogle()">
+    <button class="auth-social" type="button" :disabled="auth.loading" @click="auth.loginWithGoogle()"
+      aria-label="Continue with Google">
       <svg viewBox="0 0 24 24" class="auth-social__icon" aria-hidden="true">
         <path fill="#EA4335"
           d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 4 1.5l2.7-2.6C17 3.2 14.8 2.2 12 2.2 6.9 2.2 2.8 6.3 2.8 11.4S6.9 20.6 12 20.6c6.9 0 9.1-4.8 9.1-7.3 0-.5-.1-.9-.1-1.2H12z" />
@@ -13,7 +14,9 @@
       <span>Continue with Google</span>
     </button>
 
-    <div class="auth-divider"><span>or</span></div>
+    <div class="auth-divider" aria-hidden="true">
+      <span>or</span>
+    </div>
 
     <form class="auth-form" novalidate @submit.prevent="handleSubmit">
       <div class="auth-field">
@@ -34,14 +37,17 @@
 
       <div class="auth-field">
         <label class="auth-label" for="password">Password</label>
+
         <div class="auth-password">
           <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"
             :class="{ 'is-invalid': errors.password }" :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password" placeholder="At least 6 characters" @input="clearFieldError('password')" />
-          <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
+          <button class="auth-password__toggle" type="button"
+            :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword">
             {{ showPassword ? 'Hide' : 'Show' }}
           </button>
         </div>
+
         <p v-if="errors.password" class="auth-field__error">{{ errors.password }}</p>
       </div>
 
@@ -54,7 +60,8 @@
       </div>
 
       <button class="auth-submit" type="submit" :disabled="auth.loading || !canSubmit">
-        {{ auth.loading ? 'Creating account...' : 'Create account' }}
+        <span v-if="auth.loading">Creating account...</span>
+        <span v-else>Create account</span>
       </button>
     </form>
 
@@ -143,11 +150,15 @@ const validate = () => {
   return !errors.name && !errors.email && !errors.password && !errors.confirmPassword
 }
 
+const getRedirectPath = (user) => {
+  return Number(user?.isAdmin) === 1 ? '/admin' : '/user'
+}
+
 const handleSubmit = async () => {
   serverError.value = ''
 
   if (!validate()) {
-    focusFirstInvalidField()
+    await focusFirstInvalidField()
     return
   }
 
@@ -160,15 +171,12 @@ const handleSubmit = async () => {
 
     ElNotification({
       title: 'Account created',
-      message: data?.message || 'Verification code sent to your email',
+      message: data?.message || 'Your account is ready',
       type: 'success',
-      duration: 2200,
+      duration: 1800,
     })
 
-    router.push({
-      path: '/verify-email',
-      query: { email: form.email.trim() },
-    })
+    router.replace(getRedirectPath(data?.user))
   } catch (error) {
     serverError.value =
       error?.response?.data?.message ||

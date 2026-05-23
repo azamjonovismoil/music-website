@@ -15,7 +15,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn = computed(() => !!user.value)
   const isAdmin = computed(() => Number(user.value?.isAdmin) === 1)
-  const isVerified = computed(() => !!user.value?.isEmailVerified)
+  const isVerified = computed(() => true)
   const userName = computed(() => user.value?.name || 'User')
 
   const setUser = (value) => {
@@ -38,6 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { data } = await api.post('/auth/login', credentials)
       user.value = data?.user || null
+      initialized.value = true
       return data
     } finally {
       loading.value = false
@@ -48,47 +49,8 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const { data } = await api.post('/auth/register', payload)
-      return data
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const verifyEmail = async (payload) => {
-    loading.value = true
-    try {
-      const { data } = await api.post('/auth/verify-email', payload)
       user.value = data?.user || null
-      return data
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const resendVerification = async (payload) => {
-    loading.value = true
-    try {
-      const { data } = await api.post('/auth/resend-verification', payload)
-      return data
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const forgotPassword = async (email) => {
-    loading.value = true
-    try {
-      const { data } = await api.post('/auth/forgot-password', { email })
-      return data
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const resetPassword = async (payload) => {
-    loading.value = true
-    try {
-      const { data } = await api.post('/auth/reset-password', payload)
+      initialized.value = true
       return data
     } finally {
       loading.value = false
@@ -99,13 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading.value = true
     try {
       const { data } = await api.put('/auth/profile', payload)
-
-      if (data?.user) {
-        user.value = data.user
-      } else if (data?.requiresVerification) {
-        user.value = null
-      }
-
+      user.value = data?.user || null
       return data
     } finally {
       loading.value = false
@@ -139,10 +95,6 @@ export const useAuthStore = defineStore('auth', () => {
     fetchMe,
     login,
     register,
-    verifyEmail,
-    resendVerification,
-    forgotPassword,
-    resetPassword,
     updateProfile,
     loginWithGoogle,
     logout,

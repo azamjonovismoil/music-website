@@ -5,11 +5,17 @@ const APP_NAME = 'ExclusiveMusics'
 
 const getHomePath = (auth) => (auth.isAdmin ? '/admin' : '/user')
 
+let authInitPromise = null
+
 const ensureAuthInitialized = async () => {
   const auth = useAuthStore()
 
   if (!auth.initialized) {
-    await auth.fetchMe()
+    authInitPromise ||= auth.fetchMe().finally(() => {
+      authInitPromise = null
+    })
+
+    await authInitPromise
   }
 
   return auth
@@ -34,24 +40,6 @@ const routes = [
     name: 'Register',
     component: () => import('../pages/auth/Register.vue'),
     meta: { guestOnly: true, title: 'Register', hidePlayerBar: true },
-  },
-  {
-    path: '/verify-email',
-    name: 'VerifyEmail',
-    component: () => import('../pages/auth/VerifyEmail.vue'),
-    meta: { guestOnly: true, title: 'Verify email', hidePlayerBar: true },
-  },
-  {
-    path: '/forgot-password',
-    name: 'ForgotPassword',
-    component: () => import('../pages/auth/ForgotPassword.vue'),
-    meta: { guestOnly: true, title: 'Forgot password', hidePlayerBar: true },
-  },
-  {
-    path: '/reset-password',
-    name: 'ResetPassword',
-    component: () => import('../pages/auth/ResetPassword.vue'),
-    meta: { guestOnly: true, title: 'Reset password', hidePlayerBar: true },
   },
 
   {
@@ -86,7 +74,10 @@ const routes = [
       const auth = await ensureAuthInitialized()
 
       if (!auth.isLoggedIn) {
-        return '/login'
+        return {
+          path: '/login',
+          replace: true,
+        }
       }
 
       return auth.isAdmin ? '/admin/profile' : '/user'
@@ -147,13 +138,16 @@ router.beforeEach(async (to) => {
   const auth = await ensureAuthInitialized()
 
   if (to.name === 'Landing' && auth.isLoggedIn) {
-    return getHomePath(auth)
+    return {
+      path: getHomePath(auth),
+      replace: true,
+    }
   }
 
   if (to.meta?.guestOnly && auth.isLoggedIn) {
-    const guestAllowedWhenLoggedIn = ['VerifyEmail', 'ResetPassword']
-    if (!guestAllowedWhenLoggedIn.includes(String(to.name || ''))) {
-      return getHomePath(auth)
+    return {
+      path: getHomePath(auth),
+      replace: true,
     }
   }
 

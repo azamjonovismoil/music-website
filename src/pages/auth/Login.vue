@@ -1,10 +1,12 @@
 <template>
-  <AuthLayout eyebrow="Welcome back" title="Log in" description="Continue with Google or sign in with your email.">
+  <AuthLayout eyebrow="Welcome back" title="Log in"
+    description="Access your library, playlists, recommendations, and listening history.">
     <div v-if="serverError" class="auth-alert auth-alert--error" role="alert" aria-live="polite">
       {{ serverError }}
     </div>
 
-    <button class="auth-social" type="button" :disabled="auth.loading" @click="auth.loginWithGoogle()">
+    <button class="auth-social" type="button" :disabled="auth.loading" @click="auth.loginWithGoogle()"
+      aria-label="Continue with Google">
       <svg viewBox="0 0 24 24" class="auth-social__icon" aria-hidden="true">
         <path fill="#EA4335"
           d="M12 10.2v3.9h5.5c-.2 1.3-1.5 3.9-5.5 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 4 1.5l2.7-2.6C17 3.2 14.8 2.2 12 2.2 6.9 2.2 2.8 6.3 2.8 11.4S6.9 20.6 12 20.6c6.9 0 9.1-4.8 9.1-7.3 0-.5-.1-.9-.1-1.2H12z" />
@@ -12,7 +14,9 @@
       <span>Continue with Google</span>
     </button>
 
-    <div class="auth-divider"><span>or</span></div>
+    <div class="auth-divider" aria-hidden="true">
+      <span>or</span>
+    </div>
 
     <form class="auth-form" novalidate @submit.prevent="handleSubmit">
       <div class="auth-field">
@@ -26,14 +30,15 @@
       <div class="auth-field">
         <div class="auth-label-row">
           <label class="auth-label" for="password">Password</label>
-          <router-link class="auth-link" to="/forgot-password">Forgot password?</router-link>
+          <span class="auth-meta">Secure access</span>
         </div>
 
         <div class="auth-password">
           <input id="password" ref="passwordRef" v-model="form.password" class="auth-input auth-input--with-action"
             :class="{ 'is-invalid': errors.password }" :type="showPassword ? 'text' : 'password'"
             autocomplete="current-password" placeholder="Enter your password" @input="clearFieldError('password')" />
-          <button class="auth-password__toggle" type="button" @click="showPassword = !showPassword">
+          <button class="auth-password__toggle" type="button"
+            :aria-label="showPassword ? 'Hide password' : 'Show password'" @click="showPassword = !showPassword">
             {{ showPassword ? 'Hide' : 'Show' }}
           </button>
         </div>
@@ -42,7 +47,8 @@
       </div>
 
       <button class="auth-submit" type="submit" :disabled="auth.loading || !canSubmit">
-        {{ auth.loading ? 'Signing in...' : 'Log in' }}
+        <span v-if="auth.loading">Signing in...</span>
+        <span v-else>Log in</span>
       </button>
     </form>
 
@@ -127,7 +133,7 @@ const handleSubmit = async () => {
   serverError.value = ''
 
   if (!validate()) {
-    focusFirstInvalidField()
+    await focusFirstInvalidField()
     return
   }
 
@@ -146,18 +152,7 @@ const handleSubmit = async () => {
 
     router.replace(getRedirectPath(data?.user))
   } catch (error) {
-    const code = error?.response?.data?.code
-    const message = error?.response?.data?.message || 'Login failed'
-
-    if (code === 'EMAIL_NOT_VERIFIED') {
-      router.push({
-        path: '/verify-email',
-        query: { email: form.email.trim() },
-      })
-      return
-    }
-
-    serverError.value = message
+    serverError.value = error?.response?.data?.message || 'Login failed'
   }
 }
 
@@ -170,6 +165,15 @@ onMounted(() => {
     serverError.value = 'Google sign-in is not configured yet.'
   }
 
-  if (!form.email) emailRef.value?.focus()
+  if (route.query.error === 'server') {
+    serverError.value = 'Something went wrong while signing in.'
+  }
+
+  if (!form.email) {
+    emailRef.value?.focus()
+    return
+  }
+
+  passwordRef.value?.focus()
 })
 </script>

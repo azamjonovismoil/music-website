@@ -1,10 +1,11 @@
 <template>
-  <div class="auth-min-shell">
-    <div class="auth-min-bg auth-min-bg--one" />
-    <div class="auth-min-bg auth-min-bg--two" />
+  <div class="auth-shell">
+    <div class="auth-shell__ambient auth-shell__ambient--one" />
+    <div class="auth-shell__ambient auth-shell__ambient--two" />
+    <div class="auth-shell__ambient auth-shell__ambient--three" />
 
-    <main class="auth-min-main">
-      <div class="auth-min-topbar">
+    <main class="auth-shell__main">
+      <header class="auth-shell__topbar">
         <button class="auth-back" type="button" @click="handleBack" aria-label="Go back">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15.25 19.25L8.75 12l6.5-7.25" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -13,17 +14,25 @@
           <span>Back</span>
         </button>
 
-        <router-link to="/" class="auth-min-brand" aria-label="Go to homepage">
-          <span class="auth-min-brand__mark">♪</span>
-          <span class="auth-min-brand__text">Exclusive</span>
+        <router-link to="/" class="auth-brand" aria-label="Go to homepage">
+          <span class="auth-brand__mark">♪</span>
+          <span class="auth-brand__copy">
+            <span class="auth-brand__title">Exclusive</span>
+            <span class="auth-brand__subtitle">Premium music platform</span>
+          </span>
         </router-link>
-      </div>
+      </header>
 
-      <section class="auth-min-card">
-        <div v-if="eyebrow" class="auth-min-eyebrow">{{ eyebrow }}</div>
-        <h1 class="auth-min-title">{{ title }}</h1>
-        <p v-if="description" class="auth-min-text">{{ description }}</p>
-        <slot />
+      <section class="auth-card" aria-labelledby="auth-title">
+        <div class="auth-card__header">
+          <div v-if="eyebrow" class="auth-card__eyebrow">{{ eyebrow }}</div>
+          <h1 id="auth-title" class="auth-card__title">{{ title }}</h1>
+          <p v-if="description" class="auth-card__description">{{ description }}</p>
+        </div>
+
+        <div class="auth-card__body">
+          <slot />
+        </div>
       </section>
     </main>
   </div>
