@@ -1,7 +1,7 @@
 <template>
   <section class="tg-root">
     <div v-if="!compactHeader && title" class="tg-header">
-      <div>
+      <div class="tg-header__copy">
         <p class="section-kicker">{{ subtitle || 'Library section' }}</p>
         <h2 class="tg-title">{{ title }}</h2>
       </div>
@@ -15,66 +15,67 @@
       <p>This section is empty right now.</p>
     </div>
 
-    <div v-else class="tg-grid">
-      <article v-for="track in tracks" :key="track._id" class="tc" :class="{
-        'tc--playing': currentMusic?._id === track._id,
-        'tc--selected': selectedMusic?._id === track._id,
+    <div v-else class="tg-table surface-card">
+      <div class="tg-table__head">
+        <span>#</span>
+        <span>Track</span>
+        <span>Meta</span>
+        <span>Time</span>
+        <span></span>
+      </div>
+
+      <article v-for="(track, index) in tracks" :key="track._id" class="tg-row" :class="{
+        'tg-row--playing': currentMusic?._id === track._id,
+        'tg-row--selected': selectedMusic?._id === track._id,
       }" @click="$emit('select-track', track)">
-        <div class="tc-thumb">
-          <img :src="getCover(track)" class="tc-img" :alt="track.title || 'Track cover'" loading="lazy" decoding="async"
-            @error="e => { if (fallback) e.target.src = fallback }" />
-
-          <div class="tc-top">
-            <span v-if="track.genre?.[0]" class="tc-badge">
-              {{ track.genre[0] }}
-            </span>
-
-            <span v-else-if="track.releaseType" class="tc-badge">
-              {{ track.releaseType }}
-            </span>
-          </div>
-
-          <div class="tc-overlay">
-            <button class="tc-play" type="button" title="Play" @click.stop="$emit('play-track', track)">
-              <PauseIcon v-if="currentMusic?._id === track._id && isPlaying" class="tc-play-ico" />
-              <PlayIcon v-else class="tc-play-ico tc-play-ico--shift" />
-            </button>
-          </div>
-
-          <div v-if="currentMusic?._id === track._id" class="tc-eq">
+        <div class="tg-row__index">
+          <span v-if="currentMusic?._id !== track._id">{{ index + 1 }}</span>
+          <div v-else class="tg-row__eq" :class="{ active: isPlaying }">
             <span></span><span></span><span></span>
           </div>
         </div>
 
-        <div class="tc-body">
-          <div class="tc-main">
-            <p class="tc-title">{{ track.title || 'Untitled' }}</p>
-            <p class="tc-artist">{{ track.artist || 'Unknown artist' }}</p>
+        <div class="tg-row__main">
+          <div class="tg-row__cover-wrap">
+            <img :src="getCover(track)" class="tg-row__cover" :alt="track.title || 'Track cover'" loading="lazy"
+              decoding="async" @error="e => { if (fallback) e.target.src = fallback }" />
+
+            <button class="tg-row__play" type="button" title="Play" @click.stop="$emit('play-track', track)">
+              <PauseIcon v-if="currentMusic?._id === track._id && isPlaying" class="tg-row__play-ico" />
+              <PlayIcon v-else class="tg-row__play-ico tg-row__play-ico--shift" />
+            </button>
           </div>
 
-          <div class="tc-footer">
-            <div class="tc-meta">
-              <span v-if="track.duration" class="tc-dur">{{ fmtDur(track.duration) }}</span>
-              <span v-if="track.language" class="tc-dot">•</span>
-              <span v-if="track.language" class="tc-lang">{{ track.language }}</span>
-            </div>
-
-            <div class="tc-actions">
-              <button class="tc-act" type="button" title="Add to playlist"
-                @click.stop="$emit('add-to-playlist', track)">
-                <PlusIcon class="tc-act-ico" />
-              </button>
-
-              <button class="tc-act" type="button" title="Add to queue" @click.stop="$emit('add-to-queue', track)">
-                <QueueListIcon class="tc-act-ico" />
-              </button>
-
-              <button v-if="playlist" class="tc-act tc-act--del" type="button" title="Remove"
-                @click.stop="$emit('remove-from-playlist', track)">
-                <XMarkIcon class="tc-act-ico" />
-              </button>
-            </div>
+          <div class="tg-row__copy">
+            <p class="tg-row__title">{{ track.title || 'Untitled' }}</p>
+            <p class="tg-row__artist">{{ track.artist || 'Unknown artist' }}</p>
           </div>
+        </div>
+
+        <div class="tg-row__meta">
+          <span v-if="track.genre?.[0]" class="tg-pill">{{ track.genre[0] }}</span>
+          <span v-else-if="track.releaseType" class="tg-pill">{{ track.releaseType }}</span>
+
+          <span v-if="track.language" class="tg-row__lang">{{ track.language }}</span>
+        </div>
+
+        <div class="tg-row__time">
+          <span>{{ fmtDur(track.duration) }}</span>
+        </div>
+
+        <div class="tg-row__actions">
+          <button class="tg-act" type="button" title="Add to playlist" @click.stop="$emit('add-to-playlist', track)">
+            <PlusIcon class="tg-act-ico" />
+          </button>
+
+          <button class="tg-act" type="button" title="Add to queue" @click.stop="$emit('add-to-queue', track)">
+            <QueueListIcon class="tg-act-ico" />
+          </button>
+
+          <button v-if="playlist" class="tg-act tg-act--del" type="button" title="Remove"
+            @click.stop="$emit('remove-from-playlist', track)">
+            <XMarkIcon class="tg-act-ico" />
+          </button>
         </div>
       </article>
     </div>
@@ -115,7 +116,7 @@ defineEmits([
 
 const fmtDur = (s) => {
   const t = Number(s || 0)
-  if (!t) return ''
+  if (!t) return '—'
   return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`
 }
 </script>

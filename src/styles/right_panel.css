@@ -1,29 +1,38 @@
 .rp {
   height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  gap: 12px;
 }
 
 .rp-top {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   padding-bottom: 10px;
-  background: linear-gradient(180deg, var(--sidebar-bg), transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sidebar-bg) 98%, transparent) 0%,
+    color-mix(in srgb, var(--sidebar-bg) 84%, transparent) 70%,
+    transparent 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .rp-tabs {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .rp-tab {
   min-height: 42px;
   padding: 0 12px;
   border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
@@ -34,20 +43,23 @@
     background var(--t-fast),
     border-color var(--t-fast),
     color var(--t-fast),
-    transform var(--t-fast);
+    transform var(--t-fast),
+    box-shadow var(--t-fast);
 }
 
 .rp-tab:hover,
 .rp-tab.active {
-  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 98%, transparent);
   color: var(--text-primary);
   border-color: var(--border-hover);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-xs);
 }
 
 .rp-tab__icon {
   width: 15px;
   height: 15px;
+  flex-shrink: 0;
 }
 
 .rp-badge {
@@ -61,6 +73,7 @@
   align-items: center;
   justify-content: center;
   font-size: 10px;
+  font-weight: 800;
 }
 
 .rp-body {
@@ -85,12 +98,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding-inline: 2px;
 }
 
 .rp-headline h3 {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: -0.03em;
+  color: var(--text-primary);
 }
 
 .rp-clear,
@@ -98,8 +113,8 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-muted);
   display: grid;
   place-items: center;
@@ -115,12 +130,13 @@
   transform: translateY(-1px);
   color: var(--text-primary);
   border-color: var(--border-hover);
-  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 98%, transparent);
 }
 
 .rp-icon-btn.danger:hover {
   color: var(--rose);
   background: var(--rose-soft);
+  border-color: rgba(255, 111, 145, 0.22);
 }
 
 .rp-action-icon,
@@ -131,7 +147,10 @@
 
 .rp-now {
   padding: 12px;
-  border-radius: 20px;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(53, 109, 255, 0.08), transparent 28%),
+    var(--surface-1);
 }
 
 .rp-now__row {
@@ -141,6 +160,7 @@
   grid-template-columns: 52px minmax(0, 1fr) 18px;
   gap: 10px;
   align-items: center;
+  border-radius: 16px;
 }
 
 .rp-now__cover,
@@ -151,6 +171,7 @@
   border-radius: 14px;
   object-fit: cover;
   background: var(--bg-elevated);
+  flex-shrink: 0;
 }
 
 .rp-now__meta,
@@ -172,6 +193,7 @@
 .rp-item__body strong {
   font-size: 12px;
   font-weight: 800;
+  color: var(--text-primary);
 }
 
 .rp-now__meta span,
@@ -225,11 +247,11 @@
 }
 
 .rp-item {
-  min-height: 70px;
-  padding: 9px 10px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  min-height: 72px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   display: grid;
   align-items: center;
   gap: 10px;
@@ -243,7 +265,7 @@
 .rp-item:hover {
   transform: translateY(-1px);
   border-color: var(--border-hover);
-  background: var(--surface-1);
+  background: color-mix(in srgb, var(--surface-1) 98%, transparent);
   box-shadow: var(--shadow-xs);
 }
 
@@ -265,13 +287,14 @@
 
 .rp-empty {
   min-height: 132px;
-  border-radius: 20px;
+  border-radius: 22px;
   display: grid;
   place-items: center;
   gap: 8px;
   text-align: center;
   padding: 18px;
   color: var(--text-muted);
+  background: color-mix(in srgb, var(--surface-1) 98%, transparent);
 }
 
 .rp-empty__icon {
@@ -282,6 +305,8 @@
 .rp-artist {
   padding: 14px;
   border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.08), transparent 24%), var(--surface-1);
 }
 
 .rp-artist__top {
@@ -342,6 +367,7 @@
   font-size: 18px;
   font-weight: 900;
   letter-spacing: -0.04em;
+  color: var(--text-primary);
 }
 
 .rp-artist__copy p {
@@ -362,8 +388,8 @@
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
@@ -381,14 +407,15 @@
 .rp-artist__stat {
   padding: 10px;
   border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
 }
 
 .rp-artist__stat strong {
   display: block;
   font-size: 15px;
   font-weight: 900;
+  color: var(--text-primary);
 }
 
 .rp-artist__stat span {

@@ -14,7 +14,6 @@
   grid-template-columns: var(--leftbar-expanded) minmax(0, 1fr) var(--rightbar-width);
   min-height: calc(100vh - var(--header-h));
   transition: grid-template-columns var(--t-slow);
-  contain: layout;
 }
 
 .user-shell--left-collapsed {
@@ -39,11 +38,11 @@
   background: color-mix(in srgb, var(--sidebar-bg) 96%, transparent);
   z-index: 40;
   transform: translateZ(0);
+  will-change: width, transform;
   transition:
-    transform var(--t-slow),
-    width var(--t-slow),
     border-color var(--t-fast),
-    background var(--t-fast);
+    background var(--t-fast),
+    transform var(--t-slow);
 }
 
 .user-shell__left-scroll,

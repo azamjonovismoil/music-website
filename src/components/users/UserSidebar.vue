@@ -1,10 +1,14 @@
 <template>
-  <aside class="user-sidebar" :class="{ 'user-sidebar--collapsed': collapsed }">
+  <aside class="user-sidebar" :class="{
+    'user-sidebar--collapsed': collapsed,
+    'user-sidebar--ready': ready
+  }">
     <div class="us-header">
       <div v-if="!collapsed" class="us-brand">
         <div class="us-brand__icon-wrap">
           <MusicalNoteIcon class="us-brand-ico" />
         </div>
+
         <div class="us-brand__copy">
           <span class="us-brand-text">Playlists</span>
           <span class="us-brand-sub">Your library</span>
@@ -25,7 +29,7 @@
     </div>
 
     <div class="us-body">
-      <div class="us-section-label" v-if="!collapsed">Your playlists</div>
+      <div v-if="!collapsed" class="us-section-label">Your playlists</div>
 
       <div class="us-playlist-list">
         <button v-for="playlist in playlists" :key="playlist._id" class="us-playlist-item"
@@ -97,16 +101,27 @@ const emit = defineEmits([
   'collapsed-change',
 ])
 
-const collapsed = ref(false)
+const STORAGE_KEY = 'exclusive-user-sidebar-collapsed'
 
-const toggle = () => {
-  collapsed.value = !collapsed.value
-  localStorage.setItem('sidebar-collapsed', collapsed.value ? '1' : '0')
+const collapsed = ref(false)
+const ready = ref(false)
+
+const syncCollapsed = (value) => {
+  collapsed.value = !!value
+  localStorage.setItem(STORAGE_KEY, collapsed.value ? '1' : '0')
   emit('collapsed-change', collapsed.value)
 }
 
+const toggle = () => {
+  syncCollapsed(!collapsed.value)
+}
+
 onMounted(() => {
-  collapsed.value = localStorage.getItem('sidebar-collapsed') === '1'
+  collapsed.value = localStorage.getItem(STORAGE_KEY) === '1'
   emit('collapsed-change', collapsed.value)
+
+  requestAnimationFrame(() => {
+    ready.value = true
+  })
 })
 </script>

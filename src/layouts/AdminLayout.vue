@@ -1,6 +1,10 @@
 <template>
-  <div class="admin-app" :class="{ 'is-sidebar-collapsed': isSidebarCollapsed }">
-    <HeaderPage page-type="admin" @toggle-sidebar="mobileSidebarOpen = !mobileSidebarOpen" />
+  <div class="admin-app" :class="{
+    'is-sidebar-collapsed': isSidebarCollapsed,
+    'is-mobile-sidebar-open': mobileSidebarOpen,
+    'is-layout-ready': layoutReady
+  }">
+    <HeaderPage page-type="admin" @toggle-sidebar="toggleMobileSidebar" />
 
     <div class="admin-app__body">
       <div class="admin-mobile-sidebar-overlay" :class="{ show: mobileSidebarOpen }"
@@ -25,15 +29,25 @@ import HeaderPage from '@/components/layout/HeaderPage.vue'
 import AdminSidebar from '@/components/layout/AdminSidebar.vue'
 
 const STORAGE_KEY = 'exclusive-admin-sidebar-collapsed'
+
 const isSidebarCollapsed = ref(false)
 const mobileSidebarOpen = ref(false)
+const layoutReady = ref(false)
 
 const handleCollapseChange = (value) => {
   isSidebarCollapsed.value = !!value
 }
 
+const toggleMobileSidebar = () => {
+  mobileSidebarOpen.value = !mobileSidebarOpen.value
+}
+
 onMounted(() => {
   isSidebarCollapsed.value = localStorage.getItem(STORAGE_KEY) === 'true'
+
+  requestAnimationFrame(() => {
+    layoutReady.value = true
+  })
 })
 </script>
 
@@ -57,6 +71,9 @@ onMounted(() => {
   grid-template-columns: var(--admin-sidebar-w) minmax(0, 1fr);
   min-height: calc(100vh - var(--header-h));
   align-items: start;
+}
+
+.admin-app.is-layout-ready .admin-app__body {
   transition: grid-template-columns var(--t-slow);
 }
 
@@ -66,10 +83,12 @@ onMounted(() => {
   top: var(--header-h);
   height: calc(100vh - var(--header-h));
   border-right: 1px solid var(--border);
-  background: var(--sidebar-bg);
+  background: color-mix(in srgb, var(--sidebar-bg) 96%, transparent);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   overflow: hidden;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .admin-app__main {
@@ -125,13 +144,13 @@ onMounted(() => {
     width: min(294px, calc(100vw - 18px));
     height: calc(100vh - var(--header-h));
     z-index: 1200;
-    transform: translateX(-104%);
-    transition: transform var(--t-slow);
+    transform: translate3d(-104%, 0, 0);
+    transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
     box-shadow: var(--shadow-lg);
   }
 
   .admin-app__sidebar.open {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
 
   .admin-app__main {

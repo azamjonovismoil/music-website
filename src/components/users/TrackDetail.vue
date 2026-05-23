@@ -1,99 +1,111 @@
 <template>
   <section v-if="track" class="td">
     <div class="td-hero">
-      <div class="td-media">
-        <div class="td-cover-shell">
-          <img :src="getCover(track)" class="td-cover" :alt="track.title || 'Track cover'" @error="imgErr" />
+      <div class="td-hero__bg" />
+
+      <div class="td-hero__content">
+        <div class="td-cover-col">
+          <div class="td-cover-shell">
+            <img :src="getCover(track)" class="td-cover" :alt="track.title || 'Track cover'" @error="imgErr" />
+          </div>
+
+          <div v-if="currentTrack?._id === track._id" class="td-now" :class="{ active: isPlaying }">
+            <span class="td-now__dot"></span>
+            <span>{{ isPlaying ? 'Now playing' : 'Selected track' }}</span>
+          </div>
         </div>
 
-        <div v-if="currentTrack?._id === track._id" class="td-now" :class="{ active: isPlaying }">
-          <span class="td-now__dot"></span>
-          <span>{{ isPlaying ? 'Now playing' : 'Selected track' }}</span>
-        </div>
-      </div>
+        <div class="td-main">
+          <div class="td-copy">
+            <p class="td-overline">Track</p>
+            <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
 
-      <div class="td-main">
-        <div class="td-copy">
-          <p class="page-label">Track focus</p>
+            <div class="td-artist-row">
+              <button class="td-artist" type="button" @click="$emit('open-artist', track.artist)">
+                {{ track.artist || 'Unknown artist' }}
+              </button>
 
-          <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
+              <template v-if="track.album">
+                <span class="td-sep">•</span>
+                <span class="td-album">{{ track.album }}</span>
+              </template>
 
-          <div class="td-artist-row">
-            <button class="td-artist" type="button" @click="$emit('open-artist', track.artist)">
-              {{ track.artist || 'Unknown artist' }}
+              <template v-if="track.language">
+                <span class="td-sep">•</span>
+                <span class="td-album">{{ track.language }}</span>
+              </template>
+            </div>
+
+            <div v-if="heroTags.length" class="td-tags">
+              <span v-for="tag in heroTags" :key="tag" class="td-tag">{{ tag }}</span>
+            </div>
+          </div>
+
+          <div class="td-actions">
+            <button class="td-play-main" type="button" @click="$emit('play', track)">
+              <PauseIcon v-if="currentTrack?._id === track._id && isPlaying" class="td-btn-ico" />
+              <PlayIcon v-else class="td-btn-ico td-btn-ico--shift" />
             </button>
 
-            <template v-if="track.album">
-              <span class="td-sep">•</span>
-              <span class="td-album">{{ track.album }}</span>
-            </template>
-          </div>
+            <button class="td-icon-btn" type="button" @click="$emit('toggle-like', track)">
+              <HeartSolidIcon v-if="track.liked" class="td-btn-ico td-btn-ico--liked" />
+              <HeartIcon v-else class="td-btn-ico" />
+            </button>
 
-          <div v-if="heroTags.length" class="td-tags">
-            <span v-for="tag in heroTags" :key="tag" class="td-tag">{{ tag }}</span>
+            <button class="td-icon-btn" type="button" @click="$emit('add-to-queue', track)">
+              <QueueListIcon class="td-btn-ico" />
+            </button>
+
+            <button class="td-icon-btn" type="button" @click="$emit('add-to-playlist', track)">
+              <PlusIcon class="td-btn-ico" />
+            </button>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="td-actions">
-          <button class="btn btn-primary td-btn-primary" type="button" @click="$emit('play', track)">
-            <PauseIcon v-if="currentTrack?._id === track._id && isPlaying" class="td-btn-ico" />
-            <PlayIcon v-else class="td-btn-ico td-btn-ico--shift" />
-            <span>{{ currentTrack?._id === track._id && isPlaying ? 'Pause' : 'Play now' }}</span>
-          </button>
-
-          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('toggle-like', track)">
-            <HeartSolidIcon v-if="track.liked" class="td-btn-ico td-btn-ico--liked" />
-            <HeartIcon v-else class="td-btn-ico" />
-            <span>{{ track.liked ? 'Liked' : 'Like' }}</span>
-          </button>
-
-          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-queue', track)">
-            <QueueListIcon class="td-btn-ico" />
-            <span>Queue</span>
-          </button>
-
-          <button class="btn btn-ghost td-btn-ghost" type="button" @click="$emit('add-to-playlist', track)">
-            <PlusIcon class="td-btn-ico" />
-            <span>Playlist</span>
-          </button>
-        </div>
-
-        <div v-if="metaItems.length" class="td-stats">
+    <div class="td-body">
+      <div class="td-body__main">
+        <div class="td-stats">
           <div v-for="item in metaItems" :key="item.label" class="td-stat">
             <span class="td-stat__label">{{ item.label }}</span>
             <strong class="td-stat__value">{{ item.value }}</strong>
           </div>
         </div>
 
-        <div v-if="track.bio" class="td-about">
+        <div v-if="track.bio" class="td-about surface-card">
           <p class="td-about__label">About this track</p>
           <p class="td-bio">{{ track.bio }}</p>
         </div>
-      </div>
-    </div>
 
-    <div v-if="recommendations.length" class="td-more surface-card">
-      <div class="td-more__head">
-        <div>
-          <p class="section-kicker">Continue listening</p>
-          <h3>More in this vibe</h3>
-        </div>
-      </div>
-
-      <div class="td-more__grid">
-        <article v-for="item in recommendations" :key="item._id" class="td-more-card"
-          @click="$emit('select-track', item)">
-          <img :src="getCover(item)" class="td-more-card__cover" :alt="item.title || 'Track cover'" @error="imgErr" />
-
-          <div class="td-more-card__body">
-            <strong>{{ item.title || 'Untitled' }}</strong>
-            <span>{{ item.artist || 'Unknown artist' }}</span>
+        <div v-if="recommendations.length" class="td-list surface-card">
+          <div class="td-list__head">
+            <div>
+              <p class="section-kicker">Continue listening</p>
+              <h3>More in this vibe</h3>
+            </div>
           </div>
 
-          <button class="td-more-card__play" type="button" @click.stop="$emit('play', item)">
-            <PlayIcon class="td-more-card__play-ico td-btn-ico--shift" />
-          </button>
-        </article>
+          <div class="td-list__table">
+            <article v-for="(item, index) in recommendations" :key="item._id" class="td-list__row"
+              @click="$emit('select-track', item)">
+              <span class="td-list__index">{{ index + 1 }}</span>
+
+              <img :src="getCover(item)" class="td-list__cover" :alt="item.title || 'Track cover'" @error="imgErr" />
+
+              <div class="td-list__copy">
+                <strong>{{ item.title || 'Untitled' }}</strong>
+                <span>{{ item.artist || 'Unknown artist' }}</span>
+              </div>
+
+              <span class="td-list__duration">{{ fmtDur(item.duration) }}</span>
+
+              <button class="td-list__play" type="button" @click.stop="$emit('play', item)">
+                <PlayIcon class="td-list__play-ico td-btn-ico--shift" />
+              </button>
+            </article>
+          </div>
+        </div>
       </div>
     </div>
   </section>
