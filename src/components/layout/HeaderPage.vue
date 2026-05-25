@@ -431,7 +431,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import {
   HomeIcon,
   MagnifyingGlassIcon,
@@ -460,6 +460,7 @@ const props = defineProps({
 const emit = defineEmits(['update:search', 'toggle-sidebar'])
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const RECENT_SEARCHES_KEY = 'exclusive-recent-searches'
@@ -488,8 +489,8 @@ const internalSearch = computed(() => String(props.search || ''))
 const normalizedSearchItems = computed(() => (Array.isArray(props.searchItems) ? props.searchItems : []))
 
 const homePath = computed(() => (isAdminPage.value ? '/admin' : '/user'))
-const profilePath = computed(() => (isAdminPage.value ? '/admin/profile' : '/profile'))
-const settingsPath = computed(() => (isAdminPage.value ? '/admin/settings' : '/settings'))
+const profilePath = computed(() => (isAdminPage.value ? '/admin/profile' : '/user/profile'))
+const settingsPath = computed(() => (isAdminPage.value ? '/admin/settings' : '/user/settings'))
 
 const normalizeText = (value) =>
   String(value || '')
@@ -718,12 +719,12 @@ const selectSearchResult = (item) => {
   }
 
   if (isTrackResult(item) && (item._id || item.id)) {
-    router.push(`/track/${item._id || item.id}`)
+    router.push(`/user/track/${item._id || item.id}`)
     return
   }
 
   if (isArtistResult(item) && item.slug) {
-    router.push(`/artist/${item.slug}`)
+    router.push(`/user/artist/${item.slug}`)
   }
 }
 
@@ -838,7 +839,7 @@ const handleScroll = () => {
 }
 
 watch(
-  () => router.currentRoute.value.fullPath,
+  () => route.fullPath,
   () => {
     menuOpen.value = false
     mobileMenuOpen.value = false

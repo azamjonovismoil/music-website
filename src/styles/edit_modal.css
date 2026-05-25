@@ -10,6 +10,11 @@
   place-items: center;
 }
 
+.el-dialog.is-align-center {
+  background: color-mix(in srgb, var(--bg-input) 88%, var(--surface-1)) !important;
+  margin: auto;
+}
+
 .edit-dialog .el-dialog {
   width: min(1480px, calc(100vw - 28px)) !important;
   max-width: 1480px !important;
