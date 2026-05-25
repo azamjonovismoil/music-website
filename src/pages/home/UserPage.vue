@@ -121,6 +121,8 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'UserPage' })
+
 import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
 import TrackDetail from '@/components/users/TrackDetail.vue'
 import TrackGrid from '@/components/users/TrackGrid.vue'

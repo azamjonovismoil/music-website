@@ -156,6 +156,8 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'ProfilePage' })
+
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'

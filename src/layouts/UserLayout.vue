@@ -1,9 +1,9 @@
 <template>
-  <div class="user-layout">
-    <HeaderPage :search="search" :show-search="showSearch" :page-type="'user'" :search-items="tracks"
+  <div class="user-layout" :class="{ 'user-layout--minimal': isMinimalPage }">
+    <HeaderPage v-if="!isMinimalPage" :search="search" :show-search="showSearch" page-type="user" :search-items="tracks"
       @update:search="search = $event" @toggle-sidebar="toggleMobileSidebar" />
 
-    <div class="user-shell" :class="{
+    <div v-if="!isMinimalPage" class="user-shell" :class="{
       'user-shell--left-collapsed': leftSidebarCollapsed,
       'user-shell--mobile-left-open': mobileSidebarOpen,
       'user-shell--player-open': !!playerStore.currentTrack,
@@ -22,7 +22,7 @@
 
       <main class="user-main">
         <router-view v-slot="{ Component, route: currentRoute }">
-          <KeepAlive :include="keepAliveNames">
+          <KeepAlive include="UserPage,ProfilePage,SettingsPage">
             <component :is="Component" v-if="currentRoute.meta?.keepAlive" :tracks="tracks" :loading="loading"
               :err-msg="errMsg" :search="search" :playlists="playlists" :selected-playlist="selectedPlaylist"
               :selected-detail-track="selectedDetailTrack" :selected-artist-view="selectedArtistView"
@@ -33,7 +33,7 @@
               :fallback-cover="fallbackCover" :player-store="playerStore" @toggle-track="toggleTrack"
               @toggle-like-track="toggleLikeTrack" @open-add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue"
               @open-artist="openArtist" @clear-artist-view="clearArtistView" @open-track-detail="openTrackDetail"
-              @fetch-tracks="fetchTracks" @clear-selected-playlist="selectedPlaylist = null" />
+              @fetch-tracks="forceFetchTracks" @clear-selected-playlist="selectedPlaylist = null" />
           </KeepAlive>
 
           <component :is="Component" v-if="!currentRoute.meta?.keepAlive" :tracks="tracks" :loading="loading"
@@ -46,7 +46,7 @@
             :fallback-cover="fallbackCover" :player-store="playerStore" @toggle-track="toggleTrack"
             @toggle-like-track="toggleLikeTrack" @open-add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue"
             @open-artist="openArtist" @clear-artist-view="clearArtistView" @open-track-detail="openTrackDetail"
-            @fetch-tracks="fetchTracks" @clear-selected-playlist="selectedPlaylist = null" />
+            @fetch-tracks="forceFetchTracks" @clear-selected-playlist="selectedPlaylist = null" />
         </router-view>
       </main>
 
@@ -60,6 +60,16 @@
         </div>
       </aside>
     </div>
+
+    <main v-else class="user-main user-main--standalone">
+      <router-view v-slot="{ Component, route: currentRoute }">
+        <KeepAlive include="UserPage,ProfilePage,SettingsPage">
+          <component :is="Component" v-if="currentRoute.meta?.keepAlive" />
+        </KeepAlive>
+
+        <component :is="Component" v-if="!currentRoute.meta?.keepAlive" />
+      </router-view>
+    </main>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
       @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
@@ -77,8 +87,8 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch, KeepAlive } from 'vue'
-import axios from 'axios'
 import { useRoute } from 'vue-router'
+import axios from 'axios'
 import { usePlayerStore } from '@/stores/player'
 import { useAuthStore } from '@/stores/auth'
 import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
@@ -93,8 +103,6 @@ import '@/styles/user_page.css'
 const route = useRoute()
 const authStore = useAuthStore()
 const playerStore = usePlayerStore()
-
-const keepAliveNames = ['UserPage', 'Profile', 'SettingsPage']
 
 const api = axios.create({
   baseURL: `${API_ROOT}/api`,
@@ -142,9 +150,9 @@ const RECENT_KEY = computed(() => `rp_${authStore.user?._id || authStore.user?.i
 const MAX_RECENT = 6
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 const showSearch = computed(() => !route.meta?.hideUserSearch)
+const isMinimalPage = computed(() => !!route.meta?.hideUserChrome)
 
 const normalizeWord = (value) => String(value || '').trim().toLowerCase()
-
 const normalizedTracks = computed(() => [...tracks.value])
 
 const filteredTracks = computed(() => {
@@ -177,7 +185,7 @@ const filteredTracks = computed(() => {
     })
   }
 
-  return arr.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+  return arr
 })
 
 const currentReferenceTrack = computed(() => playerStore.currentTrack || selectedDetailTrack.value || null)
@@ -230,8 +238,7 @@ const recommendations = computed(() => {
       (a, b) =>
         b.__score - a.__score ||
         Number(b.likeCount || 0) - Number(a.likeCount || 0) ||
-        Number(b.playCount || 0) - Number(a.playCount || 0) ||
-        new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        Number(b.playCount || 0) - Number(a.playCount || 0)
     )
     .slice(0, 10)
 })
@@ -309,9 +316,7 @@ const sectionGroups = computed(() => {
     )
     .slice(0, 10)
 
-  const fresh = [...source]
-    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-    .slice(0, 10)
+  const fresh = source.slice(0, 10)
 
   const featured = source.filter((t) => t.isFeatured).slice(0, 10)
   const recommended = uniqueTracks([
@@ -335,16 +340,16 @@ const sectionGroups = computed(() => {
       tracks: recommended,
     },
     {
+      key: 'fresh',
+      title: 'Latest releases',
+      subtitle: 'Newest tracks in your library',
+      tracks: fresh,
+    },
+    {
       key: 'trending',
       title: 'Trending now',
       subtitle: 'Popular tracks people keep coming back to',
       tracks: trending,
-    },
-    {
-      key: 'fresh',
-      title: 'Fresh picks',
-      subtitle: 'Recently added music worth checking out',
-      tracks: fresh,
     },
     {
       key: 'featured',
@@ -395,15 +400,19 @@ const visibleSections = computed(() =>
   sectionGroups.value.filter((section) => Array.isArray(section.tracks) && section.tracks.length > 0)
 )
 
-const fetchTracks = async () => {
-  if (tracks.value.length) return
+const fetchTracks = async (force = false) => {
+  if (!force && tracks.value.length) return
 
   loading.value = true
   errMsg.value = ''
 
   try {
     const { data } = await api.get('/music')
-    tracks.value = Array.isArray(data) ? data : []
+    const nextTracks = Array.isArray(data) ? data : []
+
+    tracks.value = nextTracks.sort(
+      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+    )
 
     if (!selectedDetailTrack.value && tracks.value.length) {
       selectedDetailTrack.value = tracks.value[0]
@@ -418,8 +427,10 @@ const fetchTracks = async () => {
   }
 }
 
-const fetchPlaylists = async () => {
-  if (playlists.value.length) return
+const forceFetchTracks = () => fetchTracks(true)
+
+const fetchPlaylists = async (force = false) => {
+  if (!force && playlists.value.length) return
 
   try {
     const { data } = await api.get('/playlists')

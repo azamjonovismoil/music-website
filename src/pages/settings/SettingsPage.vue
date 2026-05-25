@@ -1,6 +1,13 @@
 <template>
-  <div class="settings-page">
+  <div class="settings-page settings-page--minimal">
     <main class="settings-main">
+      <section class="settings-topbar">
+        <button class="settings-back-btn" type="button" @click="goBack">
+          <ArrowLeftIcon class="settings-back-icon" />
+          <span>Back</span>
+        </button>
+      </section>
+
       <section class="settings-hero surface-card">
         <div>
           <p class="page-label">Preferences</p>
@@ -159,8 +166,14 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'SettingsPage' })
+
 import { reactive, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import '@/styles/settings_page.css'
+
+const router = useRouter()
 
 const DEFAULT_PREFS = {
   theme: 'dark',
@@ -176,6 +189,14 @@ const DEFAULT_PREFS = {
 
 const prefs = reactive({ ...DEFAULT_PREFS })
 const savedMsg = ref('')
+
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  router.push('/user')
+}
 
 const applyTheme = (theme) => {
   if (theme === 'system') {

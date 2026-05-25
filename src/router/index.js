@@ -63,7 +63,12 @@ const routes = [
         path: 'settings',
         name: 'UserSettings',
         component: () => import('../pages/settings/SettingsPage.vue'),
-        meta: { title: 'Settings', keepAlive: true },
+        meta: {
+          title: 'Settings',
+          keepAlive: true,
+          hideUserChrome: true,
+          hideUserSearch: true,
+        },
       },
       {
         path: 'artist/:slug',
