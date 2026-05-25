@@ -3,16 +3,18 @@
     <HeaderPage v-if="!isMinimalPage" :search="search" :show-search="showSearch" page-type="user" :search-items="tracks"
       @update:search="search = $event" @toggle-sidebar="toggleMobileSidebar" />
 
-    <div v-if="!isMinimalPage" class="user-shell" :class="{
-      'user-shell--left-collapsed': leftSidebarCollapsed,
-      'user-shell--mobile-left-open': mobileSidebarOpen,
+    <div class="user-shell" :class="{
+      'user-shell--left-collapsed': leftSidebarCollapsed && !isMinimalPage,
+      'user-shell--mobile-left-open': mobileSidebarOpen && !isMinimalPage,
       'user-shell--player-open': !!playerStore.currentTrack,
+      'user-shell--minimal': isMinimalPage,
     }">
       <transition name="fade">
-        <div v-if="mobileSidebarOpen" class="mobile-sidebar-overlay show" @click="mobileSidebarOpen = false" />
+        <div v-if="mobileSidebarOpen && !isMinimalPage" class="mobile-sidebar-overlay show"
+          @click="mobileSidebarOpen = false" />
       </transition>
 
-      <aside class="user-shell__left" :class="{ open: mobileSidebarOpen }">
+      <aside v-if="!isMinimalPage" class="user-shell__left" :class="{ open: mobileSidebarOpen }">
         <div class="user-shell__left-scroll">
           <UserSidebar :playlists="playlists" :active-playlist-id="selectedPlaylist?._id || ''"
             @collapsed-change="handleSidebarCollapse" @create-playlist="openCreatePlaylist"
@@ -20,7 +22,7 @@
         </div>
       </aside>
 
-      <main class="user-main">
+      <main class="user-main" :class="{ 'user-main--standalone': isMinimalPage }">
         <router-view v-slot="{ Component, route: currentRoute }">
           <KeepAlive include="UserPage,ProfilePage,SettingsPage">
             <component :is="Component" v-if="currentRoute.meta?.keepAlive" :tracks="tracks" :loading="loading"
@@ -50,7 +52,7 @@
         </router-view>
       </main>
 
-      <aside class="user-shell__right">
+      <aside v-if="!isMinimalPage" class="user-shell__right">
         <div class="user-shell__right-scroll">
           <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
             :recommendations="recommendations" :artist-view="selectedArtistView" :get-cover="resolveCover"
@@ -60,16 +62,6 @@
         </div>
       </aside>
     </div>
-
-    <main v-else class="user-main user-main--standalone">
-      <router-view v-slot="{ Component, route: currentRoute }">
-        <KeepAlive include="UserPage,ProfilePage,SettingsPage">
-          <component :is="Component" v-if="currentRoute.meta?.keepAlive" />
-        </KeepAlive>
-
-        <component :is="Component" v-if="!currentRoute.meta?.keepAlive" />
-      </router-view>
-    </main>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
       @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
@@ -281,7 +273,6 @@ const heroMeta = computed(() => {
 
 const normalizeLanguage = (value) => {
   const v = normalizeWord(value)
-
   if (['uz', 'uzbek', 'uzbekistan', "o'zbek", 'ozbek'].includes(v)) return 'uzbek'
   if (['ru', 'russian', 'rus'].includes(v)) return 'russian'
   if (['en', 'english'].includes(v)) return 'english'
@@ -317,7 +308,6 @@ const sectionGroups = computed(() => {
     .slice(0, 10)
 
   const fresh = source.slice(0, 10)
-
   const featured = source.filter((t) => t.isFeatured).slice(0, 10)
   const recommended = uniqueTracks([
     ...recommendations.value,
@@ -325,74 +315,19 @@ const sectionGroups = computed(() => {
   ]).slice(0, 10)
 
   const uzbek = source.filter((t) => normalizeLanguage(t.language) === 'uzbek').slice(0, 10)
-  const russian = source.filter((t) => normalizeLanguage(t.language) === 'russian').slice(0, 10)
   const english = source.filter((t) => normalizeLanguage(t.language) === 'english').slice(0, 10)
-  const arabic = source.filter((t) => normalizeLanguage(t.language) === 'arabic').slice(0, 10)
-
-  const romantic = source.filter((t) => hasMood(t, ['romantic', 'love', 'romance'])).slice(0, 10)
   const chill = source.filter((t) => hasMood(t, ['chill', 'calm', 'soft', 'relax'])).slice(0, 10)
+  const romantic = source.filter((t) => hasMood(t, ['romantic', 'love', 'romance'])).slice(0, 10)
 
   return [
-    {
-      key: 'recommended',
-      title: 'Recommended for you',
-      subtitle: 'Smart picks based on your current listening',
-      tracks: recommended,
-    },
-    {
-      key: 'fresh',
-      title: 'Latest releases',
-      subtitle: 'Newest tracks in your library',
-      tracks: fresh,
-    },
-    {
-      key: 'trending',
-      title: 'Trending now',
-      subtitle: 'Popular tracks people keep coming back to',
-      tracks: trending,
-    },
-    {
-      key: 'featured',
-      title: 'Featured releases',
-      subtitle: 'Highlighted tracks from the library',
-      tracks: featured,
-    },
-    {
-      key: 'uzbek',
-      title: 'Uzbek picks',
-      subtitle: 'A focused row from the Uzbek catalog',
-      tracks: uzbek,
-    },
-    {
-      key: 'russian',
-      title: 'Russian picks',
-      subtitle: 'Popular and curated Russian tracks',
-      tracks: russian,
-    },
-    {
-      key: 'english',
-      title: 'English picks',
-      subtitle: 'Discover English-language favorites',
-      tracks: english,
-    },
-    {
-      key: 'arabic',
-      title: 'Arabic picks',
-      subtitle: 'Arabic selection with premium presentation',
-      tracks: arabic,
-    },
-    {
-      key: 'romantic',
-      title: 'Romantic mood',
-      subtitle: 'Soft, warm, and emotionally rich listening',
-      tracks: romantic,
-    },
-    {
-      key: 'chill',
-      title: 'Chill mood',
-      subtitle: 'Calm and relaxed tracks for any time of day',
-      tracks: chill,
-    },
+    { key: 'recommended', title: 'Recommended for you', subtitle: 'Smart picks based on your listening', tracks: recommended },
+    { key: 'fresh', title: 'Latest releases', subtitle: 'Newest tracks in your library', tracks: fresh },
+    { key: 'trending', title: 'Trending now', subtitle: 'Popular tracks people keep returning to', tracks: trending },
+    { key: 'featured', title: 'Featured releases', subtitle: 'Highlighted tracks from the library', tracks: featured },
+    { key: 'uzbek', title: 'Uzbek picks', subtitle: 'A focused row from the Uzbek catalog', tracks: uzbek },
+    { key: 'english', title: 'English picks', subtitle: 'Discover English-language favorites', tracks: english },
+    { key: 'chill', title: 'Chill mood', subtitle: 'Calm tracks for any time of day', tracks: chill },
+    { key: 'romantic', title: 'Romantic mood', subtitle: 'Soft and emotionally rich listening', tracks: romantic },
   ]
 })
 
@@ -431,7 +366,6 @@ const forceFetchTracks = () => fetchTracks(true)
 
 const fetchPlaylists = async (force = false) => {
   if (!force && playlists.value.length) return
-
   try {
     const { data } = await api.get('/playlists')
     playlists.value = Array.isArray(data) ? data : []
@@ -495,7 +429,6 @@ const trackPlay = async (track) => {
 
 const toggleTrack = (track) => {
   const sameTrack = String(playerStore.currentTrack?._id || '') === String(track._id || '')
-
   if (sameTrack) {
     playerStore.setPlaying(!playerStore.isPlaying)
     return
@@ -514,16 +447,12 @@ const toggleTrack = (track) => {
 
 const toggleLikeTrack = async (track) => {
   if (!track?._id) return
-
   try {
     const { data } = await api.patch(`/music/${track._id}/like`)
-
     tracks.value = tracks.value.map((t) => (String(t._id) === String(data._id) ? data : t))
     recentlyPlayed.value = recentlyPlayed.value.map((t) => (String(t._id) === String(data._id) ? data : t))
 
-    if (selectedDetailTrack.value?._id === data._id) {
-      selectedDetailTrack.value = data
-    }
+    if (selectedDetailTrack.value?._id === data._id) selectedDetailTrack.value = data
 
     if (selectedArtistView.value?.tracks?.length) {
       selectedArtistView.value = {
@@ -555,12 +484,10 @@ const openCreateFromAdd = () => {
 
 const addTrackToPlaylist = async (playlist) => {
   if (!selectedTrack.value?._id || !playlist?._id) return
-
   try {
     const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
       musicId: selectedTrack.value._id,
     })
-
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     showAddToPlaylist.value = false
@@ -591,7 +518,6 @@ const closePlaylistModal = () => {
 const createPlaylist = async () => {
   if (!playlistForm.name.trim()) return
   playlistLoading.value = true
-
   try {
     const { data } = await api.post('/playlists', {
       name: playlistForm.name.trim(),
@@ -608,14 +534,12 @@ const createPlaylist = async () => {
 const updatePlaylist = async () => {
   if (!editingPlaylistId.value || !playlistForm.name.trim()) return
   playlistLoading.value = true
-
   try {
     const { data } = await api.patch(`/playlists/${editingPlaylistId.value}`, {
       name: playlistForm.name.trim(),
       description: playlistForm.description.trim(),
       color: playlistForm.color,
     })
-
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     closePlaylistModal()
@@ -642,7 +566,6 @@ const closeDeletePlaylist = () => {
 const confirmDeletePlaylist = async () => {
   if (!playlistToDelete.value?._id) return
   deleteLoading.value = true
-
   try {
     await api.delete(`/playlists/${playlistToDelete.value._id}`)
     playlists.value = playlists.value.filter((pl) => pl._id !== playlistToDelete.value._id)
@@ -691,27 +614,18 @@ watch(filteredTracks, (value) => {
   if (!exists) selectedDetailTrack.value = value[0]
 })
 
-watch(
-  () => search.value,
-  () => {
-    selectedPlaylist.value = null
-  }
-)
+watch(() => search.value, () => {
+  selectedPlaylist.value = null
+})
 
-watch(
-  () => selectedArtistView.value?.name,
-  (name) => {
-    if (!name) return
-    mobileSidebarOpen.value = false
-  }
-)
+watch(() => selectedArtistView.value?.name, (name) => {
+  if (!name) return
+  mobileSidebarOpen.value = false
+})
 
-watch(
-  () => route.fullPath,
-  () => {
-    mobileSidebarOpen.value = false
-  }
-)
+watch(() => route.fullPath, () => {
+  mobileSidebarOpen.value = false
+})
 
 onMounted(async () => {
   await fetchTracks()

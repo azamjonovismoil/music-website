@@ -5,6 +5,10 @@
     radial-gradient(circle at top right, rgba(168, 85, 247, 0.05), transparent 22%), var(--bg-base);
 }
 
+.user-layout--minimal {
+  min-height: 100vh;
+}
+
 .user-shell {
   --leftbar-expanded: var(--leftbar-w, 320px);
   --leftbar-collapsed: 92px;
@@ -20,6 +24,11 @@
   grid-template-columns: var(--leftbar-collapsed) minmax(0, 1fr) var(--rightbar-width);
 }
 
+.user-shell--minimal {
+  display: block;
+  min-height: 100vh;
+}
+
 .user-shell__left,
 .user-shell__right {
   position: sticky;
@@ -32,15 +41,10 @@
 }
 
 .user-shell__left {
-  width: 100%;
   min-width: 0;
   border-right: 1px solid var(--border);
   background: color-mix(in srgb, var(--sidebar-bg) 96%, transparent);
   z-index: 40;
-  transition:
-    border-color var(--t-fast),
-    background var(--t-fast),
-    transform var(--t-slow);
 }
 
 .user-shell__right {
@@ -68,6 +72,12 @@
   flex-direction: column;
   gap: 18px;
   overflow: hidden;
+}
+
+.user-main--standalone {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-top: 22px;
 }
 
 .mobile-sidebar-overlay {
@@ -134,10 +144,6 @@
   color: var(--text-secondary);
 }
 
-.discover-hero__highlight {
-  min-width: 0;
-}
-
 .discover-highlight {
   width: 100%;
   min-height: 100%;
@@ -153,8 +159,7 @@
   transition:
     transform var(--t-fast),
     border-color var(--t-fast),
-    box-shadow var(--t-fast),
-    background var(--t-fast);
+    box-shadow var(--t-fast);
 }
 
 .discover-highlight:hover {
@@ -169,10 +174,6 @@
   border-radius: 18px;
   object-fit: cover;
   background: var(--bg-elevated);
-}
-
-.discover-highlight__body {
-  min-width: 0;
 }
 
 .discover-highlight__label {
@@ -220,12 +221,14 @@
   box-shadow: 0 12px 24px rgba(53, 109, 255, 0.22);
 }
 
-.discover-play-ico {
-  width: 15px;
-  height: 15px;
+.discover-play-ico,
+.recent-play-ico {
+  width: 14px;
+  height: 14px;
 }
 
-.discover-play-ico--shift {
+.discover-play-ico--shift,
+.recent-play-ico--shift {
   margin-left: 2px;
 }
 
@@ -295,10 +298,6 @@
   background: var(--bg-elevated);
 }
 
-.recent-item__meta {
-  min-width: 0;
-}
-
 .recent-item__meta strong,
 .recent-item__meta span {
   display: block;
@@ -328,15 +327,6 @@
   color: #fff;
 }
 
-.recent-play-ico {
-  width: 14px;
-  height: 14px;
-}
-
-.recent-play-ico--shift {
-  margin-left: 2px;
-}
-
 .content-section {
   display: flex;
   flex-direction: column;
@@ -364,16 +354,6 @@
   color: var(--text-muted);
   font-size: 13px;
   line-height: 1.7;
-}
-
-.content-section__meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-main-detail {
-  margin-bottom: 4px;
 }
 
 .section-stack {
@@ -413,7 +393,6 @@
 .empty-box h3 {
   font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.03em;
 }
 
 .empty-box p {
@@ -441,10 +420,6 @@
   .user-shell,
   .user-shell--left-collapsed {
     grid-template-columns: var(--leftbar-expanded) minmax(0, 1fr);
-  }
-
-  .user-shell--left-collapsed {
-    grid-template-columns: var(--leftbar-collapsed) minmax(0, 1fr);
   }
 
   .user-shell__right {
@@ -500,6 +475,10 @@
 
   .user-main {
     padding: 14px 14px calc(var(--player-bar-safe) + 14px);
+  }
+
+  .user-main--standalone {
+    padding-top: 14px;
   }
 }
 

@@ -15,55 +15,45 @@
       <p>This section is empty right now.</p>
     </div>
 
-    <div v-else class="tg-table surface-card">
-      <div class="tg-table__head">
-        <span>#</span>
-        <span>Track</span>
-        <span>Meta</span>
-        <span>Time</span>
-        <span></span>
-      </div>
-
-      <article v-for="(track, index) in tracks" :key="track._id" class="tg-row" :class="{
-        'tg-row--playing': currentMusic?._id === track._id,
-        'tg-row--selected': selectedMusic?._id === track._id,
+    <div v-else class="tg-list surface-card">
+      <article v-for="(track, index) in tracks" :key="track._id" class="tg-item" :class="{
+        'tg-item--playing': currentMusic?._id === track._id,
+        'tg-item--selected': selectedMusic?._id === track._id,
       }" @click="$emit('select-track', track)">
-        <div class="tg-row__index">
-          <span v-if="currentMusic?._id !== track._id">{{ index + 1 }}</span>
-          <div v-else class="tg-row__eq" :class="{ active: isPlaying }">
+        <div class="tg-item__rank">
+          <span v-if="currentMusic?._id !== track._id">{{ String(index + 1).padStart(2, '0') }}</span>
+          <div v-else class="tg-item__eq" :class="{ active: isPlaying }">
             <span></span><span></span><span></span>
           </div>
         </div>
 
-        <div class="tg-row__main">
-          <div class="tg-row__cover-wrap">
-            <img :src="getCover(track)" class="tg-row__cover" :alt="track.title || 'Track cover'" loading="lazy"
+        <div class="tg-item__main">
+          <div class="tg-item__cover-wrap">
+            <img :src="getCover(track)" class="tg-item__cover" :alt="track.title || 'Track cover'" loading="lazy"
               decoding="async" @error="e => { if (fallback) e.target.src = fallback }" />
 
-            <button class="tg-row__play" type="button" title="Play" @click.stop="$emit('play-track', track)">
-              <PauseIcon v-if="currentMusic?._id === track._id && isPlaying" class="tg-row__play-ico" />
-              <PlayIcon v-else class="tg-row__play-ico tg-row__play-ico--shift" />
+            <button class="tg-item__play" type="button" @click.stop="$emit('play-track', track)">
+              <PauseIcon v-if="currentMusic?._id === track._id && isPlaying" class="tg-item__play-ico" />
+              <PlayIcon v-else class="tg-item__play-ico tg-item__play-ico--shift" />
             </button>
           </div>
 
-          <div class="tg-row__copy">
-            <p class="tg-row__title">{{ track.title || 'Untitled' }}</p>
-            <p class="tg-row__artist">{{ track.artist || 'Unknown artist' }}</p>
+          <div class="tg-item__copy">
+            <p class="tg-item__title">{{ track.title || 'Untitled' }}</p>
+            <p class="tg-item__artist">{{ track.artist || 'Unknown artist' }}</p>
           </div>
         </div>
 
-        <div class="tg-row__meta">
-          <span v-if="track.genre?.[0]" class="tg-pill">{{ track.genre[0] }}</span>
-          <span v-else-if="track.releaseType" class="tg-pill">{{ track.releaseType }}</span>
-
-          <span v-if="track.language" class="tg-row__lang">{{ track.language }}</span>
+        <div class="tg-item__meta">
+          <span v-if="track.genre?.[0]" class="tg-chip">{{ track.genre[0] }}</span>
+          <span v-if="track.language" class="tg-meta-text">{{ track.language }}</span>
         </div>
 
-        <div class="tg-row__time">
-          <span>{{ fmtDur(track.duration) }}</span>
+        <div class="tg-item__time">
+          {{ fmtDur(track.duration) }}
         </div>
 
-        <div class="tg-row__actions">
+        <div class="tg-item__actions">
           <button class="tg-act" type="button" title="Add to playlist" @click.stop="$emit('add-to-playlist', track)">
             <PlusIcon class="tg-act-ico" />
           </button>
