@@ -44,32 +44,58 @@ const routes = [
 
   {
     path: '/user',
-    name: 'User',
-    component: () => import('../pages/home/UserPage.vue'),
+    component: () => import('../layouts/UserLayout.vue'),
     meta: { requiresAuth: true, title: 'User' },
+    children: [
+      {
+        path: '',
+        name: 'UserHome',
+        component: () => import('../pages/home/UserPage.vue'),
+        meta: { title: 'Discover', keepAlive: true },
+      },
+      {
+        path: 'profile',
+        name: 'UserProfile',
+        component: () => import('../pages/profile/Profile.vue'),
+        meta: { title: 'Profile', keepAlive: true },
+      },
+      {
+        path: 'settings',
+        name: 'UserSettings',
+        component: () => import('../pages/settings/SettingsPage.vue'),
+        meta: { title: 'Settings', keepAlive: true },
+      },
+      {
+        path: 'artist/:slug',
+        name: 'UserArtist',
+        component: () => import('../pages/artist/ArtistPage.vue'),
+        meta: { title: 'Artist' },
+        props: true,
+      },
+      {
+        path: 'track/:id',
+        name: 'UserTrackDetail',
+        component: () => import('../components/users/TrackDetail.vue'),
+        meta: { title: 'Track' },
+        props: true,
+      },
+    ],
   },
+
   {
     path: '/artist/:slug',
-    name: 'Artist',
-    component: () => import('../pages/artist/ArtistPage.vue'),
-    meta: { requiresAuth: true, title: 'Artist' },
+    redirect: (to) => `/user/artist/${to.params.slug}`,
   },
   {
     path: '/track/:id',
-    name: 'TrackDetail',
-    component: () => import('../components/users/TrackDetail.vue'),
-    meta: { requiresAuth: true, title: 'Track' },
-    props: true,
+    redirect: (to) => `/user/track/${to.params.id}`,
   },
   {
     path: '/settings',
-    name: 'Settings',
-    component: () => import('../pages/settings/SettingsPage.vue'),
-    meta: { requiresAuth: true, title: 'Settings' },
+    redirect: '/user/settings',
   },
   {
     path: '/profile',
-    name: 'ProfileRedirect',
     beforeEnter: async () => {
       const auth = await ensureAuthInitialized()
 
@@ -80,7 +106,7 @@ const routes = [
         }
       }
 
-      return auth.isAdmin ? '/admin/profile' : '/user'
+      return auth.isAdmin ? '/admin/profile' : '/user/profile'
     },
     meta: { requiresAuth: true, hidePlayerBar: true },
   },
@@ -105,7 +131,7 @@ const routes = [
       {
         path: 'profile',
         name: 'AdminProfile',
-        component: () => import('../pages/profile/ProfilePage.vue'),
+        component: () => import('../pages/profile/Profile.vue'),
         meta: { title: 'Admin profile', hidePlayerBar: true },
       },
       {

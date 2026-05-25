@@ -5,7 +5,10 @@
         <div class="pf-hero-bg"></div>
 
         <div class="pf-hero-inner">
-          <div class="pf-avatar">{{ firstLetter }}</div>
+          <div class="pf-avatar">
+            <img v-if="avatarUrl" :src="avatarUrl" alt="Profile avatar" class="pf-avatar__img" />
+            <span v-else>{{ firstLetter }}</span>
+          </div>
 
           <div class="pf-hero-info">
             <p class="pf-kicker">{{ authStore.isAdmin ? 'Admin profile' : 'Your profile' }}</p>
@@ -53,20 +56,21 @@
 
           <div class="pf-form">
             <div class="pf-field">
-              <label class="pf-label">Name</label>
-              <input v-model="form.name" class="pf-input" type="text" placeholder="Your full name"
-                @input="trackChange" />
+              <label class="pf-label" for="profile-name">Name</label>
+              <input id="profile-name" ref="nameRef" v-model="form.name" class="pf-input" type="text"
+                placeholder="Your full name" @input="trackChange" />
             </div>
 
             <div class="pf-field">
-              <label class="pf-label">Email</label>
-              <input v-model="form.email" class="pf-input" type="email" placeholder="Your email" @input="trackChange" />
+              <label class="pf-label" for="profile-email">Email</label>
+              <input id="profile-email" ref="emailRef" v-model="form.email" class="pf-input" type="email"
+                placeholder="Your email" @input="trackChange" />
             </div>
 
             <div class="pf-field pf-field--full">
-              <label class="pf-label">Bio</label>
-              <textarea v-model="form.bio" class="pf-textarea" rows="5" placeholder="Write something about yourself"
-                @input="trackChange" />
+              <label class="pf-label" for="profile-bio">Bio</label>
+              <textarea id="profile-bio" ref="bioRef" v-model="form.bio" class="pf-textarea" rows="5"
+                placeholder="Write something about yourself" @input="trackChange" />
             </div>
           </div>
 
@@ -111,6 +115,10 @@
               <div class="pf-meta__row">
                 <dt>Autoplay</dt>
                 <dd>{{ autoplayText }}</dd>
+              </div>
+              <div class="pf-meta__row" v-if="providerText">
+                <dt>Sign in</dt>
+                <dd>{{ providerText }}</dd>
               </div>
             </dl>
           </section>
@@ -169,6 +177,10 @@ const errorMsg = ref('')
 const successMsg = ref('')
 const rawUser = ref(null)
 
+const nameRef = ref(null)
+const emailRef = ref(null)
+const bioRef = ref(null)
+
 const stats = reactive({
   total: 0,
   liked: 0,
@@ -190,6 +202,21 @@ const saved = reactive({
 
 const firstLetter = computed(() => form.name?.charAt(0)?.toUpperCase() || 'U')
 const recentKey = computed(() => `rp_${authStore.user?.id || authStore.user?._id || 'u'}`)
+
+const avatarUrl = computed(() =>
+  rawUser.value?.avatar ||
+  rawUser.value?.photoURL ||
+  rawUser.value?.picture ||
+  rawUser.value?.image ||
+  ''
+)
+
+const providerText = computed(() => {
+  const provider = String(rawUser.value?.provider || rawUser.value?.authProvider || '').toLowerCase()
+  if (!provider) return ''
+  if (provider === 'google') return 'Google'
+  return provider.charAt(0).toUpperCase() + provider.slice(1)
+})
 
 const memberSinceText = computed(() => {
   const dateValue = rawUser.value?.createdAt
@@ -233,6 +260,26 @@ const resetForm = () => {
   errorMsg.value = ''
   successMsg.value = ''
   isDirty.value = false
+}
+
+const focusFirstInvalidField = () => {
+  if (!form.name.trim()) {
+    nameRef.value?.focus()
+    return true
+  }
+
+  if (!form.email.trim()) {
+    emailRef.value?.focus()
+    return true
+  }
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())
+  if (!emailOk) {
+    emailRef.value?.focus()
+    return true
+  }
+
+  return false
 }
 
 const loadProfile = async () => {
@@ -284,9 +331,19 @@ const loadStats = async () => {
 const saveProfile = async () => {
   if (!isDirty.value) return
 
-  saving.value = true
   errorMsg.value = ''
   successMsg.value = ''
+
+  if (focusFirstInvalidField()) {
+    errorMsg.value = !form.name.trim()
+      ? 'Name is required.'
+      : !form.email.trim()
+        ? 'Email is required.'
+        : 'Enter a valid email address.'
+    return
+  }
+
+  saving.value = true
 
   try {
     const payload = {
