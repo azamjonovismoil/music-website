@@ -4,8 +4,7 @@
       @update:search="search = $event" @toggle-sidebar="toggleMobileSidebar" />
 
     <div class="user-shell" :class="{
-      'user-shell--left-collapsed': leftSidebarCollapsed && !isMinimalPage,
-      'user-shell--player-open': !!playerStore.currentTrack,
+      'user-shell--mobile-left-open': mobileSidebarOpen && !isMinimalPage,
       'user-shell--minimal': isMinimalPage,
     }">
       <transition name="fade">
@@ -16,14 +15,14 @@
       <aside v-if="!isMinimalPage" class="user-shell__left" :class="{ open: mobileSidebarOpen }">
         <div class="user-shell__left-scroll">
           <UserSidebar :playlists="playlists" :active-playlist-id="selectedPlaylist?._id || ''"
-            @collapsed-change="handleSidebarCollapse" @create-playlist="openCreatePlaylist"
-            @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist" @delete-playlist="openDeletePlaylist" />
+            @create-playlist="openCreatePlaylist" @open-playlist="selectPlaylist" @rename-playlist="openEditPlaylist"
+            @delete-playlist="openDeletePlaylist" />
         </div>
       </aside>
 
       <main class="user-main" :class="{ 'user-main--standalone': isMinimalPage }">
         <router-view v-slot="{ Component, route: currentRoute }">
-          <KeepAlive include="UserPage,ProfilePage,SettingsPage,LibraryPage">
+          <KeepAlive include="UserPage,ProfilePage,SettingsPage">
             <component :is="Component" v-if="currentRoute.meta?.keepAlive" :tracks="tracks" :loading="loading"
               :err-msg="errMsg" :search="search" :playlists="playlists" :selected-playlist="selectedPlaylist"
               :selected-detail-track="selectedDetailTrack" :selected-artist-view="selectedArtistView"
@@ -51,16 +50,36 @@
         </router-view>
       </main>
 
-      <aside v-if="!isMinimalPage" class="user-shell__right">
+      <aside v-if="!isMinimalPage" class="user-shell__right"
+        :class="{ 'is-hidden': !queueOpen && !selectedArtistView && !playerStore.currentTrack }">
         <div class="user-shell__right-scroll">
           <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
             :recommendations="recommendations" :artist-view="selectedArtistView" :get-cover="resolveCover"
-            @play-track="toggleTrack" @remove-from-queue="playerStore.removeFromQueue"
+            :queue-open="queueOpen" @play-track="toggleTrack" @remove-from-queue="playerStore.removeFromQueue"
             @clear-queue="clearQueueKeepingCurrent" @add-to-queue="addToQueue" @select-track="openTrackDetail"
             @close-artist="clearArtistView" />
         </div>
       </aside>
     </div>
+
+    <LyricsPanel v-if="lyricsPanelOpen" class="lyrics-dock" @close="lyricsPanelOpen = false" />
+
+    <transition name="fade">
+      <div v-if="expandedTrackOpen && playerStore.currentTrack" class="track-overlay"
+        @click.self="expandedTrackOpen = false">
+        <div class="track-overlay__sheet">
+          <button class="track-overlay__close" type="button" @click="expandedTrackOpen = false"
+            aria-label="Close expanded track">
+            ×
+          </button>
+
+          <TrackDetail :track="playerStore.currentTrack" :current-track="playerStore.currentTrack"
+            :is-playing="playerStore.isPlaying" :recommendations="detailRecommendations" :get-cover="resolveCover"
+            @play="toggleTrack" @toggle-like="toggleLikeTrack" @add-to-playlist="openAddToPlaylist"
+            @add-to-queue="addToQueue" @open-artist="openArtist" @select-track="openTrackDetail" />
+        </div>
+      </div>
+    </transition>
 
     <AddToPlayListModal :open="showAddToPlaylist" :track="selectedTrack" :playlists="playlists"
       @close="showAddToPlaylist = false" @select="addTrackToPlaylist" @create-new="openCreateFromAdd" />
@@ -73,6 +92,11 @@
 
     <DeletePlaylistModal :open="showDeletePlaylist" :loading="deleteLoading" :playlist="playlistToDelete"
       @close="closeDeletePlaylist" @confirm="confirmDeletePlaylist" />
+
+    <PlayerBar v-if="playerStore.currentTrack" :music="playerStore.currentTrack" :queue-open="queueOpen"
+      :lyrics-open="lyricsPanelOpen" @toggle-queue="queueOpen = !queueOpen" @toggle-like="toggleLikeTrack"
+      @add-to-playlist="openAddToPlaylist" @open-artist="openArtist" @open-detail="openTrackDetail"
+      @expand="openExpandedTrack" @open-lyrics="openLyricsPanel" />
   </div>
 </template>
 
@@ -86,9 +110,12 @@ import { resolveCover, fallbackCover, API_ROOT } from '@/utils/media'
 import HeaderPage from '@/components/layout/HeaderPage.vue'
 import UserSidebar from '@/components/users/UserSidebar.vue'
 import RightPanel from '@/components/users/RightPanel.vue'
+import TrackDetail from '@/components/users/TrackDetail.vue'
 import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
+import PlayerBar from '@/components/player/PlayerBar.vue'
+import LyricsPanel from '@/components/player/LyricsPanel.vue'
 import '@/styles/user_page.css'
 
 const route = useRoute()
@@ -117,8 +144,10 @@ const showDeletePlaylist = ref(false)
 const playlistToDelete = ref(null)
 const recentlyPlayed = ref([])
 const mobileSidebarOpen = ref(false)
-const leftSidebarCollapsed = ref(false)
 const editingPlaylistId = ref(null)
+const queueOpen = ref(false)
+const lyricsPanelOpen = ref(false)
+const expandedTrackOpen = ref(false)
 
 const playlistForm = reactive({
   name: '',
@@ -144,10 +173,9 @@ const showSearch = computed(() => !route.meta?.hideUserSearch)
 const isMinimalPage = computed(() => !!route.meta?.hideUserChrome)
 
 const normalizeWord = (value) => String(value || '').trim().toLowerCase()
-const normalizedTracks = computed(() => [...tracks.value])
 
 const filteredTracks = computed(() => {
-  let arr = [...normalizedTracks.value]
+  let arr = [...tracks.value]
 
   if (selectedPlaylist.value?._id) {
     const ids = new Set((selectedPlaylist.value.tracks || []).map((t) => String(t._id || t)))
@@ -191,7 +219,6 @@ const recommendations = computed(() => {
     .filter((t) => !playerStore.queue.find((q) => String(q._id) === String(t._id)))
     .map((t) => {
       let score = 0
-
       if (!current) {
         score += t.isFeatured ? 24 : 0
         score += t.isRecommended ? 18 : 0
@@ -199,45 +226,23 @@ const recommendations = computed(() => {
         score += Math.min(Number(t.likeCount || 0), 300) / 18
       } else {
         if (t.artist && current.artist && normalizeWord(t.artist) === normalizeWord(current.artist)) score += 50
-
         const sharedGenre = (t.genre || []).filter((g) =>
           (current.genre || []).map(normalizeWord).includes(normalizeWord(g))
         ).length
         const sharedMood = (t.mood || []).filter((m) =>
           (current.mood || []).map(normalizeWord).includes(normalizeWord(m))
         ).length
-        const sharedTags = (t.tags || []).filter((tag) =>
-          (current.tags || []).map(normalizeWord).includes(normalizeWord(tag))
-        ).length
-
         score += sharedGenre * 18
         score += sharedMood * 14
-        score += sharedTags * 6
-
-        if (t.language && current.language && normalizeWord(t.language) === normalizeWord(current.language)) score += 12
-        if (t.country && current.country && normalizeWord(t.country) === normalizeWord(current.country)) score += 8
-        if (t.releaseType && current.releaseType && normalizeWord(t.releaseType) === normalizeWord(current.releaseType)) score += 6
-        if (t.isFeatured) score += 5
-        if (t.isRecommended) score += 5
-        score += Math.min(Number(t.playCount || 0), 500) / 45
-        score += Math.min(Number(t.likeCount || 0), 300) / 35
       }
-
       return { ...t, __score: score }
     })
-    .sort(
-      (a, b) =>
-        b.__score - a.__score ||
-        Number(b.likeCount || 0) - Number(a.likeCount || 0) ||
-        Number(b.playCount || 0) - Number(a.playCount || 0)
-    )
+    .sort((a, b) => b.__score - a.__score)
     .slice(0, 10)
 })
 
 const detailRecommendations = computed(() =>
-  recommendations.value
-    .filter((t) => String(t._id) !== String(selectedDetailTrack.value?._id || ''))
-    .slice(0, 6)
+  recommendations.value.filter((t) => String(t._id) !== String(selectedDetailTrack.value?._id || '')).slice(0, 6)
 )
 
 const heroKicker = computed(() => {
@@ -253,28 +258,16 @@ const heroTitle = computed(() => {
 })
 
 const heroSubtitle = computed(() => {
-  if (selectedPlaylist.value) {
-    return selectedPlaylist.value.description || 'A focused playlist view with the tracks you saved.'
-  }
-
-  if (activeRecommendationMode.value === 'related') {
-    return 'Recommendations adapt to what is playing now, using artist, mood, language, and listening signals.'
-  }
-
-  return 'Browse latest releases, strong recommendations, and a few calm focused sections.'
+  if (selectedPlaylist.value) return selectedPlaylist.value.description || 'A focused playlist view with the tracks you saved.'
+  if (activeRecommendationMode.value === 'related') return 'Recommendations adapt to what is playing now.'
+  return 'Browse the cleanest version of your music home.'
 })
 
 const heroMeta = computed(() => {
   if (selectedPlaylist.value) return 'playlist view'
   if (activeRecommendationMode.value === 'related') return 'smart recommendations'
-  return 'clean discovery'
+  return 'clean home'
 })
-
-const normalizeLanguage = (value) => {
-  const v = normalizeWord(value)
-  if (['uz', 'uzbek', 'uzbekistan', "o'zbek", 'ozbek'].includes(v)) return 'uzbek'
-  return v
-}
 
 const hasMood = (track, values = []) => {
   const moods = Array.isArray(track.mood) ? track.mood.map(normalizeWord) : []
@@ -295,7 +288,6 @@ const sectionGroups = computed(() => {
   const source = [...filteredTracks.value]
 
   const latest = source.slice(0, 10)
-
   const trending = [...source]
     .sort(
       (a, b) =>
@@ -313,30 +305,10 @@ const sectionGroups = computed(() => {
   const chill = source.filter((t) => hasMood(t, ['chill', 'calm', 'soft', 'relax'])).slice(0, 10)
 
   return [
-    {
-      key: 'latest',
-      title: 'Latest releases',
-      subtitle: 'Newest tracks in your library',
-      tracks: latest,
-    },
-    {
-      key: 'recommended',
-      title: 'Recommended for you',
-      subtitle: 'Smart picks based on your listening',
-      tracks: recommended,
-    },
-    {
-      key: 'trending',
-      title: 'Trending now',
-      subtitle: 'Popular tracks people keep returning to',
-      tracks: trending,
-    },
-    {
-      key: 'chill',
-      title: 'Chill mood',
-      subtitle: 'Calm tracks for any time of day',
-      tracks: chill,
-    },
+    { key: 'latest', title: 'Latest releases', subtitle: 'Newest tracks in your library', tracks: latest },
+    { key: 'recommended', title: 'Recommended for you', subtitle: 'Smart picks based on your listening', tracks: recommended },
+    { key: 'trending', title: 'Trending now', subtitle: 'Popular tracks people keep returning to', tracks: trending },
+    { key: 'chill', title: 'Chill mood', subtitle: 'Calm tracks for any time of day', tracks: chill },
   ]
 })
 
@@ -346,17 +318,13 @@ const visibleSections = computed(() =>
 
 const fetchTracks = async (force = false) => {
   if (!force && tracks.value.length) return
-
   loading.value = true
   errMsg.value = ''
 
   try {
     const { data } = await api.get('/music')
     const nextTracks = Array.isArray(data) ? data : []
-
-    tracks.value = nextTracks.sort(
-      (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-    )
+    tracks.value = nextTracks.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
 
     if (!selectedDetailTrack.value && tracks.value.length) {
       selectedDetailTrack.value = tracks.value[0]
@@ -375,7 +343,6 @@ const forceFetchTracks = () => fetchTracks(true)
 
 const fetchPlaylists = async (force = false) => {
   if (!force && playlists.value.length) return
-
   try {
     const { data } = await api.get('/playlists')
     playlists.value = Array.isArray(data) ? data : []
@@ -403,15 +370,10 @@ const toggleMobileSidebar = () => {
   mobileSidebarOpen.value = !mobileSidebarOpen.value
 }
 
-const handleSidebarCollapse = (value) => {
-  leftSidebarCollapsed.value = !!value
-}
-
 const selectPlaylist = (playlist) => {
   selectedPlaylist.value = selectedPlaylist.value?._id === playlist._id ? null : playlist
   mobileSidebarOpen.value = false
   selectedArtistView.value = null
-
   const source = selectedPlaylist.value?._id
     ? tracks.value.filter((t) =>
       new Set((selectedPlaylist.value.tracks || []).map((x) => String(x._id || x))).has(String(t._id))
@@ -424,7 +386,7 @@ const selectPlaylist = (playlist) => {
 const openTrackDetail = (track) => {
   selectedDetailTrack.value = track
   selectedArtistView.value = null
-
+  expandedTrackOpen.value = false
   requestAnimationFrame(() => {
     const el = document.querySelector('.user-main-detail')
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -461,20 +423,20 @@ const toggleLikeTrack = async (track) => {
     const { data } = await api.patch(`/music/${track._id}/like`)
     tracks.value = tracks.value.map((t) => (String(t._id) === String(data._id) ? data : t))
     recentlyPlayed.value = recentlyPlayed.value.map((t) => (String(t._id) === String(data._id) ? data : t))
-
     if (selectedDetailTrack.value?._id === data._id) selectedDetailTrack.value = data
-
-    if (selectedArtistView.value?.tracks?.length) {
-      selectedArtistView.value = {
-        ...selectedArtistView.value,
-        tracks: selectedArtistView.value.tracks.map((t) => (String(t._id) === String(data._id) ? data : t)),
-      }
+    if (playerStore.currentTrack?._id === data._id) {
+      playerStore.setTrack(data, {
+        queue: playerStore.queue,
+        playing: playerStore.isPlaying,
+        resetTime: false,
+      })
     }
   } catch { }
 }
 
 const addToQueue = (track) => {
   playerStore.addToQueue(track)
+  queueOpen.value = true
 }
 
 const clearQueueKeepingCurrent = () => {
@@ -603,10 +565,25 @@ const openArtist = (artist) => {
     totalPlays: artistTracks.reduce((s, t) => s + Number(t.playCount || 0), 0),
     totalLikes: artistTracks.reduce((s, t) => s + Number(t.likeCount || 0), 0),
   }
+  queueOpen.value = false
 }
 
 const clearArtistView = () => {
   selectedArtistView.value = null
+}
+
+const openLyricsPanel = () => {
+  lyricsPanelOpen.value = !lyricsPanelOpen.value
+  if (lyricsPanelOpen.value) {
+    queueOpen.value = false
+    expandedTrackOpen.value = false
+  }
+}
+
+const openExpandedTrack = (track) => {
+  if (track?._id) selectedDetailTrack.value = track
+  expandedTrackOpen.value = true
+  lyricsPanelOpen.value = false
 }
 
 watch(filteredTracks, (value) => {
@@ -614,12 +591,10 @@ watch(filteredTracks, (value) => {
     selectedDetailTrack.value = null
     return
   }
-
   if (!selectedDetailTrack.value?._id) {
     selectedDetailTrack.value = value[0]
     return
   }
-
   const exists = value.find((t) => String(t._id) === String(selectedDetailTrack.value._id))
   if (!exists) selectedDetailTrack.value = value[0]
 })
@@ -635,6 +610,9 @@ watch(() => selectedArtistView.value?.name, (name) => {
 
 watch(() => route.fullPath, () => {
   mobileSidebarOpen.value = false
+  queueOpen.value = false
+  lyricsPanelOpen.value = false
+  expandedTrackOpen.value = false
 })
 
 onMounted(async () => {

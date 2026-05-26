@@ -6,7 +6,7 @@
         <h2>Lyrics</h2>
       </div>
 
-      <button class="lyrics-close-btn" type="button" @click="player.closeLyrics()">✕</button>
+      <button class="lyrics-close-btn" type="button" @click="closePanel">✕</button>
     </div>
 
     <div v-if="!music" class="lyrics-panel-empty">
@@ -28,8 +28,8 @@
 
       <div ref="lyricsScrollRef" class="lyrics-scroll">
         <template v-if="hasSyncedLyrics">
-          <div v-for="(line, index) in music.syncedLyrics" :key="`${line.time}-${index}`"
-            :ref="el => setLyricRef(el, index)" class="lyric-line" :class="{
+          <div v-for="(line, index) in syncedLyrics" :key="`${line.time}-${index}`" :ref="el => setLyricRef(el, index)"
+            class="lyric-line" :class="{
               active: index === activeLyricIndex,
               passed: index < activeLyricIndex,
               upcoming: index > activeLyricIndex
@@ -69,9 +69,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { usePlayerStore } from '@/stores/player'
 import '@/styles/lyrics_panel.css'
 
-const API_ROOT = import.meta.env.VITE_API_ROOT || 'https://music-website-backend-12.onrender.com'
 const player = usePlayerStore()
-
 const lyricsScrollRef = ref(null)
 const lyricRefs = ref([])
 
@@ -82,29 +80,36 @@ const fallbackCover =
   )
 
 const music = computed(() => player.currentTrack)
-const showLyricsPanel = computed(() => player.showLyricsPanel)
+const showLyricsPanel = computed(() => true)
 
-const hasSyncedLyrics = computed(() => {
-  return Array.isArray(music.value?.syncedLyrics) && music.value.syncedLyrics.length > 0
+const syncedLyrics = computed(() => {
+  if (Array.isArray(music.value?.syncedLyrics)) return music.value.syncedLyrics
+  if (Array.isArray(music.value?.syncedLyricsRaw)) return music.value.syncedLyricsRaw
+  return []
 })
 
+const hasSyncedLyrics = computed(() => syncedLyrics.value.length > 0)
+
 const coverUrl = computed(() => {
-  if (!music.value?.cover && !music.value?.coverUrl) return fallbackCover
   if (music.value?.coverUrl) return music.value.coverUrl
-  if (music.value?.cover?.startsWith('http')) return music.value.cover
-  return `${API_ROOT}${music.value.cover}`
+  if (music.value?.cover) return music.value.cover
+  return fallbackCover
 })
 
 const activeLyricIndex = computed(() => {
   if (!hasSyncedLyrics.value) return -1
 
   let idx = -1
-  for (let i = 0; i < music.value.syncedLyrics.length; i++) {
-    if (player.currentTime >= Number(music.value.syncedLyrics[i].time)) idx = i
+  for (let i = 0; i < syncedLyrics.value.length; i++) {
+    if (player.currentTime >= Number(syncedLyrics.value[i].time)) idx = i
     else break
   }
   return idx
 })
+
+const closePanel = () => {
+  player.closeLyrics?.()
+}
 
 const setLyricRef = (el, index) => {
   if (el) lyricRefs.value[index] = el
@@ -126,7 +131,7 @@ const scrollToActiveLyric = () => {
 }
 
 watch(
-  () => [player.currentTime, music.value?.syncedLyrics],
+  () => [player.currentTime, syncedLyrics.value],
   async () => {
     await nextTick()
     scrollToActiveLyric()

@@ -21,6 +21,14 @@
 .settings-topbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-topbar__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .settings-back-btn {
@@ -52,8 +60,21 @@
   height: 15px;
 }
 
+.settings-dirty-pill {
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--amber) 24%, transparent);
+  background: var(--amber-soft);
+  color: var(--amber);
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .settings-hero {
-  padding: 22px;
+  padding: 24px;
   border-radius: 28px;
   background:
     radial-gradient(circle at top right, rgba(91, 140, 255, 0.12), transparent 24%),
@@ -91,6 +112,13 @@
   margin-bottom: 16px;
 }
 
+.settings-card__sub {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .settings-kicker {
   color: var(--accent);
   font-size: 11px;
@@ -113,7 +141,7 @@
 }
 
 .settings-row {
-  min-height: 72px;
+  min-height: 76px;
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid var(--border);
@@ -122,6 +150,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  transition:
+    border-color var(--t-fast),
+    background var(--t-fast);
+}
+
+.settings-row:hover {
+  border-color: var(--border-hover);
+  background: color-mix(in srgb, var(--surface-2) 92%, var(--surface-1));
 }
 
 .settings-row strong {
@@ -204,11 +240,26 @@
   border: 1px solid rgba(64, 212, 138, 0.18);
 }
 
+.settings-feedback--error {
+  background: var(--rose-soft);
+  color: var(--rose);
+  border: 1px solid rgba(255, 107, 138, 0.22);
+}
+
 .settings-actions {
+  position: sticky;
+  bottom: 10px;
+  z-index: 4;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   flex-wrap: wrap;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-1) 92%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 @media (max-width: 860px) {
@@ -246,8 +297,12 @@
     justify-content: stretch;
   }
 
-  .settings-actions .btn,
-  .settings-back-btn {
+  .settings-actions .btn {
     width: 100%;
+  }
+
+  .settings-topbar {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

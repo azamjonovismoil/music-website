@@ -22,7 +22,7 @@
                 </span>
               </button>
 
-              <div v-if="isPlaying" class="mini-eq" aria-hidden="true">
+              <div v-if="isPlaying && !isCompact" class="mini-eq" aria-hidden="true">
                 <span></span><span></span><span></span>
               </div>
             </div>
@@ -38,7 +38,7 @@
                 <HeartIcon v-else class="ctrl-icon" />
               </button>
 
-              <button v-if="!isAdmin" class="ctrl playlist-btn" type="button" @click="handleAddToPlaylist"
+              <button v-if="!isAdmin && !isCompact" class="ctrl playlist-btn" type="button" @click="handleAddToPlaylist"
                 aria-label="Add to playlist">
                 <PlusIcon class="ctrl-icon" />
               </button>
@@ -48,8 +48,8 @@
 
         <div class="player-center">
           <div class="controls">
-            <button class="ctrl" :class="{ active: player.shuffle }" type="button" @click="player.toggleShuffle()"
-              aria-label="Toggle shuffle">
+            <button v-if="!isCompact" class="ctrl" :class="{ active: player.shuffle }" type="button"
+              @click="player.toggleShuffle()" aria-label="Toggle shuffle">
               <ArrowsRightLeftIcon class="ctrl-icon" />
             </button>
 
@@ -67,7 +67,7 @@
               <ForwardIcon class="ctrl-icon" />
             </button>
 
-            <button class="ctrl" :class="{ active: player.repeatMode !== 'off' }" type="button"
+            <button v-if="!isCompact" class="ctrl" :class="{ active: player.repeatMode !== 'off' }" type="button"
               @click="player.cycleRepeatMode()" aria-label="Cycle repeat mode">
               <ArrowPathRoundedSquareIcon class="ctrl-icon" />
               <span v-if="player.repeatMode === 'one'" class="repeat-badge">1</span>
@@ -106,7 +106,7 @@
             <ArrowsPointingOutIcon class="ctrl-icon" />
           </button>
 
-          <template v-if="!isMobile">
+          <template v-if="!isCompact">
             <button class="ctrl vol-btn" :class="{ muted: effectiveVol === 0 }" type="button" @click="toggleMute"
               :aria-label="isMuted || effectiveVol === 0 ? 'Unmute' : 'Mute'">
               <SpeakerXMarkIcon v-if="isMuted || effectiveVol === 0" class="ctrl-icon" />
@@ -117,9 +117,6 @@
               <transition name="vol-pop">
                 <div v-if="showVolTip" class="vol-tooltip">
                   <span class="vol-tooltip-val">{{ Math.round(effectiveVol) }}%</span>
-                  <div class="vol-tooltip-bar">
-                    <div class="vol-tooltip-fill" :style="{ width: effectiveVol + '%' }" />
-                  </div>
                 </div>
               </transition>
 
@@ -201,15 +198,15 @@ const viewport = ref(typeof window !== 'undefined' ? window.innerWidth : 1440)
 let volTimer = null
 
 const isAdmin = computed(() => Number(authStore.user?.isAdmin) === 1)
-const isMobile = computed(() => viewport.value <= 640)
+const isCompact = computed(() => viewport.value <= 760)
 const audioSrc = computed(() => resolveAudio(props.music || {}))
 const coverSrc = computed(() => resolveCover(props.music || {}) || fallbackCover)
 
 const hasLyrics = computed(() => {
   if (isAdmin.value) return false
   const plain = props.music?.lyrics
-  const synced = props.music?.syncedLyricsRaw
-  return Boolean(String(plain || '').trim() || String(synced || '').trim())
+  const synced = props.music?.syncedLyricsRaw || props.music?.syncedLyrics
+  return Boolean(String(plain || '').trim() || (Array.isArray(synced) && synced.length))
 })
 
 const pct = computed(() => {
@@ -245,9 +242,8 @@ const resetPlaybackState = ({ keepStoreState = false } = {}) => {
   buffered.value = 0
   isPlaying.value = false
   isLoading.value = false
-  player.setCurrentTime(0)
-
-  if (!keepStoreState) player.setPlaying(false)
+  player.setCurrentTime?.(0)
+  if (!keepStoreState) player.setPlaying?.(false)
 }
 
 const goDetail = () => props.music && emit('open-detail', props.music)
@@ -255,7 +251,7 @@ const goArtistDetail = () => props.music?.artist && emit('open-artist', props.mu
 const handleToggleLike = () => props.music && emit('toggle-like', props.music)
 const handleAddToPlaylist = () => props.music && !isAdmin.value && emit('add-to-playlist', props.music)
 const handleLyricsOpen = () => props.music && !isAdmin.value && hasLyrics.value && emit('open-lyrics', props.music)
-const handleExpand = () => props.music && !isAdmin.value && emit('expand', props.music)
+const handleExpand = () => props.music && emit('expand', props.music)
 
 const play = async () => {
   if (!audioRef.value || !audioSrc.value) return
@@ -265,7 +261,7 @@ const play = async () => {
   } catch {
     isLoading.value = false
     isPlaying.value = false
-    player.setPlaying(false)
+    player.setPlaying?.(false)
   }
 }
 
@@ -283,7 +279,7 @@ const onTimeUpdate = () => {
   if (!audioRef.value) return
   currentTime.value = audioRef.value.currentTime || 0
   progress.value = currentTime.value
-  player.setCurrentTime(currentTime.value)
+  player.setCurrentTime?.(currentTime.value)
 }
 
 const onMeta = () => {
@@ -313,7 +309,7 @@ const seekInput = () => {
   const t = Number(progress.value) || 0
   audioRef.value.currentTime = t
   currentTime.value = t
-  player.setCurrentTime(t)
+  player.setCurrentTime?.(t)
 }
 
 const seekClick = (e) => {
@@ -324,7 +320,7 @@ const seekClick = (e) => {
   progress.value = t
   if (audioRef.value) audioRef.value.currentTime = t
   currentTime.value = t
-  player.setCurrentTime(t)
+  player.setCurrentTime?.(t)
 }
 
 const changeVol = () => {
@@ -358,31 +354,31 @@ const toggleMute = () => {
 }
 
 const showVolHint = () => {
-  if (isMobile.value) return
+  if (isCompact.value) return
   showVolTip.value = true
   clearTimeout(volTimer)
   volTimer = setTimeout(() => {
     showVolTip.value = false
-  }, 1500)
+  }, 1200)
 }
 
 const hideVolHint = () => {
   clearTimeout(volTimer)
   volTimer = setTimeout(() => {
     showVolTip.value = false
-  }, 120)
+  }, 100)
 }
 
 const onPlaying = () => {
   isLoading.value = false
   isPlaying.value = true
-  if (!player.isPlaying) player.setPlaying(true)
+  if (!player.isPlaying) player.setPlaying?.(true)
 }
 
 const onPause = () => {
   isLoading.value = false
   isPlaying.value = false
-  if (player.isPlaying) player.setPlaying(false)
+  if (player.isPlaying) player.setPlaying?.(false)
 }
 
 const onEnded = async () => {
@@ -396,11 +392,11 @@ const onEnded = async () => {
     return
   }
 
-  const nextTrack = player.playNext()
+  const nextTrack = player.playNext?.()
   if (!nextTrack) {
     isPlaying.value = false
     isLoading.value = false
-    player.setPlaying(false)
+    player.setPlaying?.(false)
   }
 }
 
@@ -454,7 +450,7 @@ watch(
           await audioRef.value.play()
         } catch {
           isLoading.value = false
-          player.setPlaying(false)
+          player.setPlaying?.(false)
         }
       }
     } else if (!audioRef.value.paused) {

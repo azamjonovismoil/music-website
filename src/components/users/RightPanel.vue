@@ -8,24 +8,14 @@
           <span v-if="upNext.length" class="rp-badge">{{ upNext.length }}</span>
         </button>
 
-        <button
-          v-if="effectiveRecommendations.length"
-          class="rp-tab"
-          :class="{ active: tab === 'discover' }"
-          type="button"
-          @click="tab = 'discover'"
-        >
+        <button v-if="effectiveRecommendations.length" class="rp-tab" :class="{ active: tab === 'discover' }"
+          type="button" @click="tab = 'discover'">
           <SparklesIcon class="rp-tab__icon" />
           <span>{{ discoverTitle }}</span>
         </button>
 
-        <button
-          v-if="artistView"
-          class="rp-tab"
-          :class="{ active: tab === 'artist' }"
-          type="button"
-          @click="tab = 'artist'"
-        >
+        <button v-if="artistView" class="rp-tab" :class="{ active: tab === 'artist' }" type="button"
+          @click="tab = 'artist'">
           <UserIcon class="rp-tab__icon" />
           <span>Artist</span>
         </button>
@@ -67,16 +57,9 @@
         </div>
 
         <div v-else class="rp-list">
-          <div
-            v-for="(item, i) in upNext"
-            :key="`${item._id}-${i}`"
-            class="rp-item rp-item--queue"
-            role="button"
-            tabindex="0"
-            @click="$emit('play-track', item)"
-            @keydown.enter="$emit('play-track', item)"
-            @keydown.space.prevent="$emit('play-track', item)"
-          >
+          <div v-for="(item, i) in upNext" :key="`${item._id}-${i}`" class="rp-item rp-item--queue" role="button"
+            tabindex="0" @click="$emit('play-track', item)" @keydown.enter="$emit('play-track', item)"
+            @keydown.space.prevent="$emit('play-track', item)">
             <span class="rp-item__index">{{ i + 1 }}</span>
 
             <img :src="getCover(item)" class="rp-item__cover" alt="" />
@@ -99,16 +82,9 @@
         </div>
 
         <div class="rp-list">
-          <div
-            v-for="track in effectiveRecommendations"
-            :key="track._id"
-            class="rp-item rp-item--rec"
-            role="button"
-            tabindex="0"
-            @click="$emit('play-track', track)"
-            @keydown.enter="$emit('play-track', track)"
-            @keydown.space.prevent="$emit('play-track', track)"
-          >
+          <div v-for="track in effectiveRecommendations" :key="track._id" class="rp-item rp-item--rec" role="button"
+            tabindex="0" @click="$emit('play-track', track)" @keydown.enter="$emit('play-track', track)"
+            @keydown.space.prevent="$emit('play-track', track)">
             <img :src="getCover(track)" class="rp-item__cover" alt="" />
 
             <div class="rp-item__body">
@@ -128,12 +104,7 @@
           <div class="rp-artist__top">
             <div class="rp-artist__hero">
               <div class="rp-artist__cover-wrap">
-                <img
-                  v-if="artistView.cover"
-                  :src="artistView.cover"
-                  alt=""
-                  class="rp-artist__cover"
-                />
+                <img v-if="artistView.cover" :src="artistView.cover" alt="" class="rp-artist__cover" />
                 <div v-else class="rp-artist__fallback">
                   {{ artistInitial }}
                 </div>
@@ -176,16 +147,9 @@
         </div>
 
         <div v-if="artistView.tracks?.length" class="rp-list">
-          <div
-            v-for="track in artistView.tracks"
-            :key="track._id"
-            class="rp-item rp-item--artist"
-            role="button"
-            tabindex="0"
-            @click="$emit('select-track', track)"
-            @keydown.enter="$emit('select-track', track)"
-            @keydown.space.prevent="$emit('select-track', track)"
-          >
+          <div v-for="track in artistView.tracks" :key="track._id" class="rp-item rp-item--artist" role="button"
+            tabindex="0" @click="$emit('select-track', track)" @keydown.enter="$emit('select-track', track)"
+            @keydown.space.prevent="$emit('select-track', track)">
             <img :src="getCover(track)" class="rp-item__cover" alt="" />
 
             <div class="rp-item__body">
@@ -241,9 +205,7 @@ defineEmits([
 const tab = ref('queue')
 
 const upNext = computed(() =>
-  (props.queue || []).filter(
-    (item) => String(item?._id || '') !== String(props.currentMusic?._id || '')
-  )
+  (props.queue || []).filter((item) => String(item?._id || '') !== String(props.currentMusic?._id || ''))
 )
 
 const effectiveRecommendations = computed(() =>
@@ -254,10 +216,7 @@ const effectiveRecommendations = computed(() =>
 )
 
 const discoverTitle = computed(() => (props.currentMusic ? 'Related' : 'Discover'))
-
-const artistInitial = computed(() =>
-  String(props.artistView?.name || 'A').charAt(0).toUpperCase()
-)
+const artistInitial = computed(() => String(props.artistView?.name || 'A').charAt(0).toUpperCase())
 
 watch(
   () => props.artistView,
