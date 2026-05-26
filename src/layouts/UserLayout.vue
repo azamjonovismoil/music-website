@@ -114,8 +114,8 @@ import TrackDetail from '@/components/users/TrackDetail.vue'
 import AddToPlayListModal from '@/components/users/AddToPlayListModal.vue'
 import CreatePlaylists from '@/components/users/CreatePlaylists.vue'
 import DeletePlaylistModal from '@/components/users/DeletePlaylistModal.vue'
-import PlayerBar from '@/components/player/PlayerBar.vue'
-import LyricsPanel from '@/components/player/LyricsPanel.vue'
+import PlayerBar from '@/components/layout/PlayerBar.vue'
+import LyricsPanel from '@/panels/LyricsPanel.vue'
 import '@/styles/user_page.css'
 
 const route = useRoute()
