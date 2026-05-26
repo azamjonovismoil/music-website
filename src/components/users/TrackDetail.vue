@@ -1,7 +1,7 @@
 <template>
   <section v-if="track" class="td">
-    <div class="td-hero">
-      <div class="td-hero__bg" />
+    <div class="td-hero surface-card">
+      <div class="td-hero__bg"></div>
 
       <div class="td-hero__content">
         <div class="td-cover-col">
@@ -27,12 +27,12 @@
 
               <template v-if="track.album">
                 <span class="td-sep">•</span>
-                <span class="td-album">{{ track.album }}</span>
+                <span class="td-muted">{{ track.album }}</span>
               </template>
 
               <template v-if="track.language">
                 <span class="td-sep">•</span>
-                <span class="td-album">{{ track.language }}</span>
+                <span class="td-muted">{{ track.language }}</span>
               </template>
             </div>
 
@@ -60,19 +60,19 @@
               <PlusIcon class="td-btn-ico" />
             </button>
           </div>
+
+          <div class="td-stats">
+            <div v-for="item in metaItems" :key="item.label" class="td-stat">
+              <span class="td-stat__label">{{ item.label }}</span>
+              <strong class="td-stat__value">{{ item.value }}</strong>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="td-body">
+    <div v-if="track.bio || recommendations.length" class="td-body">
       <div class="td-body__main">
-        <div class="td-stats">
-          <div v-for="item in metaItems" :key="item.label" class="td-stat">
-            <span class="td-stat__label">{{ item.label }}</span>
-            <strong class="td-stat__value">{{ item.value }}</strong>
-          </div>
-        </div>
-
         <div v-if="track.bio" class="td-about surface-card">
           <p class="td-about__label">About this track</p>
           <p class="td-bio">{{ track.bio }}</p>
@@ -82,7 +82,7 @@
           <div class="td-list__head">
             <div>
               <p class="section-kicker">Continue listening</p>
-              <h3>More in this vibe</h3>
+              <h3>More like this</h3>
             </div>
           </div>
 
@@ -151,25 +151,23 @@ const heroTags = computed(() => {
   const raw = [
     ...(Array.isArray(props.track?.genre) ? props.track.genre : []),
     ...(Array.isArray(props.track?.mood) ? props.track.mood : []),
-    ...(Array.isArray(props.track?.tags) ? props.track.tags.slice(0, 2).map((t) => `#${t}`) : []),
   ]
-  return raw.slice(0, 5)
+  return raw.slice(0, 4)
 })
 
 const metaItems = computed(() => {
   const t = props.track
   if (!t) return []
 
-  const items = []
-  items.push({ label: 'Duration', value: fmtDur(t.duration) })
-  items.push({ label: 'Likes', value: Number(t.likeCount || 0).toLocaleString() })
-  items.push({ label: 'Plays', value: Number(t.playCount || 0).toLocaleString() })
-  items.push({ label: 'Type', value: t.releaseType || 'single' })
+  const items = [
+    { label: 'Duration', value: fmtDur(t.duration) },
+    { label: 'Likes', value: Number(t.likeCount || 0).toLocaleString() },
+    { label: 'Plays', value: Number(t.playCount || 0).toLocaleString() },
+  ]
 
-  if (t.language) items.push({ label: 'Language', value: t.language })
-  if (t.album) items.push({ label: 'Album', value: t.album })
+  if (t.releaseType) items.push({ label: 'Type', value: t.releaseType })
 
-  return items.slice(0, 6)
+  return items.slice(0, 4)
 })
 
 const imgErr = (e) => {

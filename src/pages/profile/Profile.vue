@@ -1,6 +1,13 @@
 <template>
-  <div class="profile-pg">
+  <div class="profile-pg profile-pg--minimal">
     <main class="profile-main">
+      <section class="profile-topbar">
+        <button class="profile-back-btn" type="button" @click="goBack">
+          <ArrowLeftIcon class="profile-back-icon" />
+          <span>Back</span>
+        </button>
+      </section>
+
       <section class="pf-hero surface-card">
         <div class="pf-hero-bg"></div>
 
@@ -123,22 +130,6 @@
             </dl>
           </section>
 
-          <section v-if="authStore.isAdmin" class="pf-side-card surface-card">
-            <div class="pf-side-card__head">
-              <h3>Admin shortcuts</h3>
-            </div>
-
-            <div class="pf-shortcuts">
-              <button class="pf-shortcut-btn" type="button" @click="router.push('/admin')">
-                Admin dashboard
-              </button>
-              <button class="pf-shortcut-btn pf-shortcut-btn--accent" type="button"
-                @click="router.push('/admin/add-music')">
-                Add track
-              </button>
-            </div>
-          </section>
-
           <section class="pf-danger-card surface-card">
             <div>
               <h3>Session</h3>
@@ -161,6 +152,7 @@ defineOptions({ name: 'ProfilePage' })
 import { ref, computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import { API_ROOT } from '@/utils/media'
 import '@/styles/profile_page.css'
@@ -246,6 +238,14 @@ const autoplayText = computed(() => {
   return 'Default'
 })
 
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  router.push('/user')
+}
+
 const trackChange = () => {
   successMsg.value = ''
   errorMsg.value = ''
@@ -290,7 +290,6 @@ const loadProfile = async () => {
     const u = data.user || data
 
     rawUser.value = u
-
     form.name = u.name || ''
     form.email = u.email || ''
     form.bio = u.bio || ''
@@ -375,15 +374,6 @@ const saveProfile = async () => {
       name: form.name,
       email: form.email,
       bio: form.bio,
-    }
-
-    if (data?.requiresVerification) {
-      successMsg.value = data.message || 'Profile updated. Please verify your new email.'
-      router.push({
-        path: '/verify-email',
-        query: { email: form.email },
-      })
-      return
     }
 
     successMsg.value = 'Profile updated successfully.'

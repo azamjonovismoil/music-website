@@ -6,7 +6,7 @@
         <h2>Lyrics</h2>
       </div>
 
-      <button class="lyrics-close-btn" @click="player.closeLyrics()">✕</button>
+      <button class="lyrics-close-btn" type="button" @click="player.closeLyrics()">✕</button>
     </div>
 
     <div v-if="!music" class="lyrics-panel-empty">
@@ -18,10 +18,10 @@
 
     <template v-else>
       <div class="lyrics-track-meta">
-        <img :src="coverUrl" :alt="music.title" class="lyrics-cover" @error="handleImageError" />
+        <img :src="coverUrl" :alt="music.title || 'Track cover'" class="lyrics-cover" @error="handleImageError" />
 
         <div class="lyrics-track-info">
-          <h3>{{ music.title }}</h3>
+          <h3>{{ music.title || 'Untitled' }}</h3>
           <p>{{ music.artist || 'Unknown artist' }}</p>
         </div>
       </div>
@@ -54,7 +54,7 @@
         <div v-else class="lyrics-panel-empty inner">
           <div>
             <h3>No lyrics available</h3>
-            <p>Add lyrics from edit to generate sync.</p>
+            <p>Lyrics are not available for this track yet.</p>
           </div>
         </div>
       </div>
@@ -63,6 +63,8 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'LyricsPanel' })
+
 import { ref, computed, watch, nextTick } from 'vue'
 import { usePlayerStore } from '@/stores/player'
 import '@/styles/lyrics_panel.css'

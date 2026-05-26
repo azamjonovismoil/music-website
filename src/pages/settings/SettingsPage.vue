@@ -33,12 +33,10 @@
                 @click="prefs.theme = 'dark'">
                 Dark
               </button>
-
               <button class="theme-btn" :class="{ active: prefs.theme === 'light' }" type="button"
                 @click="prefs.theme = 'light'">
                 Light
               </button>
-
               <button class="theme-btn" :class="{ active: prefs.theme === 'system' }" type="button"
                 @click="prefs.theme = 'system'">
                 System
@@ -246,4 +244,4 @@ onMounted(() => {
   applyTheme(prefs.theme)
   applyUiPrefs()
 })
-</script>
+</script> 

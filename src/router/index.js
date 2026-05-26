@@ -28,7 +28,6 @@ const routes = [
     component: () => import('../pages/home/LandingPage.vue'),
     meta: { title: 'Welcome', hidePlayerBar: true },
   },
-
   {
     path: '/login',
     name: 'Login',
@@ -41,7 +40,6 @@ const routes = [
     component: () => import('../pages/auth/Register.vue'),
     meta: { guestOnly: true, title: 'Register', hidePlayerBar: true },
   },
-
   {
     path: '/user',
     component: () => import('../layouts/UserLayout.vue'),
@@ -57,7 +55,12 @@ const routes = [
         path: 'profile',
         name: 'UserProfile',
         component: () => import('../pages/profile/Profile.vue'),
-        meta: { title: 'Profile', keepAlive: true },
+        meta: {
+          title: 'Profile',
+          keepAlive: true,
+          hideUserChrome: true,
+          hideUserSearch: true,
+        },
       },
       {
         path: 'settings',
@@ -84,9 +87,28 @@ const routes = [
         meta: { title: 'Track' },
         props: true,
       },
+      {
+        path: 'library/favourites',
+        name: 'UserLibraryFavourites',
+        component: () => import('../pages/library/LibraryPage.vue'),
+        meta: { title: 'Liked songs', keepAlive: true },
+      },
+      {
+        path: 'library/downloaded',
+        name: 'UserLibraryDownloaded',
+        component: () => import('../pages/library/LibraryPage.vue'),
+        meta: { title: 'Downloaded tracks', keepAlive: true },
+      },
     ],
   },
-
+  {
+    path: '/library/favourites',
+    redirect: '/user/library/favourites',
+  },
+  {
+    path: '/library/downloaded',
+    redirect: '/user/library/downloaded',
+  },
   {
     path: '/artist/:slug',
     redirect: (to) => `/user/artist/${to.params.slug}`,
@@ -115,7 +137,6 @@ const routes = [
     },
     meta: { requiresAuth: true, hidePlayerBar: true },
   },
-
   {
     path: '/admin',
     component: () => import('../layouts/AdminLayout.vue'),
@@ -147,7 +168,6 @@ const routes = [
       },
     ],
   },
-
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
@@ -169,43 +189,30 @@ router.beforeEach(async (to) => {
   const auth = await ensureAuthInitialized()
 
   if (to.name === 'Landing' && auth.isLoggedIn) {
-    return {
-      path: getHomePath(auth),
-      replace: true,
-    }
+    return { path: getHomePath(auth), replace: true }
   }
 
   if (to.meta?.guestOnly && auth.isLoggedIn) {
-    return {
-      path: getHomePath(auth),
-      replace: true,
-    }
+    return { path: getHomePath(auth), replace: true }
   }
 
   if (to.meta?.requiresAuth && !auth.isLoggedIn) {
     return {
       path: '/login',
-      query: {
-        redirect: to.fullPath,
-      },
+      query: { redirect: to.fullPath },
       replace: true,
     }
   }
 
   if (to.meta?.requiresAdmin && !auth.isAdmin) {
-    return {
-      path: '/user',
-      replace: true,
-    }
+    return { path: '/user', replace: true }
   }
 
   return true
 })
 
 router.afterEach((to) => {
-  document.title = to.meta?.title
-    ? `${to.meta.title} | ${APP_NAME}`
-    : APP_NAME
+  document.title = to.meta?.title ? `${to.meta.title} | ${APP_NAME}` : APP_NAME
 })
 
 export default router

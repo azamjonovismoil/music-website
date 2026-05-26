@@ -5,7 +5,6 @@
 
     <div class="user-shell" :class="{
       'user-shell--left-collapsed': leftSidebarCollapsed && !isMinimalPage,
-      'user-shell--mobile-left-open': mobileSidebarOpen && !isMinimalPage,
       'user-shell--player-open': !!playerStore.currentTrack,
       'user-shell--minimal': isMinimalPage,
     }">
@@ -24,7 +23,7 @@
 
       <main class="user-main" :class="{ 'user-main--standalone': isMinimalPage }">
         <router-view v-slot="{ Component, route: currentRoute }">
-          <KeepAlive include="UserPage,ProfilePage,SettingsPage">
+          <KeepAlive include="UserPage,ProfilePage,SettingsPage,LibraryPage">
             <component :is="Component" v-if="currentRoute.meta?.keepAlive" :tracks="tracks" :loading="loading"
               :err-msg="errMsg" :search="search" :playlists="playlists" :selected-playlist="selectedPlaylist"
               :selected-detail-track="selectedDetailTrack" :selected-artist-view="selectedArtistView"
@@ -262,21 +261,18 @@ const heroSubtitle = computed(() => {
     return 'Recommendations adapt to what is playing now, using artist, mood, language, and listening signals.'
   }
 
-  return 'Browse premium sections by language, mood, trending activity, and your recent listening.'
+  return 'Browse latest releases, strong recommendations, and a few calm focused sections.'
 })
 
 const heroMeta = computed(() => {
   if (selectedPlaylist.value) return 'playlist view'
   if (activeRecommendationMode.value === 'related') return 'smart recommendations'
-  return 'section based home'
+  return 'clean discovery'
 })
 
 const normalizeLanguage = (value) => {
   const v = normalizeWord(value)
   if (['uz', 'uzbek', 'uzbekistan', "o'zbek", 'ozbek'].includes(v)) return 'uzbek'
-  if (['ru', 'russian', 'rus'].includes(v)) return 'russian'
-  if (['en', 'english'].includes(v)) return 'english'
-  if (['ar', 'arabic', 'arab'].includes(v)) return 'arabic'
   return v
 }
 
@@ -298,6 +294,8 @@ const uniqueTracks = (arr = []) => {
 const sectionGroups = computed(() => {
   const source = [...filteredTracks.value]
 
+  const latest = source.slice(0, 10)
+
   const trending = [...source]
     .sort(
       (a, b) =>
@@ -307,27 +305,38 @@ const sectionGroups = computed(() => {
     )
     .slice(0, 10)
 
-  const fresh = source.slice(0, 10)
-  const featured = source.filter((t) => t.isFeatured).slice(0, 10)
   const recommended = uniqueTracks([
     ...recommendations.value,
     ...source.filter((t) => t.isRecommended),
   ]).slice(0, 10)
 
-  const uzbek = source.filter((t) => normalizeLanguage(t.language) === 'uzbek').slice(0, 10)
-  const english = source.filter((t) => normalizeLanguage(t.language) === 'english').slice(0, 10)
   const chill = source.filter((t) => hasMood(t, ['chill', 'calm', 'soft', 'relax'])).slice(0, 10)
-  const romantic = source.filter((t) => hasMood(t, ['romantic', 'love', 'romance'])).slice(0, 10)
 
   return [
-    { key: 'recommended', title: 'Recommended for you', subtitle: 'Smart picks based on your listening', tracks: recommended },
-    { key: 'fresh', title: 'Latest releases', subtitle: 'Newest tracks in your library', tracks: fresh },
-    { key: 'trending', title: 'Trending now', subtitle: 'Popular tracks people keep returning to', tracks: trending },
-    { key: 'featured', title: 'Featured releases', subtitle: 'Highlighted tracks from the library', tracks: featured },
-    { key: 'uzbek', title: 'Uzbek picks', subtitle: 'A focused row from the Uzbek catalog', tracks: uzbek },
-    { key: 'english', title: 'English picks', subtitle: 'Discover English-language favorites', tracks: english },
-    { key: 'chill', title: 'Chill mood', subtitle: 'Calm tracks for any time of day', tracks: chill },
-    { key: 'romantic', title: 'Romantic mood', subtitle: 'Soft and emotionally rich listening', tracks: romantic },
+    {
+      key: 'latest',
+      title: 'Latest releases',
+      subtitle: 'Newest tracks in your library',
+      tracks: latest,
+    },
+    {
+      key: 'recommended',
+      title: 'Recommended for you',
+      subtitle: 'Smart picks based on your listening',
+      tracks: recommended,
+    },
+    {
+      key: 'trending',
+      title: 'Trending now',
+      subtitle: 'Popular tracks people keep returning to',
+      tracks: trending,
+    },
+    {
+      key: 'chill',
+      title: 'Chill mood',
+      subtitle: 'Calm tracks for any time of day',
+      tracks: chill,
+    },
   ]
 })
 
@@ -366,6 +375,7 @@ const forceFetchTracks = () => fetchTracks(true)
 
 const fetchPlaylists = async (force = false) => {
   if (!force && playlists.value.length) return
+
   try {
     const { data } = await api.get('/playlists')
     playlists.value = Array.isArray(data) ? data : []

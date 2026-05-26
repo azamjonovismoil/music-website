@@ -20,8 +20,8 @@
         'tg-item--playing': currentMusic?._id === track._id,
         'tg-item--selected': selectedMusic?._id === track._id,
       }" @click="$emit('select-track', track)">
-        <div class="tg-item__rank">
-          <span v-if="currentMusic?._id !== track._id">{{ String(index + 1).padStart(2, '0') }}</span>
+        <div class="tg-item__index">
+          <span v-if="currentMusic?._id !== track._id">{{ index + 1 }}</span>
           <div v-else class="tg-item__eq" :class="{ active: isPlaying }">
             <span></span><span></span><span></span>
           </div>
@@ -46,7 +46,7 @@
 
         <div class="tg-item__meta">
           <span v-if="track.genre?.[0]" class="tg-chip">{{ track.genre[0] }}</span>
-          <span v-if="track.language" class="tg-meta-text">{{ track.language }}</span>
+          <span v-else-if="track.language" class="tg-meta">{{ track.language }}</span>
         </div>
 
         <div class="tg-item__time">

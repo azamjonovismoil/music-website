@@ -83,7 +83,7 @@
           <p class="content-section__sub">
             {{
               selectedPlaylist?.description ||
-              'Explore curated rows by language, mood, trending activity, and your listening context.'
+              'A cleaner home focused on the newest tracks, strong recommendations, and a few useful sections.'
             }}
           </p>
         </div>

@@ -2,6 +2,13 @@
   min-height: 100%;
 }
 
+.profile-pg--minimal {
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.08), transparent 24%),
+    var(--bg-base);
+}
+
 .profile-main {
   max-width: 1180px;
   margin: 0 auto;
@@ -9,6 +16,40 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.profile-topbar {
+  display: flex;
+  align-items: center;
+}
+
+.profile-back-btn {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  transition:
+    transform var(--t-fast),
+    border-color var(--t-fast),
+    background var(--t-fast);
+}
+
+.profile-back-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-hover);
+  background: var(--surface-2);
+}
+
+.profile-back-icon {
+  width: 15px;
+  height: 15px;
 }
 
 .pf-hero {
@@ -265,8 +306,7 @@
 
 .pf-cancel-btn,
 .pf-save-btn,
-.pf-logout-btn,
-.pf-shortcut-btn {
+.pf-logout-btn {
   min-height: 42px;
   padding: 0 16px;
   border-radius: 12px;
@@ -280,31 +320,27 @@
     filter var(--t-fast);
 }
 
-.pf-cancel-btn,
-.pf-shortcut-btn {
+.pf-cancel-btn {
   border: 1px solid var(--border);
   background: var(--surface-1);
   color: var(--text-secondary);
 }
 
-.pf-cancel-btn:hover,
-.pf-shortcut-btn:hover {
+.pf-cancel-btn:hover {
   transform: translateY(-1px);
   border-color: var(--border-hover);
   background: var(--surface-2);
   color: var(--text-primary);
 }
 
-.pf-save-btn,
-.pf-shortcut-btn--accent {
+.pf-save-btn {
   border: none;
   color: #fff;
   background: linear-gradient(135deg, var(--accent), var(--accent-mid));
   box-shadow: 0 10px 24px rgba(53, 109, 255, 0.22);
 }
 
-.pf-save-btn:hover,
-.pf-shortcut-btn--accent:hover {
+.pf-save-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.04);
 }
@@ -362,12 +398,6 @@
   font-size: 12px;
   font-weight: 800;
   text-align: right;
-}
-
-.pf-shortcuts {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .pf-danger-card {
@@ -459,7 +489,7 @@
   .pf-cancel-btn,
   .pf-save-btn,
   .pf-logout-btn,
-  .pf-shortcut-btn {
+  .profile-back-btn {
     width: 100%;
   }
 }
