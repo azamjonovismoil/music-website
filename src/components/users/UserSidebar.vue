@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   PlusIcon,
@@ -108,7 +108,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import '@/styles/user_sidebar.css'
 
-const props = defineProps({
+defineProps({
   playlists: { type: Array, default: () => [] },
   activePlaylistId: { type: String, default: '' },
   collapsed: { type: Boolean, default: false },
@@ -127,7 +127,11 @@ defineEmits([
 ])
 
 const router = useRouter()
-const isMobile = computed(() => (typeof window !== 'undefined' ? window.innerWidth <= 980 : false))
+const isMobile = ref(false)
+
+const handleResize = () => {
+  isMobile.value = window.innerWidth <= 980
+}
 
 const goToFavourites = () => {
   router.push('/library/favourites')
@@ -136,4 +140,13 @@ const goToFavourites = () => {
 const goToDownloads = () => {
   router.push('/library/downloaded')
 }
+
+onMounted(() => {
+  handleResize()
+  window.addEventListener('resize', handleResize, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+})
 </script>
