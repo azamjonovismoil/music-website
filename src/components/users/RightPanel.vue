@@ -1,5 +1,5 @@
 <template>
-  <aside id="right-player-panel" class="rp" tabindex="-1" aria-label="Playback side panel" ref="panelRef">
+  <aside id="right-player-panel" class="rp" tabindex="-1" aria-label="Playback side panel">
     <div class="rp-top">
       <div class="rp-tabs">
         <button class="rp-tab" :class="{ active: tab === 'queue' }" type="button" @click="tab = 'queue'">
@@ -11,7 +11,7 @@
         <button v-if="effectiveRecommendations.length" class="rp-tab" :class="{ active: tab === 'discover' }"
           type="button" @click="tab = 'discover'">
           <SparklesIcon class="rp-tab__icon" />
-          <span>{{ discoverTitle }}</span>
+          <span>Related</span>
         </button>
 
         <button v-if="artistView" class="rp-tab" :class="{ active: tab === 'artist' }" type="button"
@@ -72,7 +72,7 @@
 
       <section v-else-if="tab === 'discover'" class="rp-section">
         <div class="rp-headline">
-          <h3>{{ discoverTitle }}</h3>
+          <h3>Related</h3>
         </div>
 
         <div class="rp-list">
@@ -150,11 +150,6 @@
             </button>
           </div>
         </div>
-
-        <div v-else class="rp-empty surface-card">
-          <UserIcon class="rp-empty__icon" />
-          <p>No tracks in this view</p>
-        </div>
       </section>
     </div>
   </aside>
@@ -174,7 +169,6 @@ import {
 import '@/styles/right_panel.css'
 
 const props = defineProps({
-  open: { type: Boolean, default: true },
   queue: { type: Array, default: () => [] },
   currentMusic: { type: Object, default: null },
   recommendations: { type: Array, default: () => [] },
@@ -184,7 +178,6 @@ const props = defineProps({
 })
 
 defineEmits([
-  'close',
   'play-track',
   'remove-from-queue',
   'clear-queue',
@@ -193,7 +186,6 @@ defineEmits([
   'close-artist',
 ])
 
-const panelRef = ref(null)
 const tab = ref(props.defaultTab || 'queue')
 
 const upNext = computed(() =>
@@ -204,10 +196,9 @@ const effectiveRecommendations = computed(() =>
   (props.recommendations || [])
     .filter((item) => String(item?._id || '') !== String(props.currentMusic?._id || ''))
     .filter((item) => !upNext.value.some((q) => String(q?._id || '') === String(item?._id || '')))
-    .slice(0, 8)
+    .slice(0, 10)
 )
 
-const discoverTitle = computed(() => (props.currentMusic ? 'Related' : 'Discover'))
 const artistInitial = computed(() => String(props.artistView?.name || 'A').charAt(0).toUpperCase())
 
 watch(

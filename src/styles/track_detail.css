@@ -245,7 +245,8 @@
 }
 
 .td-about,
-.td-list {
+.td-list,
+.td-artist-card {
   padding: 18px;
   border-radius: 22px;
 }
@@ -258,11 +259,36 @@
   letter-spacing: 0.14em;
 }
 
-.td-bio {
+.td-bio,
+.td-artist-card__bio {
   margin-top: 10px;
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.75;
+}
+
+.td-artist-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.td-artist-card__head h3 {
+  margin-top: 4px;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.td-artist-link {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .td-list__head {
@@ -386,7 +412,8 @@
 @media (max-width: 640px) {
   .td-hero,
   .td-about,
-  .td-list {
+  .td-list,
+  .td-artist-card {
     padding: 14px;
     border-radius: 18px;
   }

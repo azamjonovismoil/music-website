@@ -1,45 +1,5 @@
 <template>
   <section class="user-home">
-    <section class="discover-hero surface-card">
-      <div class="discover-hero__copy">
-        <p class="section-kicker">{{ heroKicker }}</p>
-
-        <h1 class="discover-hero__title">
-          {{ heroTitle }}
-        </h1>
-
-        <p class="discover-hero__sub">
-          {{ heroSubtitle }}
-        </p>
-
-        <div class="discover-hero__meta">
-          <span class="discover-pill">{{ filteredTracks.length }} tracks</span>
-          <span class="discover-pill discover-pill--soft">{{ heroMeta }}</span>
-        </div>
-      </div>
-
-      <div v-if="selectedDetailTrack" class="discover-hero__highlight">
-        <button class="discover-highlight" type="button" @click="$emit('toggle-track', selectedDetailTrack)">
-          <img class="discover-highlight__cover" :src="resolveCover(selectedDetailTrack)"
-            :alt="selectedDetailTrack.title || 'Track cover'" @error="imgErr" />
-
-          <div class="discover-highlight__body">
-            <span class="discover-highlight__label">
-              {{ playerStore.currentTrack?._id === selectedDetailTrack._id ? 'Now playing' : 'Selected track' }}
-            </span>
-            <strong>{{ selectedDetailTrack.title || 'Untitled track' }}</strong>
-            <p>{{ selectedDetailTrack.artist || 'Unknown artist' }}</p>
-          </div>
-
-          <div class="discover-highlight__play">
-            <PauseIcon v-if="playerStore.currentTrack?._id === selectedDetailTrack._id && playerStore.isPlaying"
-              class="discover-play-ico" />
-            <PlayIcon v-else class="discover-play-ico discover-play-ico--shift" />
-          </div>
-        </button>
-      </div>
-    </section>
-
     <section v-if="recentlyPlayed.length" class="recent-section surface-card">
       <div class="recent-section__head">
         <div>
@@ -60,13 +20,8 @@
           </div>
 
           <div class="recent-item__actions">
-            <button class="recent-mini-btn" type="button" @click.stop="$emit('add-to-queue', track)"
-              aria-label="Add to queue">
-              +
-            </button>
-
-            <button class="recent-item__play" type="button" @click.stop="$emit('toggle-track', track)"
-              aria-label="Play track">
+            <button class="recent-mini-btn" type="button" @click.stop="$emit('add-to-queue', track)">+</button>
+            <button class="recent-item__play" type="button" @click.stop="$emit('toggle-track', track)">
               <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
                 class="recent-play-ico" />
               <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
@@ -74,6 +29,28 @@
           </div>
         </button>
       </div>
+    </section>
+
+    <section v-if="offerSections.length" class="offers-section">
+      <article v-for="offer in offerSections" :key="offer.key" class="offer-card surface-card">
+        <div class="offer-card__copy">
+          <p class="section-kicker">{{ offer.kicker }}</p>
+          <h3>{{ offer.title }}</h3>
+          <p>{{ offer.text }}</p>
+        </div>
+
+        <div class="offer-card__tracks">
+          <button v-for="track in offer.tracks" :key="track._id" class="offer-track" type="button"
+            @click="$emit('open-track-detail', track)">
+            <img :src="resolveCover(track)" :alt="track.title || 'Track cover'" class="offer-track__cover"
+              @error="imgErr" />
+            <div class="offer-track__meta">
+              <strong>{{ track.title || 'Untitled' }}</strong>
+              <span>{{ track.artist || 'Unknown artist' }}</span>
+            </div>
+          </button>
+        </div>
+      </article>
     </section>
 
     <TrackDetail v-if="selectedDetailTrack" class="user-main-detail" :track="selectedDetailTrack"
@@ -84,19 +61,6 @@
       @select-track="$emit('open-track-detail', $event)" />
 
     <section v-if="!loading && !errMsg && visibleSections.length" class="content-section">
-      <div class="content-section__head">
-        <div>
-          <p class="section-kicker">{{ selectedPlaylist ? 'Playlist view' : 'Browse sections' }}</p>
-          <h2>{{ selectedPlaylist?.name || 'Discover by sections' }}</h2>
-          <p class="content-section__sub">
-            {{
-              selectedPlaylist?.description ||
-              'A cleaner music home with stronger card hierarchy, better actions, and focused discovery blocks.'
-            }}
-          </p>
-        </div>
-      </div>
-
       <div class="section-stack">
         <section v-for="section in visibleSections" :key="section.key" class="home-card-section surface-card">
           <div class="home-card-section__head">
@@ -127,12 +91,9 @@
               </div>
 
               <div class="music-card__footer">
-                <button class="music-card__mini" type="button" @click.stop="$emit('add-to-queue', track)">
-                  Queue
-                </button>
-                <button class="music-card__mini" type="button" @click.stop="$emit('open-add-to-playlist', track)">
-                  + Playlist
-                </button>
+                <button class="music-card__mini" type="button" @click.stop="$emit('add-to-queue', track)">Queue</button>
+                <button class="music-card__mini" type="button" @click.stop="$emit('open-add-to-playlist', track)">+
+                  Playlist</button>
               </div>
             </article>
           </div>
@@ -172,10 +133,7 @@ const props = defineProps({
   detailRecommendations: { type: Array, default: () => [] },
   filteredTracks: { type: Array, default: () => [] },
   visibleSections: { type: Array, default: () => [] },
-  heroKicker: { type: String, default: '' },
-  heroTitle: { type: String, default: '' },
-  heroSubtitle: { type: String, default: '' },
-  heroMeta: { type: String, default: '' },
+  offerSections: { type: Array, default: () => [] },
   resolveCover: { type: Function, required: true },
   fallbackCover: { type: String, default: '' },
   playerStore: { type: Object, required: true },

@@ -1,15 +1,15 @@
 :root {
-  --player-h: 96px;
+  --player-h: 98px;
   --player-side-pad: 18px;
   --player-gap: 18px;
-  --player-z: 1600;
-  --player-glass:
+  --player-z: 2200;
+  --player-surface:
     linear-gradient(
       180deg,
-      color-mix(in srgb, var(--bg-subtle) 96%, transparent),
+      color-mix(in srgb, var(--bg-subtle) 97%, transparent),
       color-mix(in srgb, var(--bg-base) 98%, transparent)
     ),
-    color-mix(in srgb, var(--bg-base) 94%, transparent);
+    color-mix(in srgb, var(--bg-base) 95%, transparent);
 }
 
 .player-shell {
@@ -29,19 +29,19 @@
   width: 100%;
   min-height: var(--player-h);
   display: grid;
-  grid-template-columns: minmax(240px, 1fr) minmax(0, 2.4fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(250px, 1fr) minmax(0, 2.5fr) minmax(230px, 1fr);
   align-items: center;
   gap: var(--player-gap);
   padding: 12px var(--player-side-pad) calc(12px + env(safe-area-inset-bottom));
-  background: var(--player-glass);
-  border-top: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
-  backdrop-filter: blur(28px) saturate(1.3);
-  -webkit-backdrop-filter: blur(28px) saturate(1.3);
+  background: var(--player-surface);
+  border-top: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  backdrop-filter: blur(30px) saturate(1.28);
+  -webkit-backdrop-filter: blur(30px) saturate(1.28);
   box-shadow:
     0 -1px 0 rgba(255, 255, 255, 0.03),
     0 -18px 48px rgba(0, 0, 0, 0.28);
-  overflow: visible;
   isolation: isolate;
+  overflow: visible;
 }
 
 .player-bar::after {
@@ -52,7 +52,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    color-mix(in srgb, var(--accent) 36%, transparent),
+    color-mix(in srgb, var(--accent) 34%, transparent),
     transparent
   );
   pointer-events: none;
@@ -79,7 +79,7 @@
 
 .player-bar.playing::before {
   opacity: 1;
-  animation: playerLine 3s linear infinite;
+  animation: playerLine 3.2s linear infinite;
 }
 
 @keyframes playerLine {
@@ -121,6 +121,13 @@
   transform: translateY(-1px);
 }
 
+.player-bar.playing .cover-wrap {
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow:
+    0 10px 24px rgba(59, 130, 246, 0.14),
+    0 0 0 1px rgba(59, 130, 246, 0.08) inset;
+}
+
 .cover-wrap:focus-visible,
 .track-btn:focus-visible,
 .ctrl:focus-visible,
@@ -130,13 +137,6 @@
   box-shadow:
     0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent),
     0 8px 24px rgba(0, 0, 0, 0.16);
-}
-
-.player-bar.playing .cover-wrap {
-  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
-  box-shadow:
-    0 10px 24px rgba(59, 130, 246, 0.14),
-    0 0 0 1px rgba(59, 130, 246, 0.08) inset;
 }
 
 .player-cover {
@@ -264,10 +264,12 @@
   height: 5px;
   animation-delay: 0s;
 }
+
 .mini-eq span:nth-child(2) {
   height: 11px;
   animation-delay: 0.18s;
 }
+
 .mini-eq span:nth-child(3) {
   height: 7px;
   animation-delay: 0.36s;
@@ -487,7 +489,7 @@
   justify-content: flex-end;
   gap: 6px;
   position: relative;
-  z-index: 3;
+  z-index: 8;
 }
 
 .vol-btn.muted {
@@ -793,7 +795,7 @@
     top: 8px;
     right: 10px;
     width: auto;
-    z-index: 5;
+    z-index: 12;
   }
 
   .lyrics-btn,

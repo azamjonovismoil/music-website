@@ -76,7 +76,8 @@
         <div class="td-about surface-card">
           <p class="td-about__label">About this track</p>
           <p class="td-bio">
-            {{ track.bio || 'A focused track detail view with listening context, metadata, and related picks.' }}
+            {{ track.bio || 'A cleaner detail section focused on track context, artist identity, and what to play next.'
+            }}
           </p>
         </div>
 
@@ -93,7 +94,7 @@
           </div>
 
           <p class="td-artist-card__bio">
-            {{ track.artistBio || 'Browse more tracks and recommendations around this artist.' }}
+            {{ track.artistBio || 'See more tracks, similar moods, and stronger recommendations around this artist.' }}
           </p>
         </div>
 
@@ -109,6 +110,7 @@
             <article v-for="(item, index) in recommendations" :key="item._id" class="td-list__row"
               @click="$emit('select-track', item)">
               <span class="td-list__index">{{ index + 1 }}</span>
+
               <img :src="getCover(item)" class="td-list__cover" :alt="item.title || 'Track cover'" @error="imgErr" />
 
               <div class="td-list__copy">

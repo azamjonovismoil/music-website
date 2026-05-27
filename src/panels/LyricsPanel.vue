@@ -1,14 +1,10 @@
 <template>
-  <section class="lyrics-panel">
+  <section class="lyrics-panel lyrics-panel--main">
     <div class="lyrics-panel-header">
       <div class="lyrics-panel-title">
         <span class="lyrics-kicker">Now playing</span>
         <h2>Lyrics</h2>
       </div>
-
-      <button class="lyrics-close-btn" type="button" @click="$emit('close')" aria-label="Close lyrics">
-        ✕
-      </button>
     </div>
 
     <div v-if="!music" class="lyrics-panel-empty">
@@ -30,24 +26,15 @@
 
       <div ref="lyricsScrollRef" class="lyrics-scroll">
         <template v-if="hasSyncedLyrics">
-          <div
-            v-for="(line, index) in syncedLyrics"
-            :key="`${line.time}-${index}`"
-            :ref="el => setLyricRef(el, index)"
-            class="lyric-line"
-            :class="{
+          <div v-for="(line, index) in syncedLyrics" :key="`${line.time}-${index}`" :ref="el => setLyricRef(el, index)"
+            class="lyric-line" :class="{
               active: index === activeLyricIndex,
               passed: index < activeLyricIndex,
               upcoming: index > activeLyricIndex
-            }"
-          >
+            }">
             <template v-if="Array.isArray(line.words) && line.words.length">
-              <span
-                v-for="(word, wordIndex) in line.words"
-                :key="`${index}-${wordIndex}`"
-                class="lyric-word"
-                :class="{ active: isWordActive(word) }"
-              >
+              <span v-for="(word, wordIndex) in line.words" :key="`${index}-${wordIndex}`" class="lyric-word"
+                :class="{ active: isWordActive(word) }">
                 {{ word.word }}
               </span>
             </template>
@@ -79,8 +66,6 @@ defineOptions({ name: 'LyricsPanel' })
 import { ref, computed, watch, nextTick } from 'vue'
 import { usePlayerStore } from '@/stores/player'
 import '@/styles/lyrics_panel.css'
-
-defineEmits(['close'])
 
 const player = usePlayerStore()
 const lyricsScrollRef = ref(null)
