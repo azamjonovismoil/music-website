@@ -1,22 +1,28 @@
 <template>
-  <aside class="user-sidebar">
+  <aside class="user-sidebar" :class="{ 'user-sidebar--collapsed': collapsed }">
     <div class="us-header">
       <div class="us-brand">
         <div class="us-brand__icon-wrap">
           <MusicalNoteIcon class="us-brand-ico" />
         </div>
 
-        <div class="us-brand__copy">
+        <div v-if="!collapsed" class="us-brand__copy">
           <span class="us-brand-text">Playlists</span>
           <span class="us-brand-sub">Your library</span>
         </div>
       </div>
+
+      <button v-if="!isMobile" class="us-collapse-btn" type="button" @click="$emit('toggle-collapse')"
+        :aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+        <ChevronDoubleLeftIcon v-if="!collapsed" class="us-collapse-ico" />
+        <ChevronDoubleRightIcon v-else class="us-collapse-ico" />
+      </button>
     </div>
 
     <div class="us-top-actions">
       <button class="us-create-btn" type="button" @click="$emit('create-playlist')" title="Create playlist">
         <PlusIcon class="us-create-ico" />
-        <span>New playlist</span>
+        <span v-if="!collapsed">New playlist</span>
       </button>
     </div>
 
@@ -26,7 +32,7 @@
           <HeartIcon class="us-shortcut__icon-svg" />
         </div>
 
-        <div class="us-shortcut__copy">
+        <div v-if="!collapsed" class="us-shortcut__copy">
           <span class="us-shortcut__title">Favourites</span>
           <span class="us-shortcut__sub">Saved tracks</span>
         </div>
@@ -37,7 +43,7 @@
           <ArrowDownTrayIcon class="us-shortcut__icon-svg" />
         </div>
 
-        <div class="us-shortcut__copy">
+        <div v-if="!collapsed" class="us-shortcut__copy">
           <span class="us-shortcut__title">Downloads</span>
           <span class="us-shortcut__sub">Offline tracks</span>
         </div>
@@ -45,7 +51,7 @@
     </div>
 
     <div class="us-body">
-      <div class="us-section-label">Your playlists</div>
+      <div v-if="!collapsed" class="us-section-label">Your playlists</div>
 
       <div class="us-playlist-list">
         <button v-for="playlist in playlists" :key="playlist._id" class="us-playlist-item"
@@ -55,12 +61,12 @@
             <QueueListIcon class="us-pl-art-ico" />
           </div>
 
-          <div class="us-pl-meta">
+          <div v-if="!collapsed" class="us-pl-meta">
             <span class="us-pl-name">{{ playlist.name }}</span>
             <span class="us-pl-count">{{ playlist.count || playlist.tracks?.length || 0 }} tracks</span>
           </div>
 
-          <div class="us-pl-actions" @click.stop>
+          <div v-if="!collapsed" class="us-pl-actions" @click.stop>
             <button class="us-pl-btn" type="button" title="Edit playlist" @click="$emit('rename-playlist', playlist)">
               <PencilSquareIcon class="us-pl-btn-ico" />
             </button>
@@ -72,7 +78,7 @@
           </div>
         </button>
 
-        <div v-if="!playlists.length" class="us-pl-empty">
+        <div v-if="!playlists.length && !collapsed" class="us-pl-empty">
           <div class="us-pl-empty__icon">
             <QueueListIcon class="us-pl-empty__icon-svg" />
           </div>
@@ -87,6 +93,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   PlusIcon,
@@ -96,12 +103,15 @@ import {
   MusicalNoteIcon,
   HeartIcon,
   ArrowDownTrayIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
 } from '@heroicons/vue/24/outline'
 import '@/styles/user_sidebar.css'
 
-defineProps({
+const props = defineProps({
   playlists: { type: Array, default: () => [] },
   activePlaylistId: { type: String, default: '' },
+  collapsed: { type: Boolean, default: false },
   defaultPlaylistColor: {
     type: String,
     default: 'linear-gradient(135deg,#4f7cff,#7c5cff)',
@@ -109,6 +119,7 @@ defineProps({
 })
 
 defineEmits([
+  'toggle-collapse',
   'create-playlist',
   'open-playlist',
   'rename-playlist',
@@ -116,6 +127,7 @@ defineEmits([
 ])
 
 const router = useRouter()
+const isMobile = computed(() => (typeof window !== 'undefined' ? window.innerWidth <= 980 : false))
 
 const goToFavourites = () => {
   router.push('/library/favourites')

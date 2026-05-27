@@ -87,8 +87,12 @@
           </div>
 
           <div class="td-list__table">
-            <article v-for="(item, index) in recommendations" :key="item._id" class="td-list__row"
-              @click="$emit('select-track', item)">
+            <article
+              v-for="(item, index) in recommendations"
+              :key="item._id"
+              class="td-list__row"
+              @click="$emit('select-track', item)"
+            >
               <span class="td-list__index">{{ index + 1 }}</span>
 
               <img :src="getCover(item)" class="td-list__cover" :alt="item.title || 'Track cover'" @error="imgErr" />

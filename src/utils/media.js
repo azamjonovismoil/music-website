@@ -35,8 +35,8 @@ export function resolveCover(music) {
   if (!music) return fallbackCover
 
   const candidates = [
-    music.cover,
     music.coverUrl,
+    music.cover,
     music.thumbnail,
     music.image,
   ]
@@ -53,8 +53,8 @@ export function resolveAudio(music) {
   if (!music) return ''
 
   const directCandidates = [
-    music.url,
     music.audioUrl,
+    music.url,
     music.streamUrl,
     music.file,
   ]

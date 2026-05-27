@@ -1,12 +1,14 @@
 <template>
-  <section v-if="showLyricsPanel" class="lyrics-panel">
+  <section class="lyrics-panel">
     <div class="lyrics-panel-header">
       <div class="lyrics-panel-title">
         <span class="lyrics-kicker">Now playing</span>
         <h2>Lyrics</h2>
       </div>
 
-      <button class="lyrics-close-btn" type="button" @click="closePanel">✕</button>
+      <button class="lyrics-close-btn" type="button" @click="$emit('close')" aria-label="Close lyrics">
+        ✕
+      </button>
     </div>
 
     <div v-if="!music" class="lyrics-panel-empty">
@@ -28,15 +30,24 @@
 
       <div ref="lyricsScrollRef" class="lyrics-scroll">
         <template v-if="hasSyncedLyrics">
-          <div v-for="(line, index) in syncedLyrics" :key="`${line.time}-${index}`" :ref="el => setLyricRef(el, index)"
-            class="lyric-line" :class="{
+          <div
+            v-for="(line, index) in syncedLyrics"
+            :key="`${line.time}-${index}`"
+            :ref="el => setLyricRef(el, index)"
+            class="lyric-line"
+            :class="{
               active: index === activeLyricIndex,
               passed: index < activeLyricIndex,
               upcoming: index > activeLyricIndex
-            }">
+            }"
+          >
             <template v-if="Array.isArray(line.words) && line.words.length">
-              <span v-for="(word, wordIndex) in line.words" :key="`${index}-${wordIndex}`" class="lyric-word"
-                :class="{ active: isWordActive(word) }">
+              <span
+                v-for="(word, wordIndex) in line.words"
+                :key="`${index}-${wordIndex}`"
+                class="lyric-word"
+                :class="{ active: isWordActive(word) }"
+              >
                 {{ word.word }}
               </span>
             </template>
@@ -69,6 +80,8 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { usePlayerStore } from '@/stores/player'
 import '@/styles/lyrics_panel.css'
 
+defineEmits(['close'])
+
 const player = usePlayerStore()
 const lyricsScrollRef = ref(null)
 const lyricRefs = ref([])
@@ -80,7 +93,6 @@ const fallbackCover =
   )
 
 const music = computed(() => player.currentTrack)
-const showLyricsPanel = computed(() => true)
 
 const syncedLyrics = computed(() => {
   if (Array.isArray(music.value?.syncedLyrics)) return music.value.syncedLyrics
@@ -98,7 +110,6 @@ const coverUrl = computed(() => {
 
 const activeLyricIndex = computed(() => {
   if (!hasSyncedLyrics.value) return -1
-
   let idx = -1
   for (let i = 0; i < syncedLyrics.value.length; i++) {
     if (player.currentTime >= Number(syncedLyrics.value[i].time)) idx = i
@@ -106,10 +117,6 @@ const activeLyricIndex = computed(() => {
   }
   return idx
 })
-
-const closePanel = () => {
-  player.closeLyrics?.()
-}
 
 const setLyricRef = (el, index) => {
   if (el) lyricRefs.value[index] = el

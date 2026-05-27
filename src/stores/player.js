@@ -7,19 +7,15 @@ export const usePlayerStore = defineStore('player', () => {
   const queueIndex = ref(-1)
   const currentTime = ref(0)
   const isPlaying = ref(false)
-
   const shuffle = ref(false)
   const repeatMode = ref('off')
-
   const showLyricsPanel = ref(false)
-  const showKaraokeMode = ref(false)
 
   const hasQueue = computed(() => queue.value.length > 0)
   const currentTrackId = computed(() => String(currentTrack.value?._id || ''))
 
   const normalizeQueue = (tracks = []) => {
     const seen = new Set()
-
     return (Array.isArray(tracks) ? tracks : []).filter((item) => {
       const id = String(item?._id || '')
       if (!id || seen.has(id)) return false
@@ -135,11 +131,9 @@ export const usePlayerStore = defineStore('player', () => {
 
     if (shuffle.value && queue.value.length > 1) {
       let nextIndex = queueIndex.value
-
       while (nextIndex === queueIndex.value) {
         nextIndex = Math.floor(Math.random() * queue.value.length)
       }
-
       queueIndex.value = nextIndex
     } else {
       const baseIndex = queueIndex.value >= 0 ? queueIndex.value : findQueueIndex(currentTrack.value?._id)
@@ -235,18 +229,6 @@ export const usePlayerStore = defineStore('player', () => {
     showLyricsPanel.value = !showLyricsPanel.value
   }
 
-  const openKaraoke = () => {
-    showKaraokeMode.value = true
-  }
-
-  const closeKaraoke = () => {
-    showKaraokeMode.value = false
-  }
-
-  const toggleKaraoke = () => {
-    showKaraokeMode.value = !showKaraokeMode.value
-  }
-
   const resetPlayer = () => {
     currentTrack.value = null
     queue.value = []
@@ -256,7 +238,6 @@ export const usePlayerStore = defineStore('player', () => {
     shuffle.value = false
     repeatMode.value = 'off'
     showLyricsPanel.value = false
-    showKaraokeMode.value = false
   }
 
   return {
@@ -268,7 +249,6 @@ export const usePlayerStore = defineStore('player', () => {
     shuffle,
     repeatMode,
     showLyricsPanel,
-    showKaraokeMode,
     hasQueue,
     currentTrackId,
     setQueue,
@@ -285,9 +265,6 @@ export const usePlayerStore = defineStore('player', () => {
     openLyrics,
     closeLyrics,
     toggleLyrics,
-    openKaraoke,
-    closeKaraoke,
-    toggleKaraoke,
     resetPlayer,
   }
 })

@@ -4,7 +4,6 @@
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  border-left: 1px solid var(--border);
   background:
     radial-gradient(circle at top right, rgba(91, 140, 255, 0.08), transparent 24%),
     var(--surface-1);
@@ -133,10 +132,6 @@
   background: color-mix(in srgb, var(--accent-soft) 84%, transparent);
   color: var(--text-primary);
   transform: translateX(2px);
-}
-
-.lyric-line.upcoming {
-  color: var(--text-hint);
 }
 
 .lyric-word {
