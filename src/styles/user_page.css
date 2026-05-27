@@ -64,10 +64,10 @@
 .user-main {
   min-width: 0;
   width: 100%;
-  padding: 26px 28px calc(var(--player-bar-safe) + 34px);
+  padding: 26px 28px calc(var(--player-bar-safe) + 38px);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
   overflow: hidden;
 }
 
@@ -81,11 +81,43 @@
   display: none;
 }
 
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.section-kicker {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin-top: 10px;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.06;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.section-subtitle {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 58ch;
+}
+
 .recent-section,
 .home-card-section,
-.offer-card {
-  padding: 22px;
-  border-radius: 28px;
+.offer-panel {
+  padding: 24px;
+  border-radius: 30px;
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--surface-1) 98%, transparent),
@@ -94,32 +126,17 @@
   border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
 }
 
-.recent-section__head,
-.home-card-section__head {
-  margin-bottom: 18px;
-}
-
-.recent-section__head h3,
-.home-card-section__head h3,
-.offer-card h3 {
-  margin-top: 6px;
-  font-size: 18px;
-  line-height: 1.08;
-  font-weight: 900;
-  letter-spacing: -0.04em;
-}
-
-.recent-list {
+.recent-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
-.recent-item {
-  min-height: 96px;
+.recent-card {
+  min-height: 92px;
   padding: 14px 16px;
   border-radius: 22px;
-  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--surface-2) 96%, transparent),
@@ -137,19 +154,19 @@
     background var(--t-fast);
 }
 
-.recent-item:hover {
+.recent-card:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
 }
 
-.recent-item.playing {
+.recent-card.active {
   border-color: color-mix(in srgb, var(--accent) 28%, transparent);
   background: color-mix(in srgb, var(--accent-soft) 74%, transparent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
-.recent-item__cover {
+.recent-card__cover {
   width: 56px;
   height: 56px;
   border-radius: 16px;
@@ -157,12 +174,12 @@
   background: var(--bg-elevated);
 }
 
-.recent-item__meta {
+.recent-card__body {
   min-width: 0;
 }
 
-.recent-item__meta strong,
-.recent-item__meta span {
+.recent-card__body strong,
+.recent-card__body span {
   display: block;
   min-width: 0;
   white-space: nowrap;
@@ -170,34 +187,33 @@
   text-overflow: ellipsis;
 }
 
-.recent-item__meta strong {
+.recent-card__body strong {
   font-size: 15px;
   font-weight: 800;
   line-height: 1.2;
 }
 
-.recent-item__meta span {
+.recent-card__body span {
   margin-top: 6px;
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.2;
 }
 
-.recent-item__actions {
+.recent-card__actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-left: 4px;
 }
 
-.recent-mini-btn,
-.recent-item__play {
+.recent-card__icon,
+.recent-card__play {
   border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
   background: color-mix(in srgb, var(--surface-1) 94%, transparent);
   color: var(--text-primary);
 }
 
-.recent-mini-btn {
+.recent-card__icon {
   min-width: 40px;
   height: 40px;
   border-radius: 14px;
@@ -207,7 +223,7 @@
   line-height: 1;
 }
 
-.recent-item__play {
+.recent-card__play {
   width: 44px;
   height: 44px;
   border-radius: 999px;
@@ -215,51 +231,43 @@
   place-items: center;
 }
 
-.recent-item__play:hover,
-.recent-mini-btn:hover {
-  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
-  background: color-mix(in srgb, var(--accent-soft) 82%, transparent);
+.recent-card__play-icon {
+  width: 18px;
+  height: 18px;
 }
 
-.offers-section {
+.recent-card__play-icon--shift {
+  margin-left: 2px;
+}
+
+.offers-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
-.offer-card {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+.offer-panel {
   min-width: 0;
 }
 
-.offer-card__copy {
-  min-width: 0;
+.offer-panel__head {
+  margin-bottom: 16px;
 }
 
-.offer-card__copy p:last-child {
-  margin-top: 10px;
-  color: var(--text-muted);
-  line-height: 1.78;
-  font-size: 13px;
-  max-width: 52ch;
-}
-
-.offer-card__tracks {
+.offer-list {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
 }
 
-.offer-track {
+.offer-list__item {
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px;
   border-radius: 18px;
   border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
   background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 50px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   text-align: left;
@@ -269,40 +277,46 @@
     transform var(--t-fast);
 }
 
-.offer-track:hover {
+.offer-list__item:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 18%, transparent);
   background: color-mix(in srgb, var(--accent-soft) 56%, transparent);
 }
 
-.offer-track__cover {
-  width: 48px;
-  height: 48px;
+.offer-list__cover {
+  width: 50px;
+  height: 50px;
   border-radius: 14px;
   object-fit: cover;
 }
 
-.offer-track__meta {
+.offer-list__body {
   min-width: 0;
 }
 
-.offer-track__meta strong,
-.offer-track__meta span {
+.offer-list__body strong,
+.offer-list__body span {
   display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.offer-track__meta strong {
+.offer-list__body strong {
   font-size: 13px;
   font-weight: 800;
 }
 
-.offer-track__meta span {
+.offer-list__body span {
   margin-top: 4px;
   color: var(--text-muted);
   font-size: 11px;
+}
+
+.offer-list__meta {
+  color: var(--text-hint);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .content-section {
@@ -320,7 +334,7 @@
 .music-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .music-card {
@@ -382,12 +396,12 @@
   box-shadow: 0 12px 24px rgba(53, 109, 255, 0.24);
 }
 
-.music-card__play-ico {
+.music-card__play-icon {
   width: 14px;
   height: 14px;
 }
 
-.music-card__play-ico--shift {
+.music-card__play-icon--shift {
   margin-left: 2px;
 }
 
@@ -435,7 +449,7 @@
 .detail-actions-row {
   display: flex;
   justify-content: flex-start;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
 }
 
 .detail-secondary-btn {
@@ -498,7 +512,7 @@
 }
 
 @media (max-width: 1480px) {
-  .recent-list {
+  .recent-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -552,14 +566,14 @@
     pointer-events: auto;
   }
 
-  .recent-list,
-  .offers-section {
+  .recent-grid,
+  .offers-grid {
     grid-template-columns: 1fr;
   }
 
   .user-main {
-    padding: 16px 16px calc(var(--player-bar-safe) + 18px);
-    gap: 18px;
+    padding: 16px 16px calc(var(--player-bar-safe) + 22px);
+    gap: 20px;
   }
 }
 
@@ -570,41 +584,46 @@
 
   .recent-section,
   .home-card-section,
-  .offer-card {
+  .offer-panel {
     padding: 18px;
+    border-radius: 22px;
+  }
+
+  .section-title {
+    font-size: 24px;
   }
 }
 
 @media (max-width: 520px) {
   .user-main {
-    padding: 12px 12px calc(var(--player-bar-safe) + 16px);
+    padding: 12px 12px calc(var(--player-bar-safe) + 18px);
   }
 
   .recent-section,
   .empty-box,
   .home-card-section,
-  .offer-card {
+  .offer-panel {
     border-radius: 20px;
     padding: 16px;
   }
 
-  .recent-list {
+  .recent-grid {
     gap: 12px;
   }
 
-  .recent-item {
+  .recent-card {
     grid-template-columns: 48px minmax(0, 1fr) auto;
-    min-height: 74px;
+    min-height: 78px;
     padding: 12px;
     border-radius: 18px;
   }
 
-  .recent-item__cover {
+  .recent-card__cover {
     width: 48px;
     height: 48px;
   }
 
-  .recent-item__meta strong {
+  .recent-card__body strong {
     font-size: 14px;
   }
 
@@ -623,12 +642,12 @@
     height: 38px;
   }
 
-  .offer-track {
+  .offer-list__item {
     grid-template-columns: 44px minmax(0, 1fr);
     gap: 10px;
   }
 
-  .offer-track__cover {
+  .offer-list__cover {
     width: 44px;
     height: 44px;
   }

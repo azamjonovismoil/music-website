@@ -1,52 +1,65 @@
 <template>
   <section class="user-home">
     <section v-if="!selectedDetailTrack && recentlyPlayed.length" class="recent-section surface-card">
-      <div class="recent-section__head">
+      <div class="section-head">
         <div>
           <p class="section-kicker">Quick access</p>
-          <h3>Recently played</h3>
+          <h2 class="section-title">Recently played</h2>
+          <p class="section-subtitle">Jump back into the tracks you were listening to most recently.</p>
         </div>
       </div>
 
-      <div class="recent-list">
-        <button v-for="track in recentlyPlayed" :key="track._id" type="button" class="recent-item"
-          :class="{ playing: playerStore.currentTrack?._id === track._id }" @click="$emit('toggle-track', track)">
-          <img class="recent-item__cover" :src="resolveCover(track)" :alt="track.title || 'Track cover'"
+      <div class="recent-grid">
+        <button v-for="track in recentlyPlayed" :key="track._id" type="button" class="recent-card"
+          :class="{ active: playerStore.currentTrack?._id === track._id }" @click="$emit('toggle-track', track)">
+          <img class="recent-card__cover" :src="resolveCover(track)" :alt="track.title || 'Track cover'"
             @error="imgErr" />
 
-          <div class="recent-item__meta">
+          <div class="recent-card__body">
             <strong>{{ track.title || 'Untitled' }}</strong>
             <span>{{ track.artist || 'Unknown artist' }}</span>
           </div>
 
-          <div class="recent-item__actions">
-            <button class="recent-mini-btn" type="button" @click.stop="$emit('add-to-queue', track)">+</button>
-            <button class="recent-item__play" type="button" @click.stop="$emit('toggle-track', track)">
+          <div class="recent-card__actions">
+            <button class="recent-card__icon" type="button" @click.stop="$emit('add-to-queue', track)"
+              aria-label="Add to queue">
+              +
+            </button>
+
+            <button class="recent-card__play" type="button" @click.stop="$emit('toggle-track', track)"
+              aria-label="Play track">
               <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
-                class="recent-play-ico" />
-              <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
+                class="recent-card__play-icon" />
+              <PlayIcon v-else class="recent-card__play-icon recent-card__play-icon--shift" />
             </button>
           </div>
         </button>
       </div>
     </section>
 
-    <section v-if="!selectedDetailTrack && offerSections.length" class="offers-section">
-      <article v-for="offer in offerSections" :key="offer.key" class="offer-card surface-card">
-        <div class="offer-card__copy">
-          <p class="section-kicker">{{ offer.kicker }}</p>
-          <h3>{{ offer.title }}</h3>
-          <p>{{ offer.text }}</p>
+    <section v-if="!selectedDetailTrack && offerSections.length" class="offers-grid">
+      <article v-for="offer in offerSections" :key="offer.key" class="offer-panel surface-card">
+        <div class="offer-panel__head">
+          <div>
+            <p class="section-kicker">{{ offer.kicker }}</p>
+            <h2 class="section-title">{{ offer.title }}</h2>
+            <p class="section-subtitle">{{ offer.text }}</p>
+          </div>
         </div>
 
-        <div class="offer-card__tracks">
-          <button v-for="track in offer.tracks" :key="track._id" class="offer-track" type="button"
+        <div class="offer-list">
+          <button v-for="track in offer.tracks" :key="track._id" class="offer-list__item" type="button"
             @click="$emit('open-track-detail', track)">
-            <img :src="resolveCover(track)" :alt="track.title || 'Track cover'" class="offer-track__cover"
+            <img :src="resolveCover(track)" :alt="track.title || 'Track cover'" class="offer-list__cover"
               @error="imgErr" />
-            <div class="offer-track__meta">
+
+            <div class="offer-list__body">
               <strong>{{ track.title || 'Untitled' }}</strong>
               <span>{{ track.artist || 'Unknown artist' }}</span>
+            </div>
+
+            <div class="offer-list__meta">
+              <span>{{ Number(track.playCount || 0).toLocaleString() }} plays</span>
             </div>
           </button>
         </div>
@@ -69,10 +82,11 @@
     <section v-if="!selectedDetailTrack && !loading && !errMsg && visibleSections.length" class="content-section">
       <div class="section-stack">
         <section v-for="section in visibleSections" :key="section.key" class="home-card-section surface-card">
-          <div class="home-card-section__head">
+          <div class="section-head">
             <div>
-              <h3>{{ section.title }}</h3>
-              <p>{{ section.subtitle }}</p>
+              <p class="section-kicker">{{ section.key === 'recommended' ? 'For you' : 'Collection' }}</p>
+              <h2 class="section-title">{{ section.title }}</h2>
+              <p class="section-subtitle">{{ section.subtitle }}</p>
             </div>
           </div>
 
@@ -84,10 +98,11 @@
                 <img class="music-card__cover" :src="resolveCover(track)" :alt="track.title || 'Track cover'"
                   @error="imgErr" />
 
-                <button class="music-card__play" type="button" @click.stop="$emit('toggle-track', track)">
+                <button class="music-card__play" type="button" @click.stop="$emit('toggle-track', track)"
+                  aria-label="Play track">
                   <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
-                    class="music-card__play-ico" />
-                  <PlayIcon v-else class="music-card__play-ico music-card__play-ico--shift" />
+                    class="music-card__play-icon" />
+                  <PlayIcon v-else class="music-card__play-icon music-card__play-icon--shift" />
                 </button>
               </div>
 
