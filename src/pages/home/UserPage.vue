@@ -1,6 +1,6 @@
 <template>
   <section class="user-home">
-    <section v-if="recentlyPlayed.length" class="recent-section surface-card">
+    <section v-if="!selectedDetailTrack && recentlyPlayed.length" class="recent-section surface-card">
       <div class="recent-section__head">
         <div>
           <p class="section-kicker">Quick access</p>
@@ -31,7 +31,7 @@
       </div>
     </section>
 
-    <section v-if="offerSections.length" class="offers-section">
+    <section v-if="!selectedDetailTrack && offerSections.length" class="offers-section">
       <article v-for="offer in offerSections" :key="offer.key" class="offer-card surface-card">
         <div class="offer-card__copy">
           <p class="section-kicker">{{ offer.kicker }}</p>
@@ -60,7 +60,13 @@
       @add-to-queue="$emit('add-to-queue', $event)" @open-artist="$emit('open-artist', $event)"
       @select-track="$emit('open-track-detail', $event)" />
 
-    <section v-if="!loading && !errMsg && visibleSections.length" class="content-section">
+    <div v-if="selectedDetailTrack" class="detail-actions-row">
+      <button class="detail-secondary-btn" type="button" @click="$emit('close-track-detail')">
+        Back to browse
+      </button>
+    </div>
+
+    <section v-if="!selectedDetailTrack && !loading && !errMsg && visibleSections.length" class="content-section">
       <div class="section-stack">
         <section v-for="section in visibleSections" :key="section.key" class="home-card-section surface-card">
           <div class="home-card-section__head">
@@ -111,7 +117,7 @@
       <button class="btn btn-primary" type="button" @click="$emit('fetch-tracks')">Try again</button>
     </div>
 
-    <div v-else-if="!visibleSections.length" class="empty-box surface-card">
+    <div v-else-if="!selectedDetailTrack && !visibleSections.length" class="empty-box surface-card">
       <h3>No tracks found</h3>
       <p>Try another search or playlist.</p>
     </div>
@@ -131,7 +137,6 @@ const props = defineProps({
   selectedDetailTrack: { type: Object, default: null },
   recentlyPlayed: { type: Array, default: () => [] },
   detailRecommendations: { type: Array, default: () => [] },
-  filteredTracks: { type: Array, default: () => [] },
   visibleSections: { type: Array, default: () => [] },
   offerSections: { type: Array, default: () => [] },
   resolveCover: { type: Function, required: true },
@@ -145,8 +150,8 @@ defineEmits([
   'open-add-to-playlist',
   'add-to-queue',
   'open-artist',
-  'clear-artist-view',
   'open-track-detail',
+  'close-track-detail',
   'fetch-tracks',
 ])
 

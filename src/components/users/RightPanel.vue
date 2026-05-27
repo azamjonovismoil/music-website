@@ -93,41 +93,43 @@
 
       <section v-else-if="tab === 'artist' && artistView" class="rp-section">
         <div class="rp-artist surface-card">
-          <div class="rp-artist__top">
-            <div class="rp-artist__hero">
-              <div class="rp-artist__cover-wrap">
-                <img v-if="artistView.cover" :src="artistView.cover" alt="" class="rp-artist__cover" />
-                <div v-else class="rp-artist__fallback">{{ artistInitial }}</div>
-              </div>
-
-              <div class="rp-artist__copy">
-                <span class="rp-artist__eyebrow">Artist focus</span>
-                <h3>{{ artistView.name || 'Unknown artist' }}</h3>
-                <p>{{ artistView.bio || 'Tracks from this artist in your current context.' }}</p>
-              </div>
+          <div class="rp-artist__media">
+            <img v-if="artistView.cover" :src="artistView.cover" alt="" class="rp-artist__main-cover" />
+            <div v-else class="rp-artist__main-fallback">
+              {{ artistInitial }}
             </div>
-
-            <button class="rp-icon-btn" type="button" @click="$emit('close-artist')">
-              <XMarkIcon class="rp-item__icon" />
-            </button>
           </div>
 
-          <div v-if="artistView.genres?.length" class="rp-artist__chips">
-            <span v-for="g in artistView.genres" :key="g" class="rp-artist__chip">{{ g }}</span>
-          </div>
+          <div class="rp-artist__content">
+            <div class="rp-artist__topline">
+              <span class="rp-artist__eyebrow">Artist focus</span>
+              <button class="rp-icon-btn" type="button" @click="$emit('close-artist')">
+                <XMarkIcon class="rp-item__icon" />
+              </button>
+            </div>
 
-          <div class="rp-artist__stats">
-            <div class="rp-artist__stat">
-              <strong>{{ artistView.tracks?.length || 0 }}</strong>
-              <span>Tracks</span>
+            <h3>{{ artistView.name || 'Unknown artist' }}</h3>
+            <p class="rp-artist__bio">
+              {{ artistView.bio || 'Tracks and recommendations around this artist.' }}
+            </p>
+
+            <div v-if="artistView.genres?.length" class="rp-artist__chips">
+              <span v-for="g in artistView.genres" :key="g" class="rp-artist__chip">{{ g }}</span>
             </div>
-            <div class="rp-artist__stat">
-              <strong>{{ Number(artistView.totalPlays || 0).toLocaleString() }}</strong>
-              <span>Plays</span>
-            </div>
-            <div class="rp-artist__stat">
-              <strong>{{ Number(artistView.totalLikes || 0).toLocaleString() }}</strong>
-              <span>Likes</span>
+
+            <div class="rp-artist__stats">
+              <div class="rp-artist__stat">
+                <strong>{{ artistView.tracks?.length || 0 }}</strong>
+                <span>Tracks</span>
+              </div>
+              <div class="rp-artist__stat">
+                <strong>{{ Number(artistView.totalPlays || 0).toLocaleString() }}</strong>
+                <span>Plays</span>
+              </div>
+              <div class="rp-artist__stat">
+                <strong>{{ Number(artistView.totalLikes || 0).toLocaleString() }}</strong>
+                <span>Likes</span>
+              </div>
             </div>
           </div>
         </div>
