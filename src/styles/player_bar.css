@@ -1,8 +1,8 @@
 :root {
   --player-h: 96px;
-  --player-radius: 0px;
   --player-side-pad: 18px;
   --player-gap: 18px;
+  --player-z: 1600;
   --player-glass:
     linear-gradient(
       180deg,
@@ -17,13 +17,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1250;
+  z-index: var(--player-z);
   pointer-events: none;
   overflow: visible;
 }
 
 .player-bar {
   position: relative;
+  z-index: calc(var(--player-z) + 1);
   pointer-events: auto;
   width: 100%;
   min-height: var(--player-h);
@@ -485,6 +486,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
+  position: relative;
+  z-index: 3;
 }
 
 .vol-btn.muted {
@@ -790,7 +793,7 @@
     top: 8px;
     right: 10px;
     width: auto;
-    z-index: 2;
+    z-index: 5;
   }
 
   .lyrics-btn,

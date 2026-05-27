@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="user-home">
     <section class="discover-hero surface-card">
       <div class="discover-hero__copy">
         <p class="section-kicker">{{ heroKicker }}</p>
@@ -44,7 +44,7 @@
       <div class="recent-section__head">
         <div>
           <p class="section-kicker">Quick access</p>
-          <h3>Continue listening</h3>
+          <h3>Recently played</h3>
         </div>
       </div>
 
@@ -59,10 +59,18 @@
             <span>{{ track.artist || 'Unknown artist' }}</span>
           </div>
 
-          <div class="recent-item__play">
-            <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
-              class="recent-play-ico" />
-            <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
+          <div class="recent-item__actions">
+            <button class="recent-mini-btn" type="button" @click.stop="$emit('add-to-queue', track)"
+              aria-label="Add to queue">
+              +
+            </button>
+
+            <button class="recent-item__play" type="button" @click.stop="$emit('toggle-track', track)"
+              aria-label="Play track">
+              <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
+                class="recent-play-ico" />
+              <PlayIcon v-else class="recent-play-ico recent-play-ico--shift" />
+            </button>
           </div>
         </button>
       </div>
@@ -83,23 +91,52 @@
           <p class="content-section__sub">
             {{
               selectedPlaylist?.description ||
-              'A cleaner home focused on the newest tracks, strong recommendations, and a few useful sections.'
+              'A cleaner music home with stronger card hierarchy, better actions, and focused discovery blocks.'
             }}
           </p>
-        </div>
-
-        <div class="content-section__meta">
-          <span class="result-badge">{{ visibleSections.length }} sections</span>
         </div>
       </div>
 
       <div class="section-stack">
-        <TrackGrid v-for="section in visibleSections" :key="section.key" :title="section.title"
-          :subtitle="section.subtitle" :tracks="section.tracks" :current-music="playerStore.currentTrack"
-          :selected-music="selectedDetailTrack" :is-playing="playerStore.isPlaying" :get-cover="resolveCover"
-          :fallback="fallbackCover" @select-track="$emit('open-track-detail', $event)"
-          @play-track="$emit('toggle-track', $event)" @add-to-playlist="$emit('open-add-to-playlist', $event)"
-          @add-to-queue="$emit('add-to-queue', $event)" />
+        <section v-for="section in visibleSections" :key="section.key" class="home-card-section surface-card">
+          <div class="home-card-section__head">
+            <div>
+              <h3>{{ section.title }}</h3>
+              <p>{{ section.subtitle }}</p>
+            </div>
+          </div>
+
+          <div class="music-card-grid">
+            <article v-for="track in section.tracks" :key="track._id" class="music-card"
+              :class="{ active: playerStore.currentTrack?._id === track._id }"
+              @click="$emit('open-track-detail', track)">
+              <div class="music-card__cover-wrap">
+                <img class="music-card__cover" :src="resolveCover(track)" :alt="track.title || 'Track cover'"
+                  @error="imgErr" />
+
+                <button class="music-card__play" type="button" @click.stop="$emit('toggle-track', track)">
+                  <PauseIcon v-if="playerStore.currentTrack?._id === track._id && playerStore.isPlaying"
+                    class="music-card__play-ico" />
+                  <PlayIcon v-else class="music-card__play-ico music-card__play-ico--shift" />
+                </button>
+              </div>
+
+              <div class="music-card__body">
+                <strong>{{ track.title || 'Untitled' }}</strong>
+                <span>{{ track.artist || 'Unknown artist' }}</span>
+              </div>
+
+              <div class="music-card__footer">
+                <button class="music-card__mini" type="button" @click.stop="$emit('add-to-queue', track)">
+                  Queue
+                </button>
+                <button class="music-card__mini" type="button" @click.stop="$emit('open-add-to-playlist', track)">
+                  + Playlist
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -125,7 +162,6 @@ defineOptions({ name: 'UserPage' })
 
 import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
 import TrackDetail from '@/components/users/TrackDetail.vue'
-import TrackGrid from '@/components/users/TrackGrid.vue'
 
 const props = defineProps({
   loading: { type: Boolean, default: false },

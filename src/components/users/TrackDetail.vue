@@ -30,9 +30,9 @@
                 <span class="td-muted">{{ track.album }}</span>
               </template>
 
-              <template v-if="track.language">
+              <template v-if="track.country || track.language">
                 <span class="td-sep">•</span>
-                <span class="td-muted">{{ track.language }}</span>
+                <span class="td-muted">{{ [track.country, track.language].filter(Boolean).join(' / ') }}</span>
               </template>
             </div>
 
@@ -71,30 +71,44 @@
       </div>
     </div>
 
-    <div v-if="track.bio || recommendations.length" class="td-body">
+    <div class="td-body">
       <div class="td-body__main">
-        <div v-if="track.bio" class="td-about surface-card">
+        <div class="td-about surface-card">
           <p class="td-about__label">About this track</p>
-          <p class="td-bio">{{ track.bio }}</p>
+          <p class="td-bio">
+            {{ track.bio || 'A focused track detail view with listening context, metadata, and related picks.' }}
+          </p>
+        </div>
+
+        <div class="td-artist-card surface-card">
+          <div class="td-artist-card__head">
+            <div>
+              <p class="section-kicker">Artist context</p>
+              <h3>{{ track.artist || 'Unknown artist' }}</h3>
+            </div>
+
+            <button class="td-artist-link" type="button" @click="$emit('open-artist', track.artist)">
+              Open artist
+            </button>
+          </div>
+
+          <p class="td-artist-card__bio">
+            {{ track.artistBio || 'Browse more tracks and recommendations around this artist.' }}
+          </p>
         </div>
 
         <div v-if="recommendations.length" class="td-list surface-card">
           <div class="td-list__head">
             <div>
               <p class="section-kicker">Continue listening</p>
-              <h3>More like this</h3>
+              <h3>More from this vibe</h3>
             </div>
           </div>
 
           <div class="td-list__table">
-            <article
-              v-for="(item, index) in recommendations"
-              :key="item._id"
-              class="td-list__row"
-              @click="$emit('select-track', item)"
-            >
+            <article v-for="(item, index) in recommendations" :key="item._id" class="td-list__row"
+              @click="$emit('select-track', item)">
               <span class="td-list__index">{{ index + 1 }}</span>
-
               <img :src="getCover(item)" class="td-list__cover" :alt="item.title || 'Track cover'" @error="imgErr" />
 
               <div class="td-list__copy">
@@ -156,7 +170,7 @@ const heroTags = computed(() => {
     ...(Array.isArray(props.track?.genre) ? props.track.genre : []),
     ...(Array.isArray(props.track?.mood) ? props.track.mood : []),
   ]
-  return raw.slice(0, 4)
+  return raw.slice(0, 5)
 })
 
 const metaItems = computed(() => {
