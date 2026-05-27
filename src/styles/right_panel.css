@@ -8,13 +8,14 @@
     color-mix(in srgb, var(--sidebar-bg) 100%, transparent)
   );
   position: relative;
-  z-index: 20;
+  z-index: 80;
+  isolation: isolate;
 }
 
 .rp-top {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 8;
   padding: 16px 16px 12px;
   background: linear-gradient(
     180deg,
@@ -124,8 +125,7 @@
 }
 
 .rp-now__cover,
-.rp-item__cover,
-.rp-artist__cover {
+.rp-item__cover {
   width: 56px;
   height: 56px;
   border-radius: 16px;
@@ -142,7 +142,7 @@
 .rp-item__body strong {
   display: block;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
@@ -264,59 +264,65 @@
 .rp-artist {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
-.rp-artist__top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+.rp-artist__media {
+  width: 100%;
 }
 
-.rp-artist__hero {
-  display: flex;
-  gap: 12px;
-  min-width: 0;
-}
-
-.rp-artist__fallback {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
+.rp-artist__main-cover,
+.rp-artist__main-fallback {
+  width: 100%;
+  aspect-ratio: 1.28 / 1;
+  border-radius: 20px;
+  object-fit: cover;
   display: grid;
   place-items: center;
-  background: linear-gradient(
-    135deg,
-    var(--accent-soft),
-    color-mix(in srgb, var(--accent) 24%, transparent)
-  );
-  color: var(--accent);
-  font-size: 20px;
-  font-weight: 800;
+  background: var(--surface-2);
 }
 
-.rp-artist__copy h3 {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: 18px;
+.rp-artist__main-fallback {
+  color: var(--accent);
+  font-size: 42px;
   font-weight: 900;
 }
 
-.rp-artist__copy p {
-  margin: 6px 0 0;
-  color: var(--text-muted);
-  font-size: 12px;
-  line-height: 1.6;
+.rp-artist__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rp-artist__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .rp-artist__eyebrow {
   display: inline-block;
-  margin-bottom: 4px;
   color: var(--text-hint);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.rp-artist__content h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.rp-artist__bio {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.75;
 }
 
 .rp-artist__chips {
