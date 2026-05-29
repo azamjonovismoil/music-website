@@ -6,16 +6,17 @@
     <div class="user-shell" :class="{
       'user-shell--minimal': isMinimalPage,
       'user-shell--left-collapsed': sidebarCollapsed && !isMobile && !isMinimalPage,
+      'user-shell--mobile-sidebar-open': mobileSidebarOpen && !isMinimalPage,
     }">
       <transition name="fade">
-        <div v-if="mobileSidebarOpen && !isMinimalPage" class="mobile-sidebar-overlay show"
+        <div v-if="mobileSidebarOpen && !isMinimalPage" class="mobile-sidebar-overlay show" aria-hidden="true"
           @click="mobileSidebarOpen = false" />
       </transition>
 
       <aside v-if="!isMinimalPage" class="user-shell__left" :class="{
         open: mobileSidebarOpen,
         collapsed: sidebarCollapsed && !isMobile,
-      }">
+      }" aria-label="Library sidebar">
         <div class="user-shell__left-scroll">
           <UserSidebar :collapsed="sidebarCollapsed && !isMobile" :playlists="playlists"
             :active-playlist-id="selectedPlaylist?._id || ''" @toggle-collapse="toggleSidebarCollapse"
@@ -46,7 +47,7 @@
         </router-view>
       </main>
 
-      <aside v-if="!isMinimalPage" class="user-shell__right">
+      <aside v-if="!isMinimalPage" class="user-shell__right" aria-label="Playback panel">
         <div class="user-shell__right-scroll">
           <RightPanel :queue="playerStore.queue" :current-music="playerStore.currentTrack"
             :recommendations="recommendations" :artist-view="selectedArtistView" :default-tab="rightPanelTab"
@@ -173,6 +174,11 @@ const pageProps = computed(() => ({
 
 const normalizeWord = (value) => String(value || '').trim().toLowerCase()
 
+const syncBodyLock = () => {
+  if (typeof document === 'undefined') return
+  document.body.style.overflow = mobileSidebarOpen.value && isMobile.value ? 'hidden' : ''
+}
+
 const filteredTracks = computed(() => {
   let arr = [...tracks.value]
 
@@ -222,14 +228,21 @@ const recommendations = computed(() => {
         score += Math.min(Number(t.likeCount || 0), 300) / 18
       } else {
         if (normalizeWord(t.artist) === normalizeWord(current.artist)) score += 44
+
+        const currentGenres = (current.genre || []).map(normalizeWord)
+        const currentMoods = (current.mood || []).map(normalizeWord)
+
         const sharedGenre = (t.genre || []).filter((g) =>
-          (current.genre || []).map(normalizeWord).includes(normalizeWord(g))
+          currentGenres.includes(normalizeWord(g))
         ).length
+
         const sharedMood = (t.mood || []).filter((m) =>
-          (current.mood || []).map(normalizeWord).includes(normalizeWord(m))
+          currentMoods.includes(normalizeWord(m))
         ).length
+
         score += sharedGenre * 18
         score += sharedMood * 12
+        score += Math.min(Number(t.playCount || 0), 600) / 36
       }
 
       return { ...t, __score: score }
@@ -266,15 +279,37 @@ const visibleSections = computed(() => {
     )
     .slice(0, 12)
 
-  const byMood = source.filter((t) =>
-    (t.mood || []).map(normalizeWord).some((m) => ['chill', 'relax', 'soft', 'night'].includes(m))
-  ).slice(0, 12)
+  const byMood = source
+    .filter((t) =>
+      (t.mood || []).map(normalizeWord).some((m) => ['chill', 'relax', 'soft', 'night'].includes(m))
+    )
+    .slice(0, 12)
 
   return [
-    { key: 'recommended', title: 'Recommended for you', subtitle: 'Picked around your listening pattern', tracks: recommendations.value.slice(0, 8) },
-    { key: 'latest', title: 'Latest drops', subtitle: 'Fresh additions in your library', tracks: latest },
-    { key: 'trending', title: 'Trending now', subtitle: 'Most replayed right now', tracks: trending },
-    { key: 'mood', title: 'Late night picks', subtitle: 'Cleaner, softer atmosphere', tracks: byMood },
+    {
+      key: 'recommended',
+      title: 'Recommended for you',
+      subtitle: 'Picked around your listening pattern',
+      tracks: recommendations.value.slice(0, 8),
+    },
+    {
+      key: 'latest',
+      title: 'Latest drops',
+      subtitle: 'Fresh additions in your library',
+      tracks: latest,
+    },
+    {
+      key: 'trending',
+      title: 'Trending now',
+      subtitle: 'Most replayed right now',
+      tracks: trending,
+    },
+    {
+      key: 'mood',
+      title: 'Late night picks',
+      subtitle: 'Cleaner, softer atmosphere',
+      tracks: byMood,
+    },
   ].filter((section) => section.tracks.length)
 })
 
@@ -288,7 +323,7 @@ const offerSections = computed(() => {
       kicker: 'Spotlight',
       title: 'Top picks',
       text: 'The strongest premium picks with the highest replay value.',
-      tracks: source
+      tracks: [...source]
         .sort((a, b) => Number(b.playCount || 0) - Number(a.playCount || 0))
         .slice(0, 4),
     },
@@ -354,6 +389,7 @@ const handleResize = () => {
 }
 
 const toggleMobileSidebar = () => {
+  if (isMinimalPage.value) return
   mobileSidebarOpen.value = !mobileSidebarOpen.value
 }
 
@@ -418,11 +454,16 @@ const toggleTrack = (track) => {
 
 const toggleLikeTrack = async (track) => {
   if (!track?._id) return
+
   try {
     const { data } = await api.patch(`/music/${track._id}/like`)
     const next = buildMusic(data)
+
     tracks.value = tracks.value.map((t) => (String(t._id) === String(next._id) ? next : t))
-    recentlyPlayed.value = recentlyPlayed.value.map((t) => (String(t._id) === String(next._id) ? next : t))
+    recentlyPlayed.value = recentlyPlayed.value.map((t) =>
+      String(t._id) === String(next._id) ? next : t
+    )
+
     if (selectedDetailTrack.value?._id === next._id) selectedDetailTrack.value = next
 
     if (playerStore.currentTrack?._id === next._id) {
@@ -458,10 +499,12 @@ const openCreateFromAdd = () => {
 
 const addTrackToPlaylist = async (playlist) => {
   if (!selectedTrack.value?._id || !playlist?._id) return
+
   try {
     const { data } = await api.post(`/playlists/${playlist._id}/tracks`, {
       musicId: selectedTrack.value._id,
     })
+
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     showAddToPlaylist.value = false
@@ -492,6 +535,7 @@ const closePlaylistModal = () => {
 const createPlaylist = async () => {
   if (!playlistForm.name.trim()) return
   playlistLoading.value = true
+
   try {
     const { data } = await api.post('/playlists', {
       name: playlistForm.name.trim(),
@@ -508,12 +552,14 @@ const createPlaylist = async () => {
 const updatePlaylist = async () => {
   if (!editingPlaylistId.value || !playlistForm.name.trim()) return
   playlistLoading.value = true
+
   try {
     const { data } = await api.patch(`/playlists/${editingPlaylistId.value}`, {
       name: playlistForm.name.trim(),
       description: playlistForm.description.trim(),
       color: playlistForm.color,
     })
+
     playlists.value = playlists.value.map((pl) => (pl._id === data._id ? data : pl))
     if (selectedPlaylist.value?._id === data._id) selectedPlaylist.value = data
     closePlaylistModal()
@@ -540,10 +586,15 @@ const closeDeletePlaylist = () => {
 const confirmDeletePlaylist = async () => {
   if (!playlistToDelete.value?._id) return
   deleteLoading.value = true
+
   try {
     await api.delete(`/playlists/${playlistToDelete.value._id}`)
     playlists.value = playlists.value.filter((pl) => pl._id !== playlistToDelete.value._id)
-    if (selectedPlaylist.value?._id === playlistToDelete.value._id) selectedPlaylist.value = null
+
+    if (selectedPlaylist.value?._id === playlistToDelete.value._id) {
+      selectedPlaylist.value = null
+    }
+
     closeDeletePlaylist()
   } finally {
     deleteLoading.value = false
@@ -581,20 +632,28 @@ const toggleLyricsMain = () => {
   lyricsPanelOpen.value = !lyricsPanelOpen.value
 }
 
-watch(() => route.fullPath, () => {
-  mobileSidebarOpen.value = false
-  lyricsPanelOpen.value = false
-})
+watch(
+  () => route.fullPath,
+  () => {
+    mobileSidebarOpen.value = false
+    lyricsPanelOpen.value = false
+  }
+)
+
+watch([mobileSidebarOpen, isMobile], syncBodyLock)
 
 onMounted(async () => {
   await fetchTracks()
   await fetchPlaylists()
   loadRecentlyPlayed()
   handleResize()
+  syncBodyLock()
   window.addEventListener('resize', handleResize, { passive: true })
 })
 
 onBeforeUnmount(() => {
+  syncBodyLock()
+  document.body.style.overflow = ''
   window.removeEventListener('resize', handleResize)
 })
 </script>

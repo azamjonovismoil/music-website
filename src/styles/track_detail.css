@@ -15,8 +15,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top right, rgba(91, 140, 255, 0.12), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.08), transparent 24%);
+    radial-gradient(circle at top right, rgba(91, 140, 255, 0.14), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.09), transparent 24%);
   pointer-events: none;
 }
 
@@ -24,14 +24,14 @@
   position: relative;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
-  gap: 24px;
+  gap: 28px;
   align-items: center;
 }
 
 .td-cover-col {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .td-cover-shell {
@@ -54,7 +54,7 @@
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
@@ -79,7 +79,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .td-overline {
@@ -99,7 +99,7 @@
 }
 
 .td-artist-row {
-  margin-top: 10px;
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -111,6 +111,11 @@
   color: var(--text-primary);
   font-size: 16px;
   font-weight: 800;
+  transition: color var(--t-fast);
+}
+
+.td-artist:hover {
+  color: var(--accent);
 }
 
 .td-sep {
@@ -134,7 +139,7 @@
   padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
@@ -156,6 +161,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition:
+    transform var(--t-fast),
+    border-color var(--t-fast),
+    background var(--t-fast),
+    box-shadow var(--t-fast),
+    color var(--t-fast);
+}
+
+.td-play-main:hover,
+.td-icon-btn:hover,
+.td-list__play:hover,
+.td-artist-link:hover {
+  transform: translateY(-1px);
 }
 
 .td-play-main {
@@ -168,8 +186,13 @@
 .td-icon-btn {
   width: 50px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-secondary);
+}
+
+.td-icon-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--text-primary);
 }
 
 .td-btn-ico {
@@ -195,7 +218,7 @@
   padding: 16px;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -266,7 +289,7 @@
   padding: 0 14px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-primary);
   font-size: 12px;
   font-weight: 800;
@@ -290,7 +313,7 @@
 }
 
 .td-list__row {
-  min-height: 70px;
+  min-height: 72px;
   padding: 10px 12px;
   border-radius: 18px;
   border: 1px solid transparent;
@@ -302,13 +325,15 @@
   transition:
     transform var(--t-fast),
     background var(--t-fast),
-    border-color var(--t-fast);
+    border-color var(--t-fast),
+    box-shadow var(--t-fast);
 }
 
 .td-list__row:hover {
   transform: translateY(-1px);
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   border-color: var(--border);
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.08);
 }
 
 .td-list__index {
@@ -360,10 +385,11 @@
   width: 34px;
   height: 34px;
   border-radius: 999px;
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
   color: var(--text-primary);
   display: grid;
   place-items: center;
+  border: 1px solid var(--border);
 }
 
 .td-list__play-ico {
@@ -402,6 +428,11 @@
 
   .td-title {
     font-size: 30px;
+  }
+
+  .td-artist-card__head {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .td-stats {

@@ -1,12 +1,13 @@
 <template>
-  <section v-if="track" class="td">
+  <section v-if="track" class="td" aria-label="Track details">
     <div class="td-hero surface-card">
       <div class="td-hero__bg"></div>
 
       <div class="td-hero__content">
         <div class="td-cover-col">
           <div class="td-cover-shell">
-            <img :src="getCover(track)" class="td-cover" :alt="track.title || 'Track cover'" @error="imgErr" />
+            <img :src="getCover(track)" class="td-cover" :alt="track.title || 'Track cover'" loading="eager"
+              decoding="async" @error="imgErr" />
           </div>
 
           <div v-if="currentTrack?._id === track._id" class="td-now" :class="{ active: isPlaying }">
@@ -21,7 +22,8 @@
             <h1 class="td-title">{{ track.title || 'Untitled track' }}</h1>
 
             <div class="td-artist-row">
-              <button class="td-artist" type="button" @click="$emit('open-artist', track.artist)">
+              <button class="td-artist" type="button" :aria-label="`Open ${track.artist || 'artist'} details`"
+                @click="$emit('open-artist', track.artist)">
                 {{ track.artist || 'Unknown artist' }}
               </button>
 
@@ -42,21 +44,25 @@
           </div>
 
           <div class="td-actions">
-            <button class="td-play-main" type="button" @click="$emit('play', track)">
+            <button class="td-play-main" type="button"
+              :aria-label="currentTrack?._id === track._id && isPlaying ? 'Pause track' : 'Play track'"
+              @click="$emit('play', track)">
               <PauseIcon v-if="currentTrack?._id === track._id && isPlaying" class="td-btn-ico" />
               <PlayIcon v-else class="td-btn-ico td-btn-ico--shift" />
             </button>
 
-            <button class="td-icon-btn" type="button" @click="$emit('toggle-like', track)">
+            <button class="td-icon-btn" type="button" :aria-label="track.liked ? 'Remove like' : 'Like track'"
+              @click="$emit('toggle-like', track)">
               <HeartSolidIcon v-if="track.liked" class="td-btn-ico td-btn-ico--liked" />
               <HeartIcon v-else class="td-btn-ico" />
             </button>
 
-            <button class="td-icon-btn" type="button" @click="$emit('add-to-queue', track)">
+            <button class="td-icon-btn" type="button" aria-label="Add to queue" @click="$emit('add-to-queue', track)">
               <QueueListIcon class="td-btn-ico" />
             </button>
 
-            <button class="td-icon-btn" type="button" @click="$emit('add-to-playlist', track)">
+            <button class="td-icon-btn" type="button" aria-label="Add to playlist"
+              @click="$emit('add-to-playlist', track)">
               <PlusIcon class="td-btn-ico" />
             </button>
           </div>
@@ -76,7 +82,9 @@
         <div class="td-about surface-card">
           <p class="td-about__label">About this track</p>
           <p class="td-bio">
-            {{ track.bio || 'A cleaner detail section focused on track context, artist identity, and what to play next.'
+            {{
+              track.bio ||
+              'A cleaner detail section focused on track context, artist identity, and what to play next.'
             }}
           </p>
         </div>
@@ -107,11 +115,13 @@
           </div>
 
           <div class="td-list__table">
-            <article v-for="(item, index) in recommendations" :key="item._id" class="td-list__row"
-              @click="$emit('select-track', item)">
+            <article v-for="(item, index) in recommendations" :key="item._id" class="td-list__row" tabindex="0"
+              role="button" @click="$emit('select-track', item)" @keydown.enter="$emit('select-track', item)"
+              @keydown.space.prevent="$emit('select-track', item)">
               <span class="td-list__index">{{ index + 1 }}</span>
 
-              <img :src="getCover(item)" class="td-list__cover" :alt="item.title || 'Track cover'" @error="imgErr" />
+              <img :src="getCover(item)" class="td-list__cover" :alt="item.title || 'Track cover'" loading="lazy"
+                decoding="async" @error="imgErr" />
 
               <div class="td-list__copy">
                 <strong>{{ item.title || 'Untitled' }}</strong>
@@ -120,7 +130,8 @@
 
               <span class="td-list__duration">{{ fmtDur(item.duration) }}</span>
 
-              <button class="td-list__play" type="button" @click.stop="$emit('play', item)">
+              <button class="td-list__play" type="button" :aria-label="`Play ${item.title || 'track'}`"
+                @click.stop="$emit('play', item)">
                 <PlayIcon class="td-list__play-ico td-btn-ico--shift" />
               </button>
             </article>
@@ -172,7 +183,8 @@ const heroTags = computed(() => {
     ...(Array.isArray(props.track?.genre) ? props.track.genre : []),
     ...(Array.isArray(props.track?.mood) ? props.track.mood : []),
   ]
-  return raw.slice(0, 5)
+
+  return [...new Set(raw.filter(Boolean))].slice(0, 5)
 })
 
 const metaItems = computed(() => {

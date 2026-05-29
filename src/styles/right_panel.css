@@ -10,6 +10,21 @@
   position: relative;
   z-index: 80;
   isolation: isolate;
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.rp::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 180px;
+  background:
+    radial-gradient(circle at top right, rgba(91, 140, 255, 0.14), transparent 42%),
+    radial-gradient(circle at top left, rgba(139, 92, 246, 0.1), transparent 34%);
+  pointer-events: none;
 }
 
 .rp-top {
@@ -23,8 +38,14 @@
     color-mix(in srgb, var(--sidebar-bg) 97%, transparent)
   );
   border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.rp-top__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .rp-tabs {
@@ -32,12 +53,13 @@
   gap: 8px;
   align-items: center;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .rp-tab {
-  min-height: 38px;
+  min-height: 40px;
   padding: 0 12px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
@@ -47,10 +69,16 @@
   font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
+  transition:
+    background var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast),
+    transform var(--t-fast);
 }
 
 .rp-tab:hover {
-  background: var(--surface-2);
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--surface-2) 98%, transparent);
   color: var(--text-primary);
 }
 
@@ -58,6 +86,7 @@
   background: color-mix(in srgb, var(--accent-soft) 88%, transparent);
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .rp-tab__icon,
@@ -65,6 +94,7 @@
 .rp-action-icon {
   width: 16px;
   height: 16px;
+  flex: 0 0 auto;
 }
 
 .rp-badge {
@@ -78,6 +108,13 @@
   font-weight: 800;
   background: linear-gradient(135deg, var(--accent), var(--accent-mid));
   color: #fff;
+}
+
+.rp-caption {
+  color: var(--text-hint);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .rp-body {
@@ -95,8 +132,13 @@
 
 .rp-headline {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.rp-headline--compact {
+  margin-bottom: 12px;
 }
 
 .rp-headline h3 {
@@ -104,13 +146,28 @@
   font-size: 14px;
   font-weight: 900;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.rp-headline__sub {
+  margin-top: 4px;
+  color: var(--text-hint);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .rp-now,
 .rp-empty,
 .rp-artist {
   padding: 16px;
-  border-radius: 20px;
+  border-radius: 22px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--surface-1) 98%, transparent),
+    color-mix(in srgb, var(--surface-2) 98%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  box-shadow: var(--shadow-xs);
 }
 
 .rp-now__row {
@@ -131,6 +188,7 @@
   border-radius: 16px;
   object-fit: cover;
   display: block;
+  background: var(--bg-elevated);
 }
 
 .rp-now__meta,
@@ -177,9 +235,11 @@
 .rp-now__eq span:nth-child(1) {
   height: 6px;
 }
+
 .rp-now__eq span:nth-child(2) {
   height: 12px;
 }
+
 .rp-now__eq span:nth-child(3) {
   height: 8px;
 }
@@ -208,8 +268,20 @@
   align-items: center;
   padding: 12px;
   border-radius: 18px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  transition:
+    transform var(--t-fast),
+    background var(--t-fast),
+    border-color var(--t-fast),
+    box-shadow var(--t-fast);
+}
+
+.rp-item:hover {
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--surface-3) 92%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.08);
 }
 
 .rp-item__index {
@@ -221,19 +293,26 @@
 
 .rp-icon-btn,
 .rp-clear {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 12px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
   display: grid;
   place-items: center;
+  transition:
+    transform var(--t-fast),
+    background var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast);
 }
 
 .rp-icon-btn:hover,
 .rp-clear:hover {
-  background: var(--surface-1);
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--surface-1) 98%, transparent);
+  border-color: color-mix(in srgb, var(--border) 88%, transparent);
   color: var(--text-primary);
 }
 
@@ -243,22 +322,29 @@
 }
 
 .rp-empty {
-  min-height: 160px;
+  min-height: 180px;
   display: grid;
   place-items: center;
   text-align: center;
+  gap: 8px;
 }
 
 .rp-empty__icon {
   width: 24px;
   height: 24px;
   color: var(--text-hint);
-  margin-bottom: 10px;
 }
 
 .rp-empty p {
   margin: 0;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.rp-empty span {
   color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .rp-artist {
@@ -274,8 +360,8 @@
 .rp-artist__main-cover,
 .rp-artist__main-fallback {
   width: 100%;
-  aspect-ratio: 1.28 / 1;
-  border-radius: 20px;
+  aspect-ratio: 1.18 / 1;
+  border-radius: 22px;
   object-fit: cover;
   display: grid;
   place-items: center;
@@ -338,6 +424,7 @@
   color: var(--accent);
   font-size: 11px;
   font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .rp-artist__stats {
@@ -349,8 +436,8 @@
 .rp-artist__stat {
   padding: 12px;
   border-radius: 14px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-2) 98%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
 }
 
 .rp-artist__stat strong {
@@ -367,8 +454,41 @@
   color: var(--text-muted);
 }
 
+@media (max-width: 1180px) {
+  .rp-top,
+  .rp-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .rp-item {
+    grid-template-columns: 20px 52px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .rp-now__cover,
+  .rp-item__cover {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+  }
+}
+
 @media (max-width: 980px) {
   .rp {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-tab,
+  .rp-item,
+  .rp-icon-btn,
+  .rp-clear {
+    transition: none;
+  }
+
+  .rp-now__eq span {
+    animation: none;
   }
 }
