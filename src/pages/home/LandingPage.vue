@@ -141,7 +141,7 @@ import {
 } from '@heroicons/vue/24/outline'
 
 import HeaderPage from '@/components/layout/HeaderPage.vue'
-import AuthRequiredModal from '@/src/modals/AuthRequiredModal.vue'
+import AuthRequiredModal from '@/modals/AuthRequiredModal.vue'
 import { API_ROOT, fallbackCover, resolveCover } from '@/utils/media'
 import '@/styles/landing_page.css'
 
