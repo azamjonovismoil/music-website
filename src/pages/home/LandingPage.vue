@@ -2,171 +2,111 @@
   <div class="landing">
     <HeaderPage :show-search="false" :search-items="previewTracks" page-type="user" />
 
-    <section class="lp-hero">
-      <div class="lp-hero__bg">
-        <div class="lp-orb lp-orb--1"></div>
-        <div class="lp-orb lp-orb--2"></div>
-        <div class="lp-orb lp-orb--3"></div>
-      </div>
-
-      <div class="lp-shell lp-hero__inner">
-        <div class="lp-hero__copy">
-          <div class="lp-badge">
-            <SparklesIcon class="lp-badge__icon" />
-            <span>Streaming · Playlists · Discovery</span>
-          </div>
-
-          <h1 class="lp-title">
-            Premium listening
-            <span>built like a real product</span>
-          </h1>
-
-          <p class="lp-subtitle">
-            Explore curated sections, continue listening across devices, and manage playlists in a clean,
-            portfolio-level experience.
+    <section class="landing-hero">
+      <div class="container">
+        <div class="hero-content">
+          <p class="hero-badge">Streaming · Playlists · Discovery</p>
+          <h1>Exclusive music experience</h1>
+          <p class="hero-text">
+            Discover tracks, explore sections, and preview the app before signing in.
           </p>
 
-          <div class="lp-actions">
-            <router-link to="/register" class="btn btn-primary lp-btn-lg">
-              <PlayIcon class="lp-btn__icon" />
-              <span>Start listening</span>
+          <div class="hero-actions">
+            <router-link to="/register" class="btn btn-primary">
+              Create account
             </router-link>
-
-            <router-link to="/login" class="btn btn-ghost lp-btn-lg">
-              <ArrowRightOnRectangleIcon class="lp-btn__icon" />
-              <span>Login</span>
+            <router-link to="/login" class="btn btn-ghost">
+              Login
             </router-link>
-          </div>
-
-          <div class="lp-stats">
-            <div class="lp-stat">
-              <strong>{{ previewTracks.length || 8 }}+</strong>
-              <span>Featured previews</span>
-            </div>
-            <div class="lp-stat">
-              <strong>4</strong>
-              <span>Language lanes</span>
-            </div>
-            <div class="lp-stat">
-              <strong>Smart</strong>
-              <span>Recommendations</span>
-            </div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="lp-showcase surface-card">
-          <div class="lp-showcase__hero">
-            <div class="lp-showcase__cover-wrap">
-              <img v-if="heroTrack" :src="resolveCoverLanding(heroTrack)" :alt="heroTrack.title || 'Track cover'"
-                class="lp-showcase__cover" @error="imgErr" />
-              <div v-else class="lp-showcase__cover-fallback">
-                <MusicalNoteIcon class="lp-showcase__cover-icon" />
-              </div>
-            </div>
+    <section class="landing-section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Preview tracks</h2>
+          <p>Simple cards. Play requires authentication.</p>
+        </div>
 
-            <div class="lp-showcase__body">
-              <p class="section-kicker">Featured preview</p>
-              <h3>{{ heroTrack?.title || 'Discover tracks' }}</h3>
-              <span>{{ heroTrack?.artist || 'Curated for modern listening' }}</span>
+        <div v-if="tracksLoading" class="tracks-grid">
+          <div v-for="n in 8" :key="n" class="track-card track-card--skeleton"></div>
+        </div>
 
-              <div class="lp-showcase__chips">
-                <span class="lp-chip">Clean design</span>
-                <span class="lp-chip">Section based</span>
-                <span class="lp-chip">Responsive</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="lp-mini-list">
-            <button v-for="item in previewTracks.slice(0, 4)" :key="item._id" type="button" class="lp-mini-item"
-              @click="requireAuth()">
-              <img :src="resolveCoverLanding(item)" :alt="item.title || 'Track cover'" class="lp-mini-item__cover"
+        <div v-else-if="previewTracks.length" class="tracks-grid">
+          <article v-for="track in previewTracks" :key="track._id" class="track-card">
+            <div class="track-cover-wrap" @click="requireAuth">
+              <img :src="resolveCoverLanding(track)" :alt="track.title || 'Track cover'" class="track-cover"
                 @error="imgErr" />
-              <div class="lp-mini-item__body">
-                <strong>{{ item.title || 'Untitled' }}</strong>
-                <span>{{ item.artist || 'Unknown artist' }}</span>
-              </div>
-              <div class="lp-mini-item__play">
-                <PlayIcon class="lp-mini-item__play-ico" />
-              </div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="lp-sections">
-      <div class="lp-shell">
-        <div class="lp-sections__head">
-          <div>
-            <p class="section-kicker">Explore sections</p>
-            <h2>Browse music like a real streaming app</h2>
-            <p>Preview the structure before signing in. Protected actions ask for authentication.</p>
-          </div>
-        </div>
-
-        <div class="lp-rail-stack">
-          <TrackGrid title="Trending now" subtitle="Popular picks from the preview library" :tracks="trendingTracks"
-            :get-cover="resolveCoverLanding" :fallback="fallbackCover" compact-header @select-track="requireAuth"
-            @play-track="requireAuth" @add-to-playlist="requireAuth" @add-to-queue="requireAuth" />
-
-          <TrackGrid title="Uzbek picks" subtitle="Curated Uzbek preview selection" :tracks="uzbekTracks"
-            :get-cover="resolveCoverLanding" :fallback="fallbackCover" compact-header @select-track="requireAuth"
-            @play-track="requireAuth" @add-to-playlist="requireAuth" @add-to-queue="requireAuth" />
-
-          <TrackGrid title="English picks" subtitle="A clean English-language lane" :tracks="englishTracks"
-            :get-cover="resolveCoverLanding" :fallback="fallbackCover" compact-header @select-track="requireAuth"
-            @play-track="requireAuth" @add-to-playlist="requireAuth" @add-to-queue="requireAuth" />
-        </div>
-      </div>
-    </section>
-
-    <section class="lp-features">
-      <div class="lp-shell">
-        <div class="lp-features__head">
-          <p class="section-kicker">Why it feels real</p>
-          <h2>Everything is designed like a production-ready music product</h2>
-        </div>
-
-        <div class="lp-feature-grid">
-          <article v-for="feature in features" :key="feature.title" class="lp-feature-card surface-card">
-            <div class="lp-feature-card__icon">
-              <component :is="feature.icon" class="lp-feature-card__icon-svg" />
+              <button class="track-play-btn" type="button" @click.stop="requireAuth">
+                <PlayIcon class="track-play-icon" />
+              </button>
             </div>
-            <h3>{{ feature.title }}</h3>
-            <p>{{ feature.desc }}</p>
+
+            <div class="track-body">
+              <h3>{{ track.title || 'Untitled' }}</h3>
+              <p>{{ track.artist || 'Unknown artist' }}</p>
+
+              <div class="track-meta">
+                <span>{{ track.language || 'Music' }}</span>
+              </div>
+
+              <div class="track-actions">
+                <button class="btn btn-primary btn-sm" type="button" @click="requireAuth">
+                  Play
+                </button>
+                <button class="btn btn-ghost btn-sm" type="button" @click="requireAuth">
+                  Add playlist
+                </button>
+              </div>
+            </div>
           </article>
         </div>
+
+        <div v-else class="empty-state">
+          <p>No preview tracks found.</p>
+        </div>
       </div>
     </section>
 
-    <section class="lp-cta">
-      <div class="lp-shell">
-        <div class="lp-cta__box">
-          <div class="lp-cta__content">
-            <p class="section-kicker">Start now</p>
-            <h2>Your library, playlists, queue and discovery in one flow</h2>
-            <p>Create an account and unlock the full listening experience.</p>
+    <section class="landing-section landing-section--alt">
+      <div class="container">
+        <div class="section-head">
+          <h2>Why this feels real</h2>
+        </div>
 
-            <div class="lp-actions">
-              <router-link to="/register" class="btn btn-primary lp-btn-lg">
-                <UserPlusIcon class="lp-btn__icon" />
-                <span>Create account</span>
-              </router-link>
-
-              <router-link to="/login" class="btn btn-ghost lp-btn-lg">
-                <ArrowRightOnRectangleIcon class="lp-btn__icon" />
-                <span>Login</span>
-              </router-link>
-            </div>
+        <div class="feature-grid">
+          <div v-for="feature in features" :key="feature.title" class="feature-card">
+            <component :is="feature.icon" class="feature-icon" />
+            <h3>{{ feature.title }}</h3>
+            <p>{{ feature.desc }}</p>
           </div>
         </div>
       </div>
     </section>
 
-    <footer class="lp-footer">
-      <div class="lp-shell lp-footer__inner">
-        <div class="lp-footer__brand">
+    <section class="landing-cta">
+      <div class="container">
+        <div class="cta-box">
+          <h2>Unlock full listening</h2>
+          <p>Sign up or log in to play music, create playlists and manage your library.</p>
+
+          <div class="hero-actions">
+            <router-link to="/register" class="btn btn-primary">
+              Sign up
+            </router-link>
+            <router-link to="/login" class="btn btn-ghost">
+              Log in
+            </router-link>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="landing-footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
           <span class="brand-logo-wrap">
             <img v-if="!logoErr" src="@/assets/header_icon.png" alt="Exclusive" class="brand-logo"
               @error="logoErr = true" />
@@ -174,7 +114,7 @@
           </span>
 
           <div>
-            <strong>Exclusive.</strong>
+            <strong>Exclusive</strong>
             <span>Premium listening</span>
           </div>
         </div>
@@ -183,8 +123,7 @@
       </div>
     </footer>
 
-    <AuthRequiredModal :open="showAuthModal" @close="showAuthModal = false" @login="router.push('/login')"
-      @signup="router.push('/register')" />
+    <AuthRequiredModal :open="showAuthModal" @close="showAuthModal = false" @login="goLogin" @signup="goRegister" />
   </div>
 </template>
 
@@ -194,18 +133,15 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 import {
   MusicalNoteIcon,
-  SparklesIcon,
   PlayIcon,
-  ArrowRightOnRectangleIcon,
-  UserPlusIcon,
   QueueListIcon,
   SpeakerWaveIcon,
   HeartIcon,
   ArrowsRightLeftIcon,
 } from '@heroicons/vue/24/outline'
+
 import HeaderPage from '@/components/layout/HeaderPage.vue'
-import TrackGrid from '@/components/users/TrackGrid.vue'
-import AuthRequiredModal from '@/modals/AuthRequiredModal.vue'
+import AuthRequiredModal from '@/src/modals/AuthRequiredModal.vue'
 import { API_ROOT, fallbackCover, resolveCover } from '@/utils/media'
 import '@/styles/landing_page.css'
 
@@ -226,32 +162,52 @@ const requireAuth = () => {
   showAuthModal.value = true
 }
 
-const heroTrack = computed(() => previewTracks.value[0] || null)
+const goLogin = () => {
+  showAuthModal.value = false
+  router.push('/login')
+}
 
-const trendingTracks = computed(() => [...previewTracks.value].slice(0, 6))
-const uzbekTracks = computed(() =>
-  previewTracks.value.filter((t) => ['uzbek', 'uz', 'o\'zbek', 'ozbek'].includes(String(t.language || '').toLowerCase())).slice(0, 6)
-)
-const englishTracks = computed(() =>
-  previewTracks.value.filter((t) => ['english', 'en'].includes(String(t.language || '').toLowerCase())).slice(0, 6)
-)
+const goRegister = () => {
+  showAuthModal.value = false
+  router.push('/register')
+}
 
 const currentYear = computed(() => new Date().getFullYear())
 
 const features = [
-  { icon: SpeakerWaveIcon, title: 'Premium playback flow', desc: 'Designed around queue, focus, section discovery, and real listening behavior.' },
-  { icon: QueueListIcon, title: 'Section-based home', desc: 'Tracks are grouped by language, mood, and context instead of one long cluttered list.' },
-  { icon: HeartIcon, title: 'Real product interactions', desc: 'Protected actions, playlist flows, and account-aware states feel production-ready.' },
-  { icon: ArrowsRightLeftIcon, title: 'Responsive everywhere', desc: 'Desktop, tablet, and mobile layouts are purpose-built instead of merely shrinking.' },
+  {
+    icon: SpeakerWaveIcon,
+    title: 'Clean playback flow',
+    desc: 'Playback actions are simple and familiar.',
+  },
+  {
+    icon: QueueListIcon,
+    title: 'Playlist ready',
+    desc: 'Tracks are structured for real app behavior.',
+  },
+  {
+    icon: HeartIcon,
+    title: 'Protected actions',
+    desc: 'Guests can preview, but playing requires auth.',
+  },
+  {
+    icon: ArrowsRightLeftIcon,
+    title: 'Responsive layout',
+    desc: 'Works well across desktop and mobile screens.',
+  },
 ]
 
 onMounted(async () => {
   try {
     tracksLoading.value = true
-    const { data } = await axios.get(`${API_ROOT}/api/music/public`, { withCredentials: false })
+    const { data } = await axios.get(`${API_ROOT}/api/music/public`, {
+      withCredentials: false,
+    })
+
     previewTracks.value = Array.isArray(data) ? data.slice(0, 12) : []
-  } catch {
+  } catch (error) {
     previewTracks.value = []
+    console.error('Public tracks fetch failed:', error)
   } finally {
     tracksLoading.value = false
   }
