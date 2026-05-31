@@ -1,7 +1,7 @@
 <template>
   <section class="user-home">
     <section v-if="!selectedDetailTrack && recentlyPlayed.length" class="recent-section surface-card">
-      <div class="section-head">
+      <div class="section-head section-head--tight">
         <div>
           <p class="section-kicker">Quick access</p>
           <h2 class="section-title">Recently played</h2>
@@ -23,7 +23,7 @@
           <div class="recent-card__actions">
             <button class="recent-card__icon" type="button" @click.stop="$emit('add-to-queue', track)"
               aria-label="Add to queue">
-              +
+              <PlusIcon class="recent-card__tiny-icon" />
             </button>
 
             <button class="recent-card__play" type="button" @click.stop="$emit('toggle-track', track)"
@@ -75,7 +75,8 @@
 
     <div v-if="selectedDetailTrack" class="detail-actions-row">
       <button class="detail-secondary-btn" type="button" @click="$emit('close-track-detail')">
-        Back to browse
+        <ArrowLeftIcon class="detail-secondary-btn__icon" />
+        <span>Back to browse</span>
       </button>
     </div>
 
@@ -112,9 +113,15 @@
               </div>
 
               <div class="music-card__footer">
-                <button class="music-card__mini" type="button" @click.stop="$emit('add-to-queue', track)">Queue</button>
-                <button class="music-card__mini" type="button" @click.stop="$emit('open-add-to-playlist', track)">+
-                  Playlist</button>
+                <button class="music-card__mini" type="button" @click.stop="$emit('add-to-queue', track)">
+                  <QueueListIcon class="music-card__mini-icon" />
+                  <span>Queue</span>
+                </button>
+
+                <button class="music-card__mini" type="button" @click.stop="$emit('open-add-to-playlist', track)">
+                  <PlusIcon class="music-card__mini-icon" />
+                  <span>Playlist</span>
+                </button>
               </div>
             </article>
           </div>
@@ -142,7 +149,7 @@
 <script setup>
 defineOptions({ name: 'UserPage' })
 
-import { PlayIcon, PauseIcon } from '@heroicons/vue/24/outline'
+import { PlayIcon, PauseIcon, PlusIcon, QueueListIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
 import TrackDetail from '@/components/users/TrackDetail.vue'
 
 const props = defineProps({

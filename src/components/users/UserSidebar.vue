@@ -26,7 +26,7 @@
       </button>
     </div>
 
-    <div class="us-shortcuts">
+    <div class="us-shortcuts" :class="{ 'us-shortcuts--collapsed': collapsed }">
       <button class="us-shortcut" type="button" @click="goToFavourites">
         <div class="us-shortcut__icon us-shortcut__icon--liked">
           <HeartIcon class="us-shortcut__icon-svg" />

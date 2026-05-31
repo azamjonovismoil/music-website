@@ -26,25 +26,28 @@
       </aside>
 
       <main class="user-main" :class="{ 'user-main--standalone': isMinimalPage }">
-        <LyricsPanel v-if="lyricsPanelOpen" />
+        <div class="user-main__inner">
+          <LyricsPanel v-if="lyricsPanelOpen" />
 
-        <router-view v-else v-slot="{ Component, route: currentRoute }">
-          <KeepAlive :include="keepAliveIncludes">
-            <component v-if="Component && currentRoute.meta?.keepAlive" :is="Component"
-              :key="`${String(currentRoute.name || currentRoute.path)}:keep`" v-bind="pageProps"
+          <router-view v-else v-slot="{ Component, route: currentRoute }">
+            <KeepAlive :include="keepAliveIncludes">
+              <component v-if="Component && currentRoute.meta?.keepAlive" :is="Component"
+                :key="`${String(currentRoute.name || currentRoute.path)}:keep`" v-bind="pageProps"
+                @toggle-track="toggleTrack" @toggle-like-track="toggleLikeTrack"
+                @open-add-to-playlist="openAddToPlaylist" @add-to-queue="addToQueue" @open-artist="openArtist"
+                @clear-artist-view="clearArtistView" @open-track-detail="openTrackDetail"
+                @close-track-detail="closeTrackDetail" @fetch-tracks="forceFetchTracks"
+                @clear-selected-playlist="selectedPlaylist = null" />
+            </KeepAlive>
+
+            <component v-if="Component && !currentRoute.meta?.keepAlive" :is="Component"
+              :key="`${String(currentRoute.name || currentRoute.path)}:plain`" v-bind="pageProps"
               @toggle-track="toggleTrack" @toggle-like-track="toggleLikeTrack" @open-add-to-playlist="openAddToPlaylist"
               @add-to-queue="addToQueue" @open-artist="openArtist" @clear-artist-view="clearArtistView"
               @open-track-detail="openTrackDetail" @close-track-detail="closeTrackDetail"
               @fetch-tracks="forceFetchTracks" @clear-selected-playlist="selectedPlaylist = null" />
-          </KeepAlive>
-
-          <component v-if="Component && !currentRoute.meta?.keepAlive" :is="Component"
-            :key="`${String(currentRoute.name || currentRoute.path)}:plain`" v-bind="pageProps"
-            @toggle-track="toggleTrack" @toggle-like-track="toggleLikeTrack" @open-add-to-playlist="openAddToPlaylist"
-            @add-to-queue="addToQueue" @open-artist="openArtist" @clear-artist-view="clearArtistView"
-            @open-track-detail="openTrackDetail" @close-track-detail="closeTrackDetail" @fetch-tracks="forceFetchTracks"
-            @clear-selected-playlist="selectedPlaylist = null" />
-        </router-view>
+          </router-view>
+        </div>
       </main>
 
       <aside v-if="!isMinimalPage" class="user-shell__right" aria-label="Playback panel">
@@ -232,13 +235,8 @@ const recommendations = computed(() => {
         const currentGenres = (current.genre || []).map(normalizeWord)
         const currentMoods = (current.mood || []).map(normalizeWord)
 
-        const sharedGenre = (t.genre || []).filter((g) =>
-          currentGenres.includes(normalizeWord(g))
-        ).length
-
-        const sharedMood = (t.mood || []).filter((m) =>
-          currentMoods.includes(normalizeWord(m))
-        ).length
+        const sharedGenre = (t.genre || []).filter((g) => currentGenres.includes(normalizeWord(g))).length
+        const sharedMood = (t.mood || []).filter((m) => currentMoods.includes(normalizeWord(m))).length
 
         score += sharedGenre * 18
         score += sharedMood * 12
@@ -256,9 +254,7 @@ const detailRecommendations = computed(() => {
   if (!current) return []
 
   const artistTracks = filteredTracks.value.filter(
-    (t) =>
-      String(t._id) !== String(current._id) &&
-      normalizeWord(t.artist) === normalizeWord(current.artist)
+    (t) => String(t._id) !== String(current._id) && normalizeWord(t.artist) === normalizeWord(current.artist)
   )
 
   if (artistTracks.length) return artistTracks.slice(0, 8)
@@ -273,16 +269,13 @@ const visibleSections = computed(() => {
   const trending = [...source]
     .sort(
       (a, b) =>
-        Number(b.playCount || 0) +
-        Number(b.likeCount || 0) * 2 -
+        Number(b.playCount || 0) + Number(b.likeCount || 0) * 2 -
         (Number(a.playCount || 0) + Number(a.likeCount || 0) * 2)
     )
     .slice(0, 12)
 
   const byMood = source
-    .filter((t) =>
-      (t.mood || []).map(normalizeWord).some((m) => ['chill', 'relax', 'soft', 'night'].includes(m))
-    )
+    .filter((t) => (t.mood || []).map(normalizeWord).some((m) => ['chill', 'relax', 'soft', 'night'].includes(m)))
     .slice(0, 12)
 
   return [
@@ -323,9 +316,7 @@ const offerSections = computed(() => {
       kicker: 'Spotlight',
       title: 'Top picks',
       text: 'The strongest premium picks with the highest replay value.',
-      tracks: [...source]
-        .sort((a, b) => Number(b.playCount || 0) - Number(a.playCount || 0))
-        .slice(0, 4),
+      tracks: [...source].sort((a, b) => Number(b.playCount || 0) - Number(a.playCount || 0)).slice(0, 4),
     },
     {
       key: 'editorial',
@@ -460,9 +451,7 @@ const toggleLikeTrack = async (track) => {
     const next = buildMusic(data)
 
     tracks.value = tracks.value.map((t) => (String(t._id) === String(next._id) ? next : t))
-    recentlyPlayed.value = recentlyPlayed.value.map((t) =>
-      String(t._id) === String(next._id) ? next : t
-    )
+    recentlyPlayed.value = recentlyPlayed.value.map((t) => (String(t._id) === String(next._id) ? next : t))
 
     if (selectedDetailTrack.value?._id === next._id) selectedDetailTrack.value = next
 
@@ -605,9 +594,7 @@ const openArtist = (artist) => {
   const name = String(artist || '').trim()
   if (!name) return
 
-  const artistTracks = filteredTracks.value.filter(
-    (track) => normalizeWord(track.artist) === normalizeWord(name)
-  )
+  const artistTracks = filteredTracks.value.filter((track) => normalizeWord(track.artist) === normalizeWord(name))
 
   selectedArtistView.value = {
     name,

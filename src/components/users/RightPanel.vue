@@ -51,8 +51,10 @@
         <div class="rp-headline">
           <div>
             <h3>Up next</h3>
-            <p class="rp-headline__sub">{{ upNext.length ? `${upNext.length} queued track${upNext.length > 1 ? 's' :
-              ''}` : 'Nothing queued yet' }}</p>
+            <p class="rp-headline__sub">
+              {{ upNext.length ? `${upNext.length} queued track${upNext.length > 1 ? 's' : ''}` : 'Nothing queued yet'
+              }}
+            </p>
           </div>
 
           <button v-if="upNext.length" class="rp-clear" type="button" aria-label="Clear queue"
@@ -280,9 +282,9 @@ watch(
 
 watch(
   [() => effectiveRecommendations.value.length, () => upNext.value.length],
-  ([recommendationCount, queueCount]) => {
+  ([recommendationCount]) => {
     if (tab.value === 'discover' && !recommendationCount) {
-      tab.value = queueCount ? 'queue' : 'queue'
+      tab.value = 'queue'
     }
   }
 )
