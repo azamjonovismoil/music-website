@@ -6,45 +6,73 @@
 
     <main class="landing-main">
 
-      <section class="landing-carousel-section">
+      <section class="landing-hero">
 
-        <div class="landing-carousel-shell">
+        <div class="landing-shell">
 
-          <div v-if="tracksLoading" class="landing-carousel-loading">
+          <div class="landing-hero-head">
 
-            <div v-for="n in 6" :key="n" class="landing-track-card landing-track-card--skeleton"></div>
+            <button class="landing-cta landing-cta--ghost" type="button" @click="goLogin">
+
+              <ArrowRightOnRectangleIcon class="landing-cta__icon" />
+
+              <span>Log in</span>
+
+            </button>
+
+            <button class="landing-cta landing-cta--primary" type="button" @click="goRegister">
+
+              <UserPlusIcon class="landing-cta__icon" />
+
+              <span>Sign up</span>
+
+            </button>
 
           </div>
 
-          <div v-else-if="previewTracks.length" class="landing-carousel-wrap">
+          <div v-if="tracksLoading" class="landing-hero-loading">
 
-            <Swiper class="landing-swiper" :modules="swiperModules" :slides-per-view="'auto'" :centered-slides="true"
-              :loop="previewTracks.length > 4" :speed="700" :space-between="14" :grab-cursor="true"
-              :watch-overflow="true" :resistance-ratio="0.85" :autoplay="autoplayOptions">
+            <div v-for="n in 5" :key="n" class="landing-hero-card landing-hero-card--skeleton"></div>
 
-              <SwiperSlide v-for="track in previewTracks" :key="track._id" class="landing-swiper__slide">
+          </div>
 
-                <article class="landing-track-card" tabindex="0" role="button"
+          <div v-else-if="heroTracks.length" class="landing-hero-swiper-wrap">
+
+            <Swiper class="landing-hero-swiper" :modules="swiperModules" :slides-per-view="'auto'"
+              :centered-slides="true" :loop="heroTracks.length > 4" :speed="700" :space-between="18" :grab-cursor="true"
+              :watch-overflow="true" :autoplay="autoplayOptions" @swiper="onHeroSwiper"
+              @slideChange="onHeroSlideChange">
+
+              <SwiperSlide v-for="(track, index) in heroTracks" :key="track._id" class="landing-hero-swiper__slide"
+                :class="{
+
+                  'is-active': index === activeHeroIndex,
+
+                  'is-side': index !== activeHeroIndex,
+
+                }">
+
+                <article class="landing-hero-card" tabindex="0" role="button"
                   :aria-label="`Open authentication for ${track.title || 'track'}`" @click="requireAuth"
                   @keydown.enter.prevent="requireAuth" @keydown.space.prevent="requireAuth">
 
-                  <div class="landing-track-card__media">
+                  <div class="landing-hero-card__media">
 
-                    <img class="landing-track-card__cover" :src="resolveCoverLanding(track)"
+                    <img class="landing-hero-card__cover" :src="resolveCoverLanding(track)"
                       :alt="track.title || 'Track cover'" loading="lazy" @error="imgErr" />
 
-                    <div class="landing-track-card__overlay"></div>
+                    <div class="landing-hero-card__overlay"></div>
 
-                    <button class="landing-track-card__play" type="button" aria-label="Play track"
+                    <button class="landing-hero-card__play" type="button" aria-label="Play track"
                       @click.stop="requireAuth">
 
-                      <PlayIcon class="landing-track-card__play-icon" />
+                      <PlayIcon class="landing-hero-card__play-icon" />
 
                     </button>
 
                   </div>
 
-                  <div class="landing-track-card__body">
+                  <div class="landing-hero-card__body">
 
                     <strong>{{ track.title || 'Untitled' }}</strong>
 
@@ -60,11 +88,65 @@
 
           </div>
 
-          <div v-else class="landing-carousel-empty">
+          <div v-else class="landing-empty">
+
+            <MusicalNoteIcon class="landing-empty__icon" />
 
             <p>No tracks found.</p>
 
           </div>
+
+        </div>
+
+      </section>
+
+      <section v-if="shelfRows.length" class="landing-shelves">
+
+        <div class="landing-shell">
+
+          <section v-for="row in shelfRows" :key="row.key" class="landing-shelf">
+
+            <div class="landing-shelf__head">
+
+              <h2>{{ row.title }}</h2>
+
+            </div>
+
+            <div class="landing-shelf__grid">
+
+              <article v-for="track in row.tracks" :key="`${row.key}-${track._id}`" class="landing-shelf-card"
+                tabindex="0" role="button" :aria-label="`Open authentication for ${track.title || 'track'}`"
+                @click="requireAuth" @keydown.enter.prevent="requireAuth" @keydown.space.prevent="requireAuth">
+
+                <div class="landing-shelf-card__media">
+
+                  <img class="landing-shelf-card__cover" :src="resolveCoverLanding(track)"
+                    :alt="track.title || 'Track cover'" loading="lazy" @error="imgErr" />
+
+                  <div class="landing-shelf-card__overlay"></div>
+
+                  <button class="landing-shelf-card__play" type="button" aria-label="Play track"
+                    @click.stop="requireAuth">
+
+                    <PlayIcon class="landing-shelf-card__play-icon" />
+
+                  </button>
+
+                </div>
+
+                <div class="landing-shelf-card__body">
+
+                  <strong>{{ track.title || 'Untitled' }}</strong>
+
+                  <span>{{ track.artist || 'Unknown artist' }}</span>
+
+                </div>
+
+              </article>
+
+            </div>
+
+          </section>
 
         </div>
 
@@ -80,13 +162,23 @@
 
 <script setup>
 
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 import { useRouter } from 'vue-router'
 
 import axios from 'axios'
 
-import { PlayIcon } from '@heroicons/vue/24/outline'
+import {
+
+  PlayIcon,
+
+  UserPlusIcon,
+
+  ArrowRightOnRectangleIcon,
+
+  MusicalNoteIcon,
+
+} from '@heroicons/vue/24/outline'
 
 import { Swiper, SwiperSlide } from 'swiper/vue'
 
@@ -110,17 +202,67 @@ const tracksLoading = ref(false)
 
 const previewTracks = ref([])
 
+const activeHeroIndex = ref(0)
+
 const swiperModules = [Autoplay]
 
 const autoplayOptions = {
 
-  delay: 2400,
+  delay: 2600,
 
   disableOnInteraction: false,
 
   pauseOnMouseEnter: true,
 
 }
+
+const heroTracks = computed(() => previewTracks.value.slice(0, 10))
+
+const normalizeWord = (value) => String(value || '').trim().toLowerCase()
+
+const shelfRows = computed(() => {
+
+  const source = [...previewTracks.value]
+
+  if (!source.length) return []
+
+  const featured = source.filter((track) => track.isFeatured).slice(0, 6)
+
+  const trending = [...source]
+
+    .sort((a, b) => Number(b.playCount || 0) - Number(a.playCount || 0))
+
+    .slice(0, 6)
+
+  const recommended = source.filter((track) => track.isRecommended).slice(0, 6)
+
+  const lateNight = source
+
+    .filter((track) =>
+
+      (track.mood || []).map(normalizeWord).some((mood) =>
+
+        ['chill', 'soft', 'night', 'relax'].includes(mood)
+
+      )
+
+    )
+
+    .slice(0, 6)
+
+  return [
+
+    { key: 'featured', title: 'Featured', tracks: featured },
+
+    { key: 'trending', title: 'Trending', tracks: trending },
+
+    { key: 'recommended', title: 'Recommended', tracks: recommended },
+
+    { key: 'latenight', title: 'Late night', tracks: lateNight },
+
+  ].filter((row) => row.tracks.length)
+
+})
 
 const resolveCoverLanding = (track) => resolveCover(track)
 
@@ -152,6 +294,18 @@ const goRegister = () => {
 
 }
 
+const onHeroSwiper = (swiper) => {
+
+  activeHeroIndex.value = swiper.realIndex || 0
+
+}
+
+const onHeroSlideChange = (swiper) => {
+
+  activeHeroIndex.value = swiper.realIndex || 0
+
+}
+
 onMounted(async () => {
 
   try {
@@ -164,7 +318,7 @@ onMounted(async () => {
 
       params: {
 
-        limit: 12,
+        limit: 18,
 
       },
 

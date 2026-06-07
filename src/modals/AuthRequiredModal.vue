@@ -9,11 +9,15 @@
 
         <button class="auth-modal-close" type="button" aria-label="Close modal" @click="$emit('close')">
 
-          <span>×</span>
+          <XMarkIcon class="auth-modal-close__icon" />
 
         </button>
 
-        <div class="auth-modal-icon" aria-hidden="true">♪</div>
+        <div class="auth-modal-icon" aria-hidden="true">
+
+          <MusicalNoteIcon class="auth-modal-icon__note" />
+
+        </div>
 
         <h2 id="auth-modal-title" class="auth-modal-title">
 
@@ -31,13 +35,17 @@
 
           <button class="auth-btn auth-btn-primary" type="button" @click="$emit('signup')">
 
-            Sign up
+            <UserPlusIcon class="auth-btn__icon" />
+
+            <span>Sign up</span>
 
           </button>
 
           <button class="auth-btn auth-btn-ghost" type="button" @click="$emit('login')">
 
-            Log in
+            <ArrowRightOnRectangleIcon class="auth-btn__icon" />
+
+            <span>Log in</span>
 
           </button>
 
@@ -54,6 +62,18 @@
 <script setup>
 
 import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
+
+import {
+
+  XMarkIcon,
+
+  MusicalNoteIcon,
+
+  UserPlusIcon,
+
+  ArrowRightOnRectangleIcon,
+
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
 
@@ -117,11 +137,7 @@ watch(
 
 onBeforeUnmount(() => {
 
-  if (typeof document !== 'undefined') {
-
-    document.body.style.overflow = ''
-
-  }
+  if (typeof document !== 'undefined') document.body.style.overflow = ''
 
   window.removeEventListener('keydown', handleKeydown)
 
@@ -232,18 +248,6 @@ onBeforeUnmount(() => {
 
 }
 
-.auth-modal-close span {
-
-  display: block;
-
-  line-height: 1;
-
-  font-size: 22px;
-
-  transform: translateY(-1px);
-
-}
-
 .auth-modal-close:hover {
 
   background: rgba(255, 255, 255, 0.14);
@@ -259,6 +263,14 @@ onBeforeUnmount(() => {
   outline: none;
 
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.34);
+
+}
+
+.auth-modal-close__icon {
+
+  width: 20px;
+
+  height: 20px;
 
 }
 
@@ -280,11 +292,15 @@ onBeforeUnmount(() => {
 
   color: #fff;
 
-  font-size: 28px;
-
-  font-weight: 900;
-
   box-shadow: 0 18px 36px rgba(37, 99, 235, 0.28);
+
+}
+
+.auth-modal-icon__note {
+
+  width: 28px;
+
+  height: 28px;
 
 }
 
@@ -336,6 +352,14 @@ onBeforeUnmount(() => {
 
   border: 1px solid transparent;
 
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
   font-size: 14px;
 
   font-weight: 800;
@@ -355,6 +379,14 @@ onBeforeUnmount(() => {
 .auth-btn:hover {
 
   transform: translateY(-1px);
+
+}
+
+.auth-btn__icon {
+
+  width: 17px;
+
+  height: 17px;
 
 }
 

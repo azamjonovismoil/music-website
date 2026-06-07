@@ -1,49 +1,159 @@
 .landing {
   min-height: 100vh;
 
-  background: var(--bg-base);
+  background:
+    radial-gradient(circle at top center, rgba(37, 99, 235, 0.08), transparent 24%), var(--bg-base);
 
   color: var(--text-primary);
 }
 
 .landing-main {
-  width: 100%;
+  padding: 18px 0 42px;
 }
 
-.landing-carousel-section {
-  padding: 26px 0 34px;
-}
-
-.landing-carousel-shell {
-  width: min(1240px, calc(100% - 24px));
+.landing-shell {
+  width: min(1240px, calc(100% - 28px));
 
   margin: 0 auto;
 }
 
-.landing-carousel-wrap {
+.landing-hero {
+  padding: 6px 0 18px;
+}
+
+.landing-hero-head {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-bottom: 12px;
+}
+
+.landing-cta {
+  min-height: 42px;
+
+  padding: 0 14px;
+
+  border-radius: 14px;
+
+  border: 1px solid transparent;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.landing-cta:hover {
+  transform: translateY(-1px);
+}
+
+.landing-cta:focus-visible,
+.landing-hero-card:focus-visible,
+.landing-shelf-card:focus-visible,
+.landing-hero-card__play:focus-visible,
+.landing-shelf-card__play:focus-visible {
+  outline: none;
+
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.landing-cta__icon {
+  width: 16px;
+
+  height: 16px;
+
+  flex-shrink: 0;
+}
+
+.landing-cta--ghost {
+  background: color-mix(in srgb, var(--surface-1) 96%, transparent);
+
+  color: var(--text-primary);
+
+  border-color: color-mix(in srgb, var(--border) 90%, transparent);
+
+  box-shadow: var(--shadow-xs);
+}
+
+.landing-cta--ghost:hover {
+  border-color: var(--border-hover);
+
+  background: color-mix(in srgb, var(--surface-2) 96%, transparent);
+}
+
+.landing-cta--primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-mid));
+
+  color: #fff;
+
+  box-shadow: 0 10px 24px rgba(53, 109, 255, 0.22);
+}
+
+.landing-cta--primary:hover {
+  filter: brightness(1.03);
+}
+
+.landing-hero-swiper-wrap {
   position: relative;
 }
 
-.landing-swiper {
-  padding: 14px 0 18px;
-
+.landing-hero-swiper {
   overflow: visible;
+
+  padding: 18px 0 24px;
 }
 
-.landing-swiper .swiper-wrapper {
+.landing-hero-swiper .swiper-wrapper {
   align-items: stretch;
 }
 
-.landing-swiper__slide {
-  width: 210px !important;
+.landing-hero-swiper__slide {
+  width: 228px !important;
 
   height: auto;
+
+  transition:
+    opacity 0.24s ease,
+    transform 0.24s ease,
+    filter 0.24s ease;
 }
 
-.landing-track-card {
+.landing-hero-swiper__slide.is-side {
+  opacity: 0.58;
+
+  filter: saturate(0.9);
+}
+
+.landing-hero-swiper__slide.is-active {
+  opacity: 1;
+
+  transform: translateY(-2px) scale(1.03);
+
+  z-index: 2;
+}
+
+.landing-hero-card,
+.landing-shelf-card {
   overflow: hidden;
 
-  border-radius: 20px;
+  border-radius: 22px;
 
   border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
 
@@ -54,7 +164,7 @@
   );
 
   box-shadow:
-    0 14px 26px rgba(2, 6, 23, 0.08),
+    0 16px 34px rgba(2, 6, 23, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.03);
 
   cursor: pointer;
@@ -63,29 +173,19 @@
     transform 0.2s ease,
     border-color 0.2s ease,
     box-shadow 0.2s ease;
-
-  will-change: transform;
 }
 
-.landing-track-card:hover {
-  transform: translateY(-3px);
-
+.landing-hero-card:hover,
+.landing-shelf-card:hover {
   border-color: var(--border-hover);
 
   box-shadow:
-    0 18px 34px rgba(2, 6, 23, 0.12),
+    0 20px 40px rgba(2, 6, 23, 0.14),
     0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
-.landing-track-card:focus-visible {
-  outline: none;
-
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent),
-    0 18px 34px rgba(2, 6, 23, 0.12);
-}
-
-.landing-track-card__media {
+.landing-hero-card__media,
+.landing-shelf-card__media {
   position: relative;
 
   aspect-ratio: 1;
@@ -95,7 +195,8 @@
   background: var(--surface-2);
 }
 
-.landing-track-card__cover {
+.landing-hero-card__cover,
+.landing-shelf-card__cover {
   width: 100%;
 
   height: 100%;
@@ -105,15 +206,15 @@
   object-fit: cover;
 
   transition: transform 0.26s ease;
-
-  will-change: transform;
 }
 
-.landing-track-card:hover .landing-track-card__cover {
+.landing-hero-card:hover .landing-hero-card__cover,
+.landing-shelf-card:hover .landing-shelf-card__cover {
   transform: scale(1.035);
 }
 
-.landing-track-card__overlay {
+.landing-hero-card__overlay,
+.landing-shelf-card__overlay {
   position: absolute;
 
   inset: 0;
@@ -125,7 +226,8 @@
   pointer-events: none;
 }
 
-.landing-track-card__play {
+.landing-hero-card__play,
+.landing-shelf-card__play {
   position: absolute;
 
   top: 50%;
@@ -164,23 +266,17 @@
     box-shadow 0.18s ease;
 }
 
-.landing-track-card__play:hover {
+.landing-hero-card__play:hover,
+.landing-shelf-card__play:hover {
   transform: translate(-50%, -50%) scale(1.05);
 
-  background: rgba(10, 14, 24, 0.9);
+  background: rgba(10, 14, 24, 0.92);
 
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28);
 }
 
-.landing-track-card__play:focus-visible {
-  outline: none;
-
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent),
-    0 14px 28px rgba(0, 0, 0, 0.28);
-}
-
-.landing-track-card__play-icon {
+.landing-hero-card__play-icon,
+.landing-shelf-card__play-icon {
   width: 19px;
 
   height: 19px;
@@ -188,12 +284,15 @@
   margin-left: 2px;
 }
 
-.landing-track-card__body {
+.landing-hero-card__body,
+.landing-shelf-card__body {
   padding: 11px 12px 13px;
 }
 
-.landing-track-card__body strong,
-.landing-track-card__body span {
+.landing-hero-card__body strong,
+.landing-hero-card__body span,
+.landing-shelf-card__body strong,
+.landing-shelf-card__body span {
   display: block;
 
   white-space: nowrap;
@@ -203,7 +302,8 @@
   text-overflow: ellipsis;
 }
 
-.landing-track-card__body strong {
+.landing-hero-card__body strong,
+.landing-shelf-card__body strong {
   font-size: 14px;
 
   line-height: 1.3;
@@ -213,7 +313,8 @@
   color: var(--text-primary);
 }
 
-.landing-track-card__body span {
+.landing-hero-card__body span,
+.landing-shelf-card__body span {
   margin-top: 5px;
 
   font-size: 12px;
@@ -223,24 +324,24 @@
   color: var(--text-muted);
 }
 
-.landing-carousel-loading {
+.landing-hero-loading {
   display: flex;
 
-  gap: 14px;
+  gap: 16px;
 
   overflow: hidden;
 
-  padding: 14px 0 18px;
+  padding: 18px 0 24px;
 }
 
-.landing-track-card--skeleton {
-  width: 210px;
+.landing-hero-card--skeleton {
+  width: 228px;
 
-  min-width: 210px;
+  min-width: 228px;
 
-  min-height: 286px;
+  min-height: 304px;
 
-  border-radius: 20px;
+  border-radius: 22px;
 
   background: linear-gradient(
     90deg,
@@ -266,12 +367,46 @@
   }
 }
 
-.landing-carousel-empty {
+.landing-shelves {
+  padding-top: 4px;
+}
+
+.landing-shelf + .landing-shelf {
+  margin-top: 26px;
+}
+
+.landing-shelf__head {
+  margin-bottom: 12px;
+}
+
+.landing-shelf__head h2 {
+  margin: 0;
+
+  font-size: 20px;
+
+  line-height: 1.15;
+
+  font-weight: 850;
+
+  letter-spacing: -0.02em;
+}
+
+.landing-shelf__grid {
+  display: grid;
+
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+.landing-empty {
   min-height: 260px;
 
   display: grid;
 
   place-items: center;
+
+  gap: 8px;
 
   text-align: center;
 
@@ -284,24 +419,42 @@
   color: var(--text-muted);
 }
 
+.landing-empty__icon {
+  width: 24px;
+
+  height: 24px;
+
+  color: var(--text-hint);
+}
+
+@media (max-width: 1180px) {
+  .landing-shelf__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 980px) {
-  .landing-carousel-section {
-    padding: 20px 0 28px;
+  .landing-main {
+    padding-bottom: 28px;
   }
 
-  .landing-swiper__slide {
-    width: 188px !important;
+  .landing-hero-swiper__slide,
+  .landing-hero-card--skeleton {
+    width: 198px !important;
   }
 
-  .landing-track-card--skeleton {
-    width: 188px;
+  .landing-hero-card--skeleton {
+    min-width: 198px;
 
-    min-width: 188px;
-
-    min-height: 258px;
+    min-height: 270px;
   }
 
-  .landing-track-card__play {
+  .landing-shelf__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .landing-hero-card__play,
+  .landing-shelf-card__play {
     width: 48px;
 
     height: 48px;
@@ -309,51 +462,72 @@
 }
 
 @media (max-width: 640px) {
-  .landing-carousel-shell {
-    width: min(100%, calc(100% - 14px));
+  .landing-shell {
+    width: min(100%, calc(100% - 16px));
   }
 
-  .landing-swiper {
-    padding: 10px 0 14px;
+  .landing-hero-head {
+    justify-content: stretch;
   }
 
-  .landing-swiper__slide {
-    width: 164px !important;
+  .landing-cta {
+    flex: 1;
+
+    justify-content: center;
   }
 
-  .landing-track-card {
-    border-radius: 17px;
+  .landing-hero-swiper {
+    padding: 10px 0 16px;
   }
 
-  .landing-track-card--skeleton {
-    width: 164px;
-
-    min-width: 164px;
-
-    min-height: 226px;
-
-    border-radius: 17px;
+  .landing-hero-swiper__slide,
+  .landing-hero-card--skeleton {
+    width: 166px !important;
   }
 
-  .landing-track-card__body {
+  .landing-hero-card--skeleton {
+    min-width: 166px;
+
+    min-height: 228px;
+
+    border-radius: 18px;
+  }
+
+  .landing-hero-card,
+  .landing-shelf-card {
+    border-radius: 18px;
+  }
+
+  .landing-hero-card__body,
+  .landing-shelf-card__body {
     padding: 10px 10px 12px;
   }
 
-  .landing-track-card__body strong {
+  .landing-hero-card__body strong,
+  .landing-shelf-card__body strong {
     font-size: 13px;
   }
 
-  .landing-track-card__body span {
+  .landing-hero-card__body span,
+  .landing-shelf-card__body span {
     font-size: 11px;
   }
 
-  .landing-track-card__play {
+  .landing-shelf__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+  }
+
+  .landing-hero-card__play,
+  .landing-shelf-card__play {
     width: 44px;
 
     height: 44px;
   }
 
-  .landing-track-card__play-icon {
+  .landing-hero-card__play-icon,
+  .landing-shelf-card__play-icon {
     width: 17px;
 
     height: 17px;
@@ -361,13 +535,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-track-card,
-  .landing-track-card__cover,
-  .landing-track-card__play {
+  .landing-cta,
+  .landing-hero-swiper__slide,
+  .landing-hero-card,
+  .landing-shelf-card,
+  .landing-hero-card__cover,
+  .landing-shelf-card__cover,
+  .landing-hero-card__play,
+  .landing-shelf-card__play {
     transition: none;
   }
 
-  .landing-track-card--skeleton {
+  .landing-hero-card--skeleton {
     animation: none;
   }
 }
