@@ -24,6 +24,7 @@
     "lottie-vuejs": "^0.4.0",
     "lottie-web": "^5.13.0",
     "pinia": "^3.0.4",
+    "swiper": "^12.2.0",
     "vue": "^3.5.32",
     "vue-router": "^4.6.4",
     "vue3-aplayer": "^1.7.3"
