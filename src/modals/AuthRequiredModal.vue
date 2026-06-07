@@ -9,7 +9,7 @@
 
         <button class="auth-modal-close" type="button" aria-label="Close modal" @click="$emit('close')">
 
-          ×
+          <span>×</span>
 
         </button>
 
@@ -23,7 +23,7 @@
 
         <p id="auth-modal-description" class="auth-modal-text">
 
-          Sign in or create an account to play tracks, save playlists, and use your personal library.
+          Sign in or create an account to play tracks and use your library.
 
         </p>
 
@@ -212,6 +212,8 @@ onBeforeUnmount(() => {
 
   height: 38px;
 
+  padding: 0;
+
   border: none;
 
   border-radius: 50%;
@@ -220,13 +222,25 @@ onBeforeUnmount(() => {
 
   color: #fff;
 
-  font-size: 22px;
+  display: grid;
 
-  line-height: 1;
+  place-items: center;
 
   cursor: pointer;
 
   transition: background 0.18s ease, transform 0.18s ease;
+
+}
+
+.auth-modal-close span {
+
+  display: block;
+
+  line-height: 1;
+
+  font-size: 22px;
+
+  transform: translateY(-1px);
 
 }
 
