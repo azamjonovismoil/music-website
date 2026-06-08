@@ -1,26 +1,77 @@
 <template>
-  <section class="not-found-page">
-    <div class="not-found-card">
-      <p class="nf-kicker">Error</p>
-      <h1 class="nf-title">404</h1>
-      <p class="nf-text">Siz qidirgan sahifa topilmadi.</p>
 
-      <div class="nf-actions">
-        <router-link to="/user" class="nf-btn primary">Home</router-link>
-        <button class="nf-btn secondary" @click="goBack">Orqaga</button>
-      </div>
+  <section class="not-found">
+
+    <div class="not-found__card">
+
+      <h1>404</h1>
+
+      <p>Page not found.</p>
+
+      <RouterLink class="not-found__link" to="/">Go home</RouterLink>
+
     </div>
+
   </section>
+
 </template>
 
-<script setup>
-import '@/styles/not_found_page.css'
+<style scoped>
+.not-found {
 
-const goBack = () => {
-  if (window.history.length > 1) {
-    window.history.back()
-  } else {
-    window.location.href = '/user'
-  }
+  min-height: 100vh;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 20px;
+
 }
-</script>
+
+.not-found__card {
+
+  width: 100%;
+
+  max-width: 420px;
+
+  padding: 28px;
+
+  text-align: center;
+
+  border-radius: 28px;
+
+  background: #15151d;
+
+  border: 1px solid rgba(255, 255, 255, .08);
+
+  color: #fff;
+
+}
+
+.not-found__card h1 {
+
+  font-size: 54px;
+
+  font-weight: 900;
+
+}
+
+.not-found__link {
+
+  display: inline-flex;
+
+  margin-top: 16px;
+
+  color: #fff;
+
+  text-decoration: none;
+
+  background: linear-gradient(135deg, #ff2ea6, #a855f7);
+
+  padding: 12px 16px;
+
+  border-radius: 14px;
+
+}
+</style>
