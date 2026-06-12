@@ -1,5 +1,8 @@
 <template>
-  <aside class="user-sidebar" :class="{ 'user-sidebar--collapsed': collapsed }" aria-label="Playlists sidebar">
+  <aside class="user-sidebar" :class="{
+    'user-sidebar--collapsed': collapsed,
+    'user-sidebar--mobile': isMobile,
+  }" aria-label="Playlists sidebar">
     <div class="us-header">
       <div class="us-brand">
         <div class="us-brand__icon-wrap">
@@ -20,14 +23,17 @@
     </div>
 
     <div class="us-top-actions">
-      <button class="us-create-btn" type="button" @click="$emit('create-playlist')" title="Create playlist">
+      <button class="us-create-btn" :class="{ 'us-create-btn--collapsed': collapsed }" type="button"
+        @click="$emit('create-playlist')" :title="collapsed ? 'Create playlist' : 'New playlist'"
+        :aria-label="collapsed ? 'Create playlist' : 'New playlist'">
         <PlusIcon class="us-create-ico" />
         <span v-if="!collapsed">New playlist</span>
       </button>
     </div>
 
     <div class="us-shortcuts" :class="{ 'us-shortcuts--collapsed': collapsed }">
-      <button class="us-shortcut" type="button" @click="goToFavourites">
+      <button class="us-shortcut" :class="{ 'us-shortcut--collapsed': collapsed }" type="button"
+        :title="collapsed ? 'Favourites' : ''" :aria-label="'Favourites'" @click="goToFavourites">
         <div class="us-shortcut__icon us-shortcut__icon--liked">
           <HeartIcon class="us-shortcut__icon-svg" />
         </div>
@@ -38,12 +44,12 @@
         </div>
       </button>
 
-      <button class="us-shortcut" type="button" @click="goToDownloads">
+      <button v-if="!collapsed" class="us-shortcut" type="button" aria-label="Downloads" @click="goToDownloads">
         <div class="us-shortcut__icon us-shortcut__icon--downloads">
           <ArrowDownTrayIcon class="us-shortcut__icon-svg" />
         </div>
 
-        <div v-if="!collapsed" class="us-shortcut__copy">
+        <div class="us-shortcut__copy">
           <span class="us-shortcut__title">Downloads</span>
           <span class="us-shortcut__sub">Offline tracks</span>
         </div>
@@ -67,11 +73,12 @@
           </div>
 
           <div v-if="!collapsed" class="us-pl-actions" @click.stop>
-            <button class="us-pl-btn" type="button" title="Edit playlist" @click="$emit('rename-playlist', playlist)">
+            <button class="us-pl-btn" type="button" title="Edit playlist" aria-label="Edit playlist"
+              @click="$emit('rename-playlist', playlist)">
               <PencilSquareIcon class="us-pl-btn-ico" />
             </button>
 
-            <button class="us-pl-btn us-pl-btn--del" type="button" title="Delete playlist"
+            <button class="us-pl-btn us-pl-btn--del" type="button" title="Delete playlist" aria-label="Delete playlist"
               @click="$emit('delete-playlist', playlist)">
               <TrashIcon class="us-pl-btn-ico" />
             </button>

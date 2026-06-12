@@ -1,7 +1,6 @@
 :root {
   --player-h: 92px;
   --player-z: 2200;
-  --player-bar-offset: 14px;
 }
 
 .player-shell {
