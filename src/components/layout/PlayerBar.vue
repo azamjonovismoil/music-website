@@ -1,83 +1,31 @@
 <template>
   <transition name="player-rise">
     <div v-if="music" class="player-shell">
-      <div class="player-bar" :class="{
-        playing: isPlaying,
-        loading: isLoading,
-        'player-bar--mobile': isPhone,
-      }">
+      <div class="player-bar" :class="{ playing: isPlaying, loading: isLoading }">
         <audio ref="audioRef" :key="audioSrc" :src="audioSrc" preload="metadata" playsinline @timeupdate="onTimeUpdate"
           @loadedmetadata="onMeta" @progress="onProgress" @waiting="onWaiting" @playing="onPlaying" @pause="onPause"
           @ended="onEnded" @error="onAudioError" />
 
-        <div class="player-main">
-          <button class="player-cover-pill" type="button" @click="goDetail" aria-label="Open track details">
+        <div class="player-left">
+          <button class="cover-wrap" type="button" @click="goDetail" aria-label="Open track details">
             <img class="player-cover" :src="coverSrc" :alt="music.title || 'Track cover'" @error="onCoverError" />
-            <span class="player-cover-glow" />
           </button>
 
-          <div class="player-copy">
-            <div class="player-title-row">
-              <button class="track-btn track-title marquee-wrap" type="button" @click="goDetail">
-                <span ref="titleTextRef" class="marquee-text" :class="{ scrolling: shouldScrollTitle }">
-                  {{ music.title || 'Unknown track' }}
-                </span>
-              </button>
-
-              <div v-if="isPlaying && !isPhone" class="mini-eq" aria-hidden="true">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            </div>
-
-            <div class="player-sub-row">
-              <button class="track-btn track-artist" type="button" @click="goArtistDetail">
-                {{ music.artist || 'Unknown artist' }}
-              </button>
-
-              <span v-if="!isPhone && music.album" class="player-dot" aria-hidden="true"></span>
-
-              <span v-if="!isPhone && music.album" class="track-meta">{{ music.album }}</span>
-            </div>
-          </div>
-
-          <div class="player-top-actions">
-            <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" @click="handleToggleLike"
-              aria-label="Toggle like">
-              <HeartSolidIcon v-if="music.liked" class="ctrl-icon" />
-              <HeartIcon v-else class="ctrl-icon" />
+          <div class="player-info">
+            <button class="track-btn track-title marquee-wrap" type="button" @click="goDetail">
+              <span ref="titleTextRef" class="marquee-text" :class="{ scrolling: shouldScrollTitle }">
+                {{ music.title || 'Unknown track' }}
+              </span>
             </button>
 
-            <button v-if="!isAdmin && !isPhone" class="ctrl" type="button" @click="handleAddToPlaylist"
-              aria-label="Add to playlist">
-              <PlusIcon class="ctrl-icon" />
-            </button>
-
-            <button class="ctrl" :class="{ active: queueOpen }" type="button" @click="$emit('toggle-queue')"
-              aria-label="Toggle queue" :aria-expanded="String(queueOpen)" aria-controls="right-player-panel">
-              <QueueListIcon class="ctrl-icon" />
+            <button class="track-btn track-artist" type="button" @click="goArtistDetail">
+              {{ music.artist || 'Unknown artist' }}
             </button>
           </div>
         </div>
 
-        <div class="player-progress-wrap">
-          <span class="time">{{ fmt(currentTime) }}</span>
-
-          <div class="progress-track" @click="seekClick">
-            <div class="progress-base" />
-            <div class="progress-buf" :style="{ width: buffered + '%' }" />
-            <div class="progress-fill" :style="{ width: pct + '%' }" />
-            <div class="progress-thumb" :style="{ left: pct + '%' }" />
-            <input v-model="progress" class="progress-input" type="range" min="0" :max="duration || 0" step="0.1"
-              aria-label="Seek track" @input="seekInput" />
-          </div>
-
-          <span class="time">{{ fmt(duration) }}</span>
-        </div>
-
-        <div class="player-controls-row">
-          <div class="player-controls player-controls--left">
+        <div class="player-center">
+          <div class="controls">
             <button v-if="!isCompact" class="ctrl" :class="{ active: player.shuffle }" type="button"
               @click="player.toggleShuffle()" aria-label="Toggle shuffle">
               <ArrowsRightLeftIcon class="ctrl-icon" />
@@ -86,15 +34,13 @@
             <button class="ctrl" type="button" @click="player.playPrev()" aria-label="Previous track">
               <BackwardIcon class="ctrl-icon" />
             </button>
-          </div>
 
-          <button class="ctrl play-ctrl" type="button" @click="togglePlay" :aria-label="isPlaying ? 'Pause' : 'Play'">
-            <ArrowPathIcon v-if="isLoading" class="play-icon spin" />
-            <PauseIcon v-else-if="isPlaying" class="play-icon" />
-            <PlayIcon v-else class="play-icon play-icon--shift" />
-          </button>
+            <button class="ctrl play-ctrl" type="button" @click="togglePlay" :aria-label="isPlaying ? 'Pause' : 'Play'">
+              <ArrowPathIcon v-if="isLoading" class="play-icon spin" />
+              <PauseIcon v-else-if="isPlaying" class="play-icon" />
+              <PlayIcon v-else class="play-icon play-icon--shift" />
+            </button>
 
-          <div class="player-controls player-controls--right">
             <button class="ctrl" type="button" @click="player.playNext()" aria-label="Next track">
               <ForwardIcon class="ctrl-icon" />
             </button>
@@ -105,25 +51,46 @@
               <span v-if="player.repeatMode === 'one'" class="repeat-badge">1</span>
             </button>
           </div>
+
+          <div class="progress-area">
+            <span class="time">{{ fmt(currentTime) }}</span>
+
+            <div class="progress-track" @click="seekClick">
+              <div class="progress-base" />
+              <div class="progress-buf" :style="{ width: buffered + '%' }" />
+              <div class="progress-fill" :style="{ width: pct + '%' }" />
+              <div class="progress-thumb" :style="{ left: pct + '%' }" />
+              <input v-model="progress" class="progress-input" type="range" min="0" :max="duration || 0" step="0.1"
+                aria-label="Seek track" @input="seekInput" />
+            </div>
+
+            <span class="time">{{ fmt(duration) }}</span>
+          </div>
         </div>
 
-        <div class="player-bottom-actions">
-          <button v-if="!isAdmin" class="ctrl bottom-action" :class="{ active: lyricsOpen }" :disabled="!hasLyrics"
-            type="button" @click="handleLyricsOpen" aria-label="Open lyrics">
-            <MicrophoneIcon class="ctrl-icon" />
-            <span v-if="!isPhone">Lyrics</span>
+        <div class="player-right">
+          <button class="ctrl like-btn" :class="{ active: music.liked }" type="button" @click="handleToggleLike"
+            aria-label="Toggle like">
+            <HeartSolidIcon v-if="music.liked" class="ctrl-icon" />
+            <HeartIcon v-else class="ctrl-icon" />
           </button>
 
-          <button v-if="!isAdmin && isPhone" class="ctrl bottom-action" type="button" @click="handleAddToPlaylist"
-            aria-label="Add to playlist">
+          <button v-if="!isAdmin" class="ctrl" type="button" @click="handleAddToPlaylist" aria-label="Add to playlist">
             <PlusIcon class="ctrl-icon" />
-            <span>Playlist</span>
           </button>
 
-          <button v-if="!isAdmin" class="ctrl bottom-action" type="button" @click="handleExpand"
-            aria-label="Expand player">
+          <button class="ctrl" :class="{ active: queueOpen }" type="button" @click="$emit('toggle-queue')"
+            aria-label="Toggle queue" :aria-expanded="String(queueOpen)" aria-controls="right-player-panel">
+            <QueueListIcon class="ctrl-icon" />
+          </button>
+
+          <button v-if="!isAdmin" class="ctrl" :class="{ active: lyricsOpen }" :disabled="!hasLyrics" type="button"
+            @click="handleLyricsOpen" aria-label="Open lyrics">
+            <MicrophoneIcon class="ctrl-icon" />
+          </button>
+
+          <button v-if="!isAdmin" class="ctrl" type="button" @click="handleExpand" aria-label="Expand player">
             <ArrowsPointingOutIcon class="ctrl-icon" />
-            <span v-if="!isPhone">Details</span>
           </button>
 
           <template v-if="!isCompact">
@@ -197,7 +164,6 @@ const emit = defineEmits([
 
 const player = usePlayerStore()
 const authStore = useAuthStore()
-
 const audioRef = ref(null)
 const titleTextRef = ref(null)
 const isPlaying = ref(false)
@@ -217,7 +183,6 @@ let volTimer = null
 
 const isAdmin = computed(() => Number(authStore.user?.isAdmin) === 1)
 const isCompact = computed(() => viewport.value <= 760)
-const isPhone = computed(() => viewport.value <= 560)
 const audioSrc = computed(() => resolveAudio(props.music || {}))
 const coverSrc = computed(() => resolveCover(props.music || {}) || fallbackCover)
 
@@ -270,7 +235,6 @@ const handleExpand = () => props.music && emit('expand', props.music)
 
 const play = async () => {
   if (!audioRef.value || !audioSrc.value) return
-
   try {
     isLoading.value = true
     await audioRef.value.play()
@@ -304,7 +268,6 @@ const onMeta = () => {
 
 const onProgress = () => {
   if (!audioRef.value || !duration.value) return
-
   try {
     const b = audioRef.value.buffered
     if (b.length) buffered.value = Math.min((b.end(b.length - 1) / duration.value) * 100, 100)
@@ -340,19 +303,16 @@ const seekClick = (e) => {
 
 const changeVol = () => {
   if (!audioRef.value) return
-
   const v = Number(volume.value)
   audioRef.value.volume = v
   audioRef.value.muted = v === 0
   isMuted.value = v === 0
-
   if (v > 0) lastVol.value = v
   showVolHint()
 }
 
 const toggleMute = () => {
   if (!audioRef.value) return
-
   if (isMuted.value || Number(volume.value) === 0) {
     const restored = lastVol.value > 0 ? lastVol.value : 0.72
     volume.value = restored
@@ -366,7 +326,6 @@ const toggleMute = () => {
     audioRef.value.muted = true
     isMuted.value = true
   }
-
   showVolHint()
 }
 

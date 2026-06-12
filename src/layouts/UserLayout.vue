@@ -149,7 +149,6 @@ const playlistColors = [
 
 const RECENT_KEY = computed(() => `rp_${authStore.user?._id || authStore.user?.id || 'u'}`)
 const MAX_RECENT = 6
-
 const isEditingPlaylist = computed(() => !!editingPlaylistId.value)
 const showSearch = computed(() => !route.meta?.hideUserSearch)
 const isMinimalPage = computed(() => !!route.meta?.hideUserChrome)
@@ -235,7 +234,6 @@ const recommendations = computed(() => {
 
         const currentGenres = (current.genre || []).map(normalizeWord)
         const currentMoods = (current.mood || []).map(normalizeWord)
-
         const sharedGenre = (t.genre || []).filter((g) => currentGenres.includes(normalizeWord(g))).length
         const sharedMood = (t.mood || []).filter((m) => currentMoods.includes(normalizeWord(m))).length
 
@@ -266,7 +264,7 @@ const visibleSections = computed(() => {
   if (selectedDetailTrack.value) return []
 
   const source = [...filteredTracks.value]
-  const latest = source.slice(0, 12)
+  const latest = source.slice(0, 10)
 
   const trending = [...source]
     .sort(
@@ -274,11 +272,11 @@ const visibleSections = computed(() => {
         Number(b.playCount || 0) + Number(b.likeCount || 0) * 2 -
         (Number(a.playCount || 0) + Number(a.likeCount || 0) * 2),
     )
-    .slice(0, 12)
+    .slice(0, 10)
 
   const byMood = source
     .filter((t) => (t.mood || []).map(normalizeWord).some((m) => ['chill', 'relax', 'soft', 'night'].includes(m)))
-    .slice(0, 12)
+    .slice(0, 10)
 
   return [
     {
@@ -366,11 +364,6 @@ const fetchPlaylists = async (force = false) => {
 }
 
 const loadRecentlyPlayed = () => {
-  if (typeof localStorage === 'undefined') {
-    recentlyPlayed.value = []
-    return
-  }
-
   try {
     const raw = localStorage.getItem(RECENT_KEY.value)
     recentlyPlayed.value = raw ? JSON.parse(raw) : []
@@ -380,8 +373,7 @@ const loadRecentlyPlayed = () => {
 }
 
 const saveRecentlyPlayed = (track) => {
-  if (!track?._id || typeof localStorage === 'undefined') return
-
+  if (!track?._id) return
   const prev = recentlyPlayed.value.filter((t) => String(t._id) !== String(track._id))
   recentlyPlayed.value = [track, ...prev].slice(0, MAX_RECENT)
   localStorage.setItem(RECENT_KEY.value, JSON.stringify(recentlyPlayed.value))
@@ -413,7 +405,6 @@ const selectPlaylist = (playlist) => {
 
 const openTrackDetail = (track) => {
   if (!track) return
-
   lyricsPanelOpen.value = false
   selectedDetailTrack.value = buildMusic(track)
 
@@ -510,7 +501,6 @@ const addTrackToPlaylist = async (playlist) => {
     })
 
     const exists = playlists.value.some((pl) => String(pl._id) === String(data._id))
-
     playlists.value = exists
       ? playlists.value.map((pl) => (pl._id === data._id ? data : pl))
       : [data, ...playlists.value]
