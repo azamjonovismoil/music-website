@@ -65,7 +65,7 @@ defineEmits(['close', 'select', 'create-new'])
 .ap-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 2200;
+  z-index: 3200;
   display: grid;
   place-items: center;
   padding: 18px;

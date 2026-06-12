@@ -1,6 +1,7 @@
 :root {
   --player-h: 92px;
   --player-z: 2200;
+  --modal-z: 3200;
 }
 
 .player-shell {

@@ -114,7 +114,7 @@ const hexColor = computed(() => {
 .cp-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 2100;
+  z-index: 3200;
   display: grid;
   place-items: center;
   padding: 18px;
